@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import '../styles/MegaMenu.css';
 
 const menuData = [
   {
@@ -44,15 +43,28 @@ const menuData = [
 
 export default function MegaMenu() {
   return (
-    <nav className="megaMenu">
-      <ul className="menuList">
+    <nav className="mt-3 px-8 border-t border-b border-gray-300 bg-transparent z-50 flex justify-center items-center">
+      <ul className="flex gap-8 list-none p-0 m-0">
         {menuData.map((item) => (
-          <li className="menuItem" key={item.name}>
-            <span className="menuTitle">{item.name}</span>
-            <div className="dropdown">
-              <div className="dropdownContent">
-                {item.subcategories.map((sub, index) => (
-                  <p key={index}>{sub}</p>
+          <li
+            key={item.name}
+            className="relative cursor-pointer py-3 group menuItem"
+          >
+            <span className="font-medium">{item.name}</span>
+            <div
+              className="invisible opacity-0 pointer-events-none absolute top-[3rem] left-0 min-w-[200px] rounded-lg border border-white/20 bg-white/20
+                          backdrop-blur-lg shadow-lg p-4
+                          transition-opacity duration-200 ease-in-out
+                          group-hover:visible group-hover:opacity-100 group-hover:pointer-events-auto"
+            >
+              <div className="flex flex-col">
+                {item.subcategories.map((sub, idx) => (
+                  <p
+                    key={idx}
+                    className="py-2 px-4 text-sm cursor-pointer rounded-md hover:bg-blue-600 hover:text-white transition"
+                  >
+                    {sub}
+                  </p>
                 ))}
               </div>
             </div>

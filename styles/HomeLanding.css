@@ -1,0 +1,16 @@
+.home-landing {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 35px;
+  margin-top: 86px;
+  text-align: center;
+}
+.home-landing-title {
+  width: 750px;
+}
+.hero-landing-text {
+    width: 700px;
+}
