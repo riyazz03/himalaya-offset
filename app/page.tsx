@@ -2,6 +2,7 @@
 
 import '../styles/HomeLanding.css';
 import Button from '../component/Button';
+import Ticker from '@/component/Ticker';
 
 
 export default function Home() {
@@ -13,9 +14,12 @@ export default function Home() {
       <p className='hero-landing-text'>
         Turning Every Thought Into Tangible Prints — With 30+ Years of Experience, We Help 10,000+ Clients Celebrate, Promote, and Inspire.
       </p>
-
       <Button text="Explore Products" link="/products" />
+      <Ticker text="Best Deals On Coupons" speedSeconds={50} />
 
+      <div className="image-grid-wrapper">
+
+      </div>
     </section>
   );
 }
