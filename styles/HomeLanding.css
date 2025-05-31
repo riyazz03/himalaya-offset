@@ -1,22 +1,23 @@
 .home-landing {
   width: 100%;
+  margin-top: 60px;
+  text-align: center;
+}
+.hero-landing-content-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
   gap: 35px;
-  margin-top: 60px;
-  text-align: center;
 }
 .home-landing-title {
   width: 750px;
 }
 .hero-landing-text {
-    width: 700px;
+  width: 700px;
 }
 
-.image-grid-wrapper{
-    width: 100%;
-    display: grid;
-
+.image-grid-wrapper {
+  width: 100%;
+  display: grid;
 }
