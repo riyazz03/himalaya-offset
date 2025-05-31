@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 
 const menuData = [
   {
@@ -41,6 +42,9 @@ const menuData = [
   },
 ];
 
+const getSubcategoryLink = (category: string, subcategory: string) =>
+  `/${category.toLowerCase().replace(/\s+/g, '-')}/${subcategory.toLowerCase().replace(/\s+/g, '-')}`;
+
 export default function MegaMenu() {
   return (
     <nav className="mt-3 px-8 border-t border-b border-gray-300 bg-transparent z-50 flex justify-center items-center">
@@ -59,12 +63,13 @@ export default function MegaMenu() {
             >
               <div className="flex flex-col">
                 {item.subcategories.map((sub, idx) => (
-                  <p
+                  <Link
                     key={idx}
+                    href={getSubcategoryLink(item.name, sub)}
                     className="py-2 px-4 text-sm cursor-pointer rounded-md hover:bg-blue-600 hover:text-white transition"
                   >
                     {sub}
-                  </p>
+                  </Link>
                 ))}
               </div>
             </div>
