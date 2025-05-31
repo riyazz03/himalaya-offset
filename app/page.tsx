@@ -5,10 +5,6 @@ import Button from '../component/Button';
 
 
 export default function Home() {
-  const handleClick = () => {
-    console.log('View Products clicked!');
-  };
-
   return (
     <section className="home-landing">
       <h1 className='home-landing-title'>
