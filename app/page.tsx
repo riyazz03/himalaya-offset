@@ -4,6 +4,10 @@ import '../styles/HomeLanding.css';
 import Button from '../component/Button';
 import Ticker from '@/component/Ticker';
 import ImageGrid from '@/Sections/ImageGrid';
+import Categories from '@/Sections/Categories';
+// import ProductCard from '@/component/ProductCard';
+import Products from '@/Sections/Products';
+import FaqSection from '@/Sections/FaqSection';
 
 
 export default function Home() {
@@ -22,9 +26,11 @@ export default function Home() {
 
       <ImageGrid />
       <Ticker text="Best Deals On Coupons" speedSeconds={50} />
-      <div className="h-[50px] md:h-[1000px]"></div>
+      <div className="h-[50px] md:h-[80px]"></div>
 
-
+      <Categories />
+      <Products />
+      <FaqSection />
     </section>
   );
 }

@@ -1,0 +1,16 @@
+.categoerie-sub-title {
+    display: flex;
+    padding: 0.9375rem 2.1875rem;
+    align-items: center;
+    gap: 0.625rem;
+    border-radius: 6.25rem;
+    border: 1px solid #ccc;
+  }
+  .categoerie-sub-title-text {
+    color: #000;
+    font-family: Inter;
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 600;
+    line-height: normal;
+  }
