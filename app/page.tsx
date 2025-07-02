@@ -16,7 +16,7 @@ export default function Home() {
       <div className="hero-landing-content-wrapper">
         <h1 className='home-landing-title'>
           Printing with Passion and <span className='title-span'>Purpose</span>
-        </h1>
+        </h1> 
         <p className='hero-landing-text'>
           Turning Every Thought Into Tangible Prints — With 30+ Years of Experience, We Help 10,000+ Clients Celebrate, Promote, and Inspire.
         </p>

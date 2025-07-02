@@ -4,6 +4,7 @@ import Home from "./page";
 import AnnouncementBar from "@/component/AnnouncementBar";
 import Header from "@/component/Header";
 import MegaMenu from "@/component/MegaMenu";
+// import Footer from "@/component/Footer";
 export const metadata: Metadata = {
   title: "Himalaya Offset | Quality Visiting Cards, Banners & Wedding Cards",
   description:
@@ -21,6 +22,7 @@ export default function RootLayout({
         <Header />
         <MegaMenu />
         <Home />
+        {/* <Footer /> */}
       </body>
     </html>
   );

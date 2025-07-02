@@ -1,0 +1,111 @@
+.footers-card {
+    cursor: pointer;
+    position: relative;
+  }
+  .footer-questions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+  }
+  .footer-question-h3 {
+    color: var(--text-color-primary);
+    text-align: center;
+    font-family: "DM Sans";
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+    letter-spacing: -0.48px;
+  }
+  .footer-svg-outline {
+    border-radius: 50%;
+    display: none;
+  }
+  .footer-mobile {
+    width: 1280px;
+  }
+  .footer-answers {
+    overflow: hidden;
+  }
+  .footer-answers-p {
+    color: var(--gray);
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 31px;
+    letter-spacing: -0.48px;
+    margin-left: 24px;
+    margin-bottom: 25px;
+  }
+  .footer-questions.active svg {
+    transform: rotate(45deg);
+  }
+  .footer-questions.active svg {
+    transform: rotate(45deg);
+  }
+  
+  @media screen and (max-width: 768px) {
+    .footer-questions.active svg {
+      transform: rotate(45deg);
+    }
+    .footer-answers-p {
+      font-size: 25px;
+    }
+    .footer-question-h3 {
+      font-size: 15px;
+      text-align: left;
+    }
+    .footers-card {
+      cursor: pointer;
+      width: 100%;
+      margin: auto;
+    }
+  
+    .footer-mobile {
+      width: 100%;
+    }
+    .footer-questions {
+      display: flex;
+      width: 100%;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .footer-question-h3 {
+      color: var(--text-color-primary);
+      font-family: "DM Sans";
+      font-size: 18px;
+      font-weight: 500;
+      line-height: normal;
+      flex: 1;
+      word-break: break-word;
+      white-space: normal;
+    }
+  
+    .footer-svg-outline {
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .footer-answers {
+      overflow: hidden;
+    }
+    .footer-questions.active svg {
+      transform: rotate(45deg);
+    }
+    .footer-question-h3 {
+      font-size: 1.5rem;
+      line-height: 200%;
+      color: var(--secondary-color);
+      text-align: left;
+    }
+    .footer-answers-wrapper {
+      display: flex;
+      flex-direction: column;
+      height: auto;
+      gap: 20px;
+    }
+  }
+  
