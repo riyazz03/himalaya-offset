@@ -87,7 +87,7 @@ const Categories = () => {
     <div className='categories-section'>
 
       <div className='categories-content' style={{
-        maxWidth: '1200px',
+        maxWidth: '90%',
         margin: '0 auto'
       }}>
         {/* Header Section */}
@@ -179,7 +179,7 @@ const Categories = () => {
             className="swiper-button-prev-custom"
 
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#E78741';
+              e.currentTarget.style.backgroundColor = '#2067FF';
               e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)';
             }}
             onMouseLeave={(e) => {
@@ -196,7 +196,7 @@ const Categories = () => {
             className="swiper-button-next-custom"
 
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#E78741';
+              e.currentTarget.style.backgroundColor = '#2067FF';
               e.currentTarget.style.transform = 'translateY(-50%) scale(1.1)';
             }}
             onMouseLeave={(e) => {

@@ -1,0 +1,134 @@
+.footer {
+    overflow: hidden;
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    bottom: 0;
+  }
+  .footer-section {
+    width: 100%;
+    background-color: var(--main-color);
+    display: flex;
+    justify-content: space-between;
+    padding: 100px 100px;
+  }
+  .footer-content-block {
+    display: flex;
+    gap: 50px;
+  }
+  .footer-content-links-block {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+  .footer-content-link-title {
+    color: #63aea7;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+  }
+  .footer-content-links-wrapper-div {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .footer-link {
+    color: var(--white);
+    font-size: 1.25rem;
+    font-style: normal;
+    font-weight: 300;
+    line-height: normal;
+    letter-spacing: -0.03rem;
+  }
+  .footer-social-media-icon-block {
+    display: flex;
+    gap: 10px;
+  }
+  .crayont-div {
+    position: absolute;
+    bottom: 40px;
+    right: 30px;
+    gap: 10px;
+    border-radius: 15px;
+    background: rgba(0, 0, 0, 0.09);
+    display: inline-flex;
+    padding: 5px 15px;
+    justify-content: center;
+    align-items: center;
+  }
+  .crayont-text {
+    color: var(--white);
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+    letter-spacing: -0.36px;
+    cursor: pointer;
+  }
+  .crayont-logo {
+    border-radius: 50%;
+  }
+  .footer-links-block {
+    display: none;
+  }
+  
+  @media screen and (max-width: 768px) {
+    .footer {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+    }
+    .footer-section {
+      width: 100%;
+      height: 100%;
+      background-color: var(--main-color);
+      display: flex;
+      flex-direction: column;
+      align-items: start;
+      padding: 40px 20px 70px 20px;
+      bottom: 0;
+    }
+    .footer-logo-image {
+      margin-bottom: 50px;
+    }
+    .footer-content-block {
+      display: none;
+    }
+    .footer-links-block {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .footer-content-link-title {
+      color: #63aea7;
+      font-size: 1.25rem;
+      font-style: normal;
+      font-weight: 500;
+      line-height: normal;
+      margin-top: 20px;
+    }
+    .footer-social-media-icon-block-mobile {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .footer-social-media-icon-block {
+      display: flex;
+      gap: 10px;
+      margin-top: 25px;
+    }
+    .crayont-div {
+      position: absolute;
+      bottom: 20px;
+      right: 10px;
+      gap: 10px;
+      border-radius: 15px;
+      background: rgba(0, 0, 0, 0.09);
+      display: inline-flex;
+      padding: 5px 15px;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+  
