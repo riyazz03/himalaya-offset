@@ -8,6 +8,7 @@ import Categories from '@/Sections/Categories';
 // import ProductCard from '@/component/ProductCard';
 import Products from '@/Sections/Products';
 import FaqSection from '@/Sections/FaqSection';
+import Testimonial from '@/Sections/Testimonial';
 
 
 export default function Home() {
@@ -30,6 +31,7 @@ export default function Home() {
 
       <Categories />
       <Products />
+      <Testimonial />
       <FaqSection />
     </section>
   );

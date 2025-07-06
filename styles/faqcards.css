@@ -89,10 +89,11 @@ transition: all 0.1s ease;
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.4s ease, padding 0.4s ease;
-    background: #f8f9fa;
+    /* background: #f8f9fa; */
     border-left: 1px solid #CCC;
     border-right: 1px solid #CCC;
     border-bottom: 1px solid #CCC;
+    transition: all 0.3s ease;
   }
   
   .faq-answer-wrapper.open {
