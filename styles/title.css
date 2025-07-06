@@ -5,6 +5,8 @@
     gap: 0.625rem;
     border-radius: 6.25rem;
     border: 1px solid #ccc;
+    cursor: pointer;
+    transition: all 0.3s ease;
   }
   .categoerie-sub-title-text {
     color: #000;
@@ -13,4 +15,13 @@
     font-style: normal;
     font-weight: 600;
     line-height: normal;
+    transition: all 0.3s ease;
+  }
+
+  .categoerie-sub-title:hover{
+    background-color: #2067ff;
+    color: #fff;
+  }
+  .categoerie-sub-title:hover .categoerie-sub-title-text{
+    color: #fff;
   }
