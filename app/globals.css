@@ -3,7 +3,7 @@
 :root {
   --background: #e9ecf6;
   --foreground: #171717;
-  --blue: #2067FF;
+  --blue: #2067ff;
 }
 
 @theme inline {
@@ -19,31 +19,45 @@ body {
   font-family: Helvetica, Arial, sans-serif;
 }
 
-
 /* Button Styles */
-
-button{
+button {
   cursor: pointer;
 }
 
-
 /* Font Styles */
-h1{
+h1 {
   font-size: 70px;
   line-height: 80px;
   font-weight: bold;
 }
-p{
+p {
   font-size: 20px;
   line-height: 160%;
 }
 
 /* Custom Clases */
-.title-span{
+.section-title-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.section-title {
+  color: #000;
+  font-size: 2.5rem;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+}
+
+.section-title span {
   color: var(--blue);
 }
 
-.bg-custom-blue{
+.title-span {
+  color: var(--blue);
+}
+
+.bg-custom-blue {
   background-color: var(--blue);
 }
 

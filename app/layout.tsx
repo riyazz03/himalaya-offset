@@ -4,6 +4,7 @@ import Home from "./page";
 import AnnouncementBar from "@/component/AnnouncementBar";
 import Header from "@/component/Header";
 import MegaMenu from "@/component/MegaMenu";
+import Providers from "@/component/Providers";
 // import Footer from "@/component/Footer";
 export const metadata: Metadata = {
   title: "Himalaya Offset | Quality Visiting Cards, Banners & Wedding Cards",
@@ -18,11 +19,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body style={{ fontFamily: "Helvetica, Arial, sans-serif" }}>
-        <AnnouncementBar />
-        <Header />
-        <MegaMenu />
-        <Home />
-        {/* <Footer /> */}
+        <Providers>
+          <AnnouncementBar />
+          <Header />
+          <MegaMenu />
+          <Home />
+        </Providers>
+
       </body>
     </html>
   );

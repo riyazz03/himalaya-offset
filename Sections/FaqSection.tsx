@@ -1,6 +1,6 @@
 import React from 'react'
 import "../styles/faqsection.css"
-import Title from '@/component/Title'
+import Title from '@/component/Title-Block-Rounded'
 import FaqCards from '@/component/FaqCards' // Adjust path as needed
 
 const FaqSection = () => {

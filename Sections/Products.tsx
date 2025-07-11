@@ -1,4 +1,4 @@
-import Title from '@/component/Title'
+import Title from '@/component/Title-Block-Rounded'
 import React from 'react'
 import "../styles/products.css"
 import ProductCard from '@/component/ProductCard'
