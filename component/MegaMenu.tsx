@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { SanityService, Category, Subcategory } from '../lib/sanity'; 
 import '@/styles/MegaMenu.css'; 
@@ -18,6 +18,8 @@ const MegaMenu: React.FC<MegaMenuProps> = ({ className = '' }) => {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [mounted, setMounted] = useState<boolean>(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
     // Handle hydration
     useEffect(() => {
@@ -29,6 +31,40 @@ const MegaMenu: React.FC<MegaMenuProps> = ({ className = '' }) => {
             fetchMenuData();
         }
     }, [mounted]);
+
+    // Calculate dropdown position
+    useEffect(() => {
+        const calculateDropdownPosition = () => {
+            if (!menuRef.current || !dropdownRef.current) return;
+
+            const menuRect = menuRef.current.getBoundingClientRect();
+            const dropdownHeight = dropdownRef.current.offsetHeight;
+            const viewportHeight = window.innerHeight;
+            
+            // Calculate the top position based on menu position
+            const topPosition = menuRect.bottom + 8; // 8px gap
+            
+            // Set CSS custom property for top position
+            dropdownRef.current.style.setProperty('--dropdown-top', `${topPosition}px`);
+            
+            // Check if dropdown would be cut off at bottom
+            if (topPosition + dropdownHeight > viewportHeight) {
+                dropdownRef.current.style.setProperty('--dropdown-top', `${viewportHeight - dropdownHeight - 20}px`);
+            }
+        };
+
+        if (mounted && allMenuData.length > 0) {
+            // Calculate on mount and resize
+            calculateDropdownPosition();
+            window.addEventListener('resize', calculateDropdownPosition);
+            window.addEventListener('scroll', calculateDropdownPosition);
+
+            return () => {
+                window.removeEventListener('resize', calculateDropdownPosition);
+                window.removeEventListener('scroll', calculateDropdownPosition);
+            };
+        }
+    }, [mounted, allMenuData]);
 
     const fetchMenuData = async (): Promise<void> => {
         try {
@@ -112,7 +148,7 @@ const MegaMenu: React.FC<MegaMenuProps> = ({ className = '' }) => {
 
     return (
         <div className="mega-menu-wrapper">
-            <nav className={`mega-menu-nav ${className}`}>
+            <nav ref={menuRef} className={`mega-menu-nav ${className}`}>
                 <ul className="mega-menu-list">
                     {/* All Categories Menu - First Position */}
                     <li className="mega-menu-item mega-menu-all-categories">
@@ -124,7 +160,7 @@ const MegaMenu: React.FC<MegaMenuProps> = ({ className = '' }) => {
                         </div>
                         
                         {/* All Categories Full Width Dropdown */}
-                        <div className="mega-menu-all-dropdown">
+                        <div ref={dropdownRef} className="mega-menu-all-dropdown">
                             <div className="mega-menu-all-container">
                                 <div className="mega-menu-all-header">
                                     <h3 className="mega-menu-all-title">All Categories</h3>
