@@ -48,12 +48,6 @@ interface SanityUser {
   }
 }
 
-interface QueryParams {
-  email?: string
-  token?: string
-  [key: string]: unknown
-}
-
 interface SanityUserDocument {
   _type: 'user'
   name: string
