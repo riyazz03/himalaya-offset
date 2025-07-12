@@ -1,10 +1,8 @@
-/* styles/categoryPage.css */
 .category-page {
   min-height: 100vh;
   background: var(--background);
 }
 
-/* Breadcrumb */
 .breadcrumb {
   background: white;
   border-bottom: 1px solid #e2e8f0;
@@ -29,7 +27,7 @@
 }
 
 .breadcrumb-link:hover {
-  color: #1557e6;
+  color: var(--blue);
   text-decoration: underline;
 }
 

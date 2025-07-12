@@ -8,17 +8,19 @@ import MegaMenu from './MegaMenu'
 import Footer from './Footer'
 
 interface ProvidersProps {
-  children: ReactNode
+    children: ReactNode
 }
 
 export default function Providers({ children }: ProvidersProps) {
-  return (
-    <SessionProvider>
-      <AnnouncementBar />
-      <Header />
-      <MegaMenu />
-      {children}
-      <Footer />
-    </SessionProvider>
-  )
+    return (
+        <SessionProvider>
+            <div className="StickyComponent">
+                <AnnouncementBar />
+                <Header />
+                <MegaMenu />
+            </div>
+            {children}
+            <Footer />
+        </SessionProvider>
+    )
 }

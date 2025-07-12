@@ -123,7 +123,7 @@ const FaqSection: React.FC = () => {
               <Title title='Need Help?' />
             </div>
             <h1 className='section-title '>
-              We&apos;ve got all the <span>Answers you need</span>
+              We&apos;ve got all the <span className='separate-line'>Answers you need</span>
             </h1>
           </header>
           <div className='faq-questions'>

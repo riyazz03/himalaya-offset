@@ -6,7 +6,15 @@ const ProductCard = ({ image, title, pricing, buttonText }: { image: string, tit
   return (
     <div className='product-card'>
       <div className='product-card-image-wrapper'>
-        <img src={image} alt={title} className='product-card-image' width={500} height={500} />
+        <Image 
+          src={image} 
+          alt={title} 
+          className='product-card-image' 
+          width={500} 
+          height={500}
+          priority={false}
+          quality={85}
+        />
       </div>
       <div className='product-card-content'>
         <h1 className='product-card-title'>{title}</h1>
@@ -14,7 +22,12 @@ const ProductCard = ({ image, title, pricing, buttonText }: { image: string, tit
       </div>
       <div className='product-card-button'>
         <p className='product-card-button-text'>{buttonText}</p>
-        <img src="/icons/cards-plus.svg" alt="cards plus" />
+        <Image 
+          src="/icons/cards-plus.svg" 
+          alt="cards plus" 
+          width={24}
+          height={24}
+        />
       </div>
     </div>
   )
