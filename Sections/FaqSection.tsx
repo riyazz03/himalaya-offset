@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Title from '@/component/Title-Block-Rounded';
-import '@/styles/faq.css'; // Ensure you have the correct path to your CSS file
+import '@/styles/SectionStyles/faq.css'; 
 
 interface FaqItem {
   id: number;

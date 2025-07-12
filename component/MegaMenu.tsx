@@ -1,81 +1,246 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { SanityService, Category, Subcategory } from '../lib/sanity'; 
+import '@/styles/MegaMenu.css'; 
 
-const menuData = [
-    {
-        name: 'Visiting Card',
-        subcategories: ['Standard', 'Premium', 'Transparent'],
-    },
-    {
-        name: 'Sticker Sheet',
-        subcategories: ['Round', 'Square', 'Custom'],
-    },
-    {
-        name: 'Letter Heads',
-        subcategories: ['A4', 'A5'],
-    },
-    {
-        name: 'Bill Books',
-        subcategories: ['1 Copy', '2 Copy', '3 Copy'],
-    },
-    {
-        name: 'Envelope',
-        subcategories: ['Small', 'Medium', 'Large'],
-    },
-    {
-        name: 'Brochures',
-        subcategories: ['Bi-fold', 'Tri-fold', 'Z-fold'],
-    },
-    {
-        name: 'Book Work',
-        subcategories: ['Softcover', 'Hardcover'],
-    },
-    {
-        name: 'Calendar',
-        subcategories: ['Wall', 'Desk', 'Pocket'],
-    },
-    {
-        name: 'Flyers',
-        subcategories: ['A4', 'A5', 'DL'],
-    },
-];
+interface MenuCategory extends Category {
+    subcategories: Subcategory[];
+}
 
-const getSubcategoryLink = (category: string, subcategory: string) =>
-    `/${category.toLowerCase().replace(/\s+/g, '-')}/${subcategory.toLowerCase().replace(/\s+/g, '-')}`;
+interface MegaMenuProps {
+    className?: string;
+}
 
-export default function MegaMenu() {
+const MegaMenu: React.FC<MegaMenuProps> = ({ className = '' }) => {
+    const [allMenuData, setAllMenuData] = useState<MenuCategory[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+    const [mounted, setMounted] = useState<boolean>(false);
+
+    // Handle hydration
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (mounted) {
+            fetchMenuData();
+        }
+    }, [mounted]);
+
+    const fetchMenuData = async (): Promise<void> => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const { data: categories, error: fetchError } = await SanityService.getCategories();
+            
+            if (fetchError || !categories) {
+                setError('Failed to load categories');
+                return;
+            }
+
+            const categoriesWithSubcategories = await Promise.allSettled(
+                categories.map(async (category: Category): Promise<MenuCategory> => {
+                    try {
+                        const { data: categoryData } = await SanityService.getCategoryWithProducts(category.slug);
+                        return {
+                            ...category,
+                            subcategories: categoryData?.subcategories || []
+                        };
+                    } catch (err) {
+                        console.warn(`Error fetching subcategories for ${category.name}:`, err);
+                        return {
+                            ...category,
+                            subcategories: []
+                        };
+                    }
+                })
+            );
+
+            const successfulCategories = categoriesWithSubcategories
+                .filter((result): result is PromiseFulfilledResult<MenuCategory> => result.status === 'fulfilled')
+                .map(result => result.value);
+
+            setAllMenuData(successfulCategories);
+        } catch (err) {
+            console.error('Error in fetchMenuData:', err);
+            setError('An error occurred while loading the menu');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getCategoryLink = (categorySlug: string): string => `/categories/${categorySlug}`;
+    const getSubcategoryLink = (subcategorySlug: string): string => `/products/${subcategorySlug}`;
+
+    // Loading states
+    if (!mounted) {
+        return (
+            <nav className={`mega-menu-loading ${className}`}>
+                <div className="mega-menu-loading-content">
+                    <div className="loading-text">Loading...</div>
+                </div>
+            </nav>
+        );
+    }
+
+    if (loading) {
+        return (
+            <nav className={`mega-menu-loading ${className}`}>
+                <div className="mega-menu-loading-content">
+                    <div className="loading-text loading-animated">Loading menu...</div>
+                </div>
+            </nav>
+        );
+    }
+
+    if (error || allMenuData.length === 0) {
+        return (
+            <nav className={`mega-menu-loading ${className}`}>
+                <div className="mega-menu-loading-content">
+                    <div className="loading-text error-text">Menu unavailable</div>
+                </div>
+            </nav>
+        );
+    }
+
+    // Get 7 categories for main menu (since All Categories takes one spot)
+    const mainMenuCategories = allMenuData.slice(0, 7);
+
     return (
-        <nav className="mt-3 px-8 border-t border-b border-gray-300 bg-transparent z-50 flex justify-center items-center">
-            <ul className="flex gap-8 list-none p-0 m-0">
-                {menuData.map((item) => (
-                    <li
-                        key={item.name}
-                        className="relative cursor-pointer py-3.5 group menuItem"
-                    >
-                        <span className="font-medium">{item.name}</span>
-                        <div
-                            className="invisible opacity-0 pointer-events-none absolute top-[3rem] left-0 min-w-[200px] rounded-lg border border-white/20 bg-white/20
-                          backdrop-blur-lg shadow-lg p-4
-                          transition-opacity duration-200 ease-in-out
-                          group-hover:visible group-hover:opacity-100 group-hover:pointer-events-auto"
-                        >
-                            <div className="flex flex-col">
-                                {item.subcategories.map((sub, idx) => (
+        <div className="mega-menu-wrapper">
+            <nav className={`mega-menu-nav ${className}`}>
+                <ul className="mega-menu-list">
+                    {/* All Categories Menu - First Position */}
+                    <li className="mega-menu-item mega-menu-all-categories">
+                        <div className="mega-menu-link mega-menu-all-link">
+                            All Categories
+                            <svg width="12" height="8" viewBox="0 0 12 8" fill="none" className="mega-menu-chevron">
+                                <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                            </svg>
+                        </div>
+                        
+                        {/* All Categories Full Width Dropdown */}
+                        <div className="mega-menu-all-dropdown">
+                            <div className="mega-menu-all-container">
+                                <div className="mega-menu-all-header">
+                                    <h3 className="mega-menu-all-title">All Categories</h3>
+                                    <p className="mega-menu-all-subtitle">Browse our complete range of printing services</p>
+                                </div>
+                                
+                                <div className="mega-menu-all-grid">
+                                    {allMenuData.map((category) => (
+                                        <div key={category._id} className="mega-menu-category-column">
+                                            <div className="mega-menu-category-header">
+                                                <Link
+                                                    href={getCategoryLink(category.slug)}
+                                                    className="mega-menu-category-title"
+                                                >
+                                                    {category.name}
+                                                </Link>
+                                            </div>
+                                            
+                                            {category.subcategories && category.subcategories.length > 0 && (
+                                                <div className="mega-menu-subcategory-list">
+                                                    {category.subcategories.slice(0, 6).map((subcategory) => (
+                                                        <Link
+                                                            key={subcategory._id}
+                                                            href={getSubcategoryLink(subcategory.slug)}
+                                                            className="mega-menu-subcategory-link"
+                                                        >
+                                                            {subcategory.name}
+                                                        </Link>
+                                                    ))}
+                                                    
+                                                    {category.subcategories.length > 6 && (
+                                                        <Link
+                                                            href={getCategoryLink(category.slug)}
+                                                            className="mega-menu-subcategory-more"
+                                                        >
+                                                            +{category.subcategories.length - 6} more
+                                                        </Link>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                                
+                                <div className="mega-menu-all-footer">
                                     <Link
-                                        key={idx}
-                                        href={getSubcategoryLink(item.name, sub)}
-                                        className="py-2 px-4 text-sm cursor-pointer rounded-md hover:bg-blue-600 hover:text-white transition"
+                                        href="/categories"
+                                        className="mega-menu-all-button"
                                     >
-                                        {sub}
+                                        View All Categories
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                            <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                                        </svg>
                                     </Link>
-                                ))}
+                                </div>
                             </div>
                         </div>
                     </li>
-                ))}
-            </ul>
-        </nav>
+
+                    {/* Main 7 categories */}
+                    {mainMenuCategories.map((category) => (
+                        <li key={category._id} className="mega-menu-item">
+                            <Link 
+                                href={getCategoryLink(category.slug)}
+                                className="mega-menu-link"
+                            >
+                                {category.name}
+                            </Link>
+                            
+                            {/* Dropdown for subcategories */}
+                            {category.subcategories && category.subcategories.length > 0 && (
+                                <div className="mega-menu-dropdown">
+                                    <div className="mega-menu-dropdown-content">
+                                        {/* Category header */}
+                                        <div className="mega-menu-dropdown-header">
+                                            <Link
+                                                href={getCategoryLink(category.slug)}
+                                                className="mega-menu-dropdown-title"
+                                            >
+                                                View All {category.name}
+                                            </Link>
+                                        </div>
+                                        
+                                        {/* Subcategories */}
+                                        <div className="mega-menu-dropdown-list">
+                                            {category.subcategories.slice(0, 8).map((subcategory) => (
+                                                <Link
+                                                    key={subcategory._id}
+                                                    href={getSubcategoryLink(subcategory.slug)}
+                                                    className="mega-menu-dropdown-link"
+                                                >
+                                                    {subcategory.name}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                        
+                                        {/* Show more if category has more than 8 subcategories */}
+                                        {category.subcategories.length > 8 && (
+                                            <div className="mega-menu-dropdown-footer">
+                                                <Link
+                                                    href={getCategoryLink(category.slug)}
+                                                    className="mega-menu-dropdown-more"
+                                                >
+                                                    +{category.subcategories.length - 8} more products
+                                                </Link>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </li>
+                    ))}
+                </ul>
+            </nav>
+        </div>
     );
-}
+};
+
+export default MegaMenu;

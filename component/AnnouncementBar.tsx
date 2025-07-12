@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import '../styles/announcementbar.css';
+import '@/styles/ComponentsStyles/announcementbar.css';
 
 export default function AnnouncementBar() {
     const [isVisible] = useState(true);

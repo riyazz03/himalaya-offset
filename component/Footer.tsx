@@ -1,17 +1,10 @@
-import React from 'react';
-import Link from 'next/link'; // Assuming you're using Next.js
-// import { Link } from 'react-router-dom'; // If using React Router instead
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { SanityService, Category, Subcategory } from '../lib/sanity'; // Adjust path as needed
 import '../styles/footer.css';
 
-interface ProductItem {
-    name: string;
-    slug: string;
-}
-
-interface ProductCategory {
-    title: string;
-    slug: string;
-    items: string[];
+interface MenuCategory extends Category {
+    subcategories: Subcategory[];
 }
 
 interface ContactItem {
@@ -28,143 +21,66 @@ interface SocialLink {
 }
 
 const ProductFooter: React.FC = () => {
-    const productCategories: ProductCategory[] = [
-        {
-            title: "Business Cards & Visiting Cards",
-            slug: "business-cards-visiting-cards",
-            items: [
-                "Standard Paper Cards",
-                "Textured Cards",
-                "Laminated Cards",
-                "Spot UV Cards",
-                "Foil Stamped Cards",
-                "Embossed/Debossed Cards",
-                "Transparent/Plastic Cards",
-                "Die-Cut Cards",
-                "Magnetic Cards",
-                "Metal Cards (Luxury)",
-                "QR Code Cards"
-            ]
-        },
-        {
-            title: "Brochures & Flyers",
-            slug: "brochures-flyers",
-            items: [
-                "Single-Sheet Flyers",
-                "Bi-Fold Brochures",
-                "Tri-Fold Brochures",
-                "Gate Fold Brochures",
-                "Accordion Fold Brochures",
-                "Product Brochures",
-                "Service Brochures",
-                "Corporate Brochures",
-                "Event Flyers",
-                "Menu Flyers",
-                "Real Estate Brochures"
-            ]
-        },
-        {
-            title: "Letterheads & Envelopes",
-            slug: "letterheads-envelopes",
-            items: [
-                "Standard Letterheads",
-                "Premium Letterheads",
-                "Color Letterheads",
-                "Watermarked Letterheads",
-                "Embossed/Foil Letterheads",
-                "Standard Business Envelopes",
-                "Window Envelopes",
-                "Custom Size Envelopes",
-                "Padded/Bubble Envelopes",
-                "Security Envelopes"
-            ]
-        },
-        {
-            title: "Calendars",
-            slug: "calendars",
-            items: [
-                "Wall Calendars",
-                "Desk/Table Calendars",
-                "Daily Tear-Off Calendars",
-                "Monthly View Calendars",
-                "Poster Calendars",
-                "Corporate Calendars",
-                "Religious/Festival Calendars",
-                "Photo Calendars",
-                "Magnetic Calendars",
-                "Pocket Calendars"
-            ]
-        },
-        {
-            title: "Posters & Banners",
-            slug: "posters-banners",
-            items: [
-                "Litho Posters",
-                "Oil Posters",
-                "Flex Banners",
-                "Vinyl Banners",
-                "Mesh Banners",
-                "Roll-Up Banners",
-                "Hanging Banners",
-                "Step & Repeat Banners",
-                "Indoor Banners",
-                "Outdoor Banners"
-            ]
-        },
-        {
-            title: "Stickers & Labels",
-            slug: "stickers-labels",
-            items: [
-                "Vinyl Stickers",
-                "Paper Stickers",
-                "Transparent Stickers",
-                "Reflective Stickers",
-                "Pre-Cut Sticker Sheets",
-                "Full Sheet Stickers",
-                "Die-Cut Custom Shapes",
-                "One-Way Vinyl",
-                "Laminated Stickers",
-                "UV Coated Stickers"
-            ]
-        },
-        {
-            title: "Sunpack Boards",
-            slug: "sunpack-boards",
-            items: [
-                "2mm Sunpack Boards",
-                "3mm Sunpack Boards",
-                "5mm+ Sunpack Boards",
-                "Single-Color Printed",
-                "Multi-Color Offset",
-                "Eco-Solvent/UV Printed",
-                "Political Campaign Boards",
-                "Real Estate Boards",
-                "Safety/Instructional Boards"
-            ]
-        },
-        {
-            title: "Specialty Products",
-            slug: "specialty-products",
-            items: [
-                "Wedding Cards & Invitations",
-                "Packaging Boxes & Labels",
-                "Catalogs & Booklets",
-                "Bill Books/Invoice Books",
-                "Certificates",
-                "Presentation Folders",
-                "Standees",
-                "Elegant Viboothi Cover"
-            ]
-        }
-    ];
+    const [productCategories, setProductCategories] = useState<MenuCategory[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
 
-    // Function to convert product name to URL slug
+    // Fetch categories on component mount
+    useEffect(() => {
+        fetchFooterData();
+    }, []);
+
+    const fetchFooterData = async (): Promise<void> => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const { data: categories, error: fetchError } = await SanityService.getCategories();
+            
+            if (fetchError || !categories) {
+                console.warn('Failed to load categories for footer, using fallback');
+                return;
+            }
+
+            // Fetch subcategories for each category
+            const categoriesWithSubcategories = await Promise.allSettled(
+                categories.map(async (category: Category): Promise<MenuCategory> => {
+                    try {
+                        const { data: categoryData } = await SanityService.getCategoryWithProducts(category.slug);
+                        return {
+                            ...category,
+                            subcategories: categoryData?.subcategories || []
+                        };
+                    } catch (err) {
+                        console.warn(`Error fetching subcategories for ${category.name}:`, err);
+                        return {
+                            ...category,
+                            subcategories: []
+                        };
+                    }
+                })
+            );
+
+            const successfulCategories = categoriesWithSubcategories
+                .filter((result): result is PromiseFulfilledResult<MenuCategory> => result.status === 'fulfilled')
+                .map(result => result.value);
+
+            setProductCategories(successfulCategories.length > 0 ? successfulCategories : []);
+        } catch (err) {
+            console.error('Error in fetchFooterData:', err);
+           
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Function to convert product name to URL slug (keep your existing logic)
     const createProductSlug = (productName: string): string => {
         return productName
             .toLowerCase()
-            .replace(/[^\w\s-]/g, '') // Remove special characters except hyphens
-            .replace(/\s+/g, '-') // Replace spaces with hyphens
-            .replace(/--+/g, '-') // Replace multiple hyphens with single hyphen
+            .replace(/[^\w\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/--+/g, '-')
             .trim();
     };
 
@@ -344,28 +260,48 @@ const ProductFooter: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Right Side - Products */}
+                    {/* Right Side - Dynamic Products */}
                     <div className="footer-right">
-                        <div className="products-grid">
-                            {productCategories.map((category, index) => (
-                                <div key={index} className="product-category">
-                                    <h3 className="category-title">
-                                        <Link href={`/categories/${category.slug}`}>
-                                            {category.title}
-                                        </Link>
-                                    </h3>
-                                    <ul className="product-list">
-                                        {category.items.map((item, itemIndex) => (
-                                            <li key={itemIndex} className="product-item">
-                                                <Link href={`/products/${createProductSlug(item)}`}>
-                                                    {item}
-                                                </Link>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            ))}
-                        </div>
+                        {loading ? (
+                            <div className="footer-loading">
+                                <div className="loading-spinner"></div>
+                                <p>Loading products...</p>
+                            </div>
+                        ) : (
+                            <div className="products-grid">
+                                {productCategories.map((category) => (
+                                    <div key={category._id} className="product-category">
+                                        <h3 className="category-title">
+                                            <Link href={`/categories/${category.slug}`}>
+                                                {category.name}
+                                            </Link>
+                                        </h3>
+                                        <ul className="product-list">
+                                            {category.subcategories.slice(0, 8).map((subcategory) => (
+                                                <li key={subcategory._id} className="product-item">
+                                                    <Link href={`/products/${subcategory.slug}`}>
+                                                        {subcategory.name}
+                                                    </Link>
+                                                </li>
+                                            ))}
+                                            {category.subcategories.length > 8 && (
+                                                <li className="product-item product-more">
+                                                    <Link href={`/categories/${category.slug}`}>
+                                                        +{category.subcategories.length - 8} more
+                                                    </Link>
+                                                </li>
+                                            )}
+                                        </ul>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        
+                        {error && !loading && (
+                            <div className="footer-error">
+                                <p>Unable to load latest products. Please try refreshing the page.</p>
+                            </div>
+                        )}
                     </div>
                 </div>
 

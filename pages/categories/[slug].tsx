@@ -7,7 +7,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import ProductCard from '../../component/ProductCard'
 import { SanityService, Category, Subcategory } from '../../lib/sanity'
-import '../../styles/category-page.css'
+import '@/styles/CategoryPageStyles/category-page.css'
 import Providers from '@/component/Providers'
 
 interface CategoryPageProps {
