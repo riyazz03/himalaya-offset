@@ -224,34 +224,6 @@ const Categories = () => {
           </div>
         </div>
       </div>
-
-      {/* Custom Pagination Styles */}
-      <style jsx global>{`
-        .swiper-pagination-bullet-custom {
-          width: 12px !important;
-          height: 12px !important;
-          background: #cbd5e0 !important;
-          opacity: 1 !important;
-          margin: 0 6px !important;
-          transition: all 0.3s ease !important;
-        }
-
-        .swiper-pagination-bullet-active-custom {
-          background: #3498db !important;
-          transform: scale(1.2) !important;
-        }
-
-        .swiper-pagination {
-          bottom: 20px !important;
-        }
-
-        @media (max-width: 768px) {
-          .swiper-button-prev-custom,
-          .swiper-button-next-custom {
-            display: none !important;
-          }
-        }
-      `}</style>
     </div>
   );
 };
