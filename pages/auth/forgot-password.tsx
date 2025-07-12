@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { AuthService } from '../../lib/sanity-auth'
 import '../../styles/auth.css'
 
 export default function ForgotPassword() {
@@ -16,12 +15,20 @@ export default function ForgotPassword() {
     setMessage('')
 
     try {
-      const result = await AuthService.generatePasswordResetToken(email)
-      
-      if (result.data) {
-        setMessage('Password reset instructions have been sent to your email.')
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setMessage(data.message)
       } else {
-        setError(result.error || 'Failed to send reset email')
+        setError(data.message)
       }
     } catch (err) {
       console.error('Forgot password error:', err)

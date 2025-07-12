@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
-import { AuthService } from '../../lib/sanity-auth'
 import '../../styles/auth.css'
 
 export default function ResetPassword() {
@@ -38,15 +37,23 @@ export default function ResetPassword() {
     }
 
     try {
-      const result = await AuthService.resetPassword(token, password)
-      
-      if (result.data) {
-        setMessage('Password reset successful! You can now sign in with your new password.')
+      const response = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ token, password }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setMessage(data.message + ' Redirecting to login...')
         setTimeout(() => {
           router.push('/auth/login')
         }, 3000)
       } else {
-        setError(result.error || 'Failed to reset password')
+        setError(data.message)
       }
     } catch (err) {
       console.error('Reset password error:', err)
