@@ -277,17 +277,17 @@ const ProductFooter: React.FC = () => {
                                             </Link>
                                         </h3>
                                         <ul className="product-list">
-                                            {category.subcategories.slice(0, 8).map((subcategory) => (
+                                            {category.subcategories.slice(0, 4).map((subcategory) => (
                                                 <li key={subcategory._id} className="product-item">
                                                     <Link href={`/products/${subcategory.slug}`}>
                                                         {subcategory.name}
                                                     </Link>
                                                 </li>
                                             ))}
-                                            {category.subcategories.length > 8 && (
+                                            {category.subcategories.length > 4 && (
                                                 <li className="product-item product-more">
                                                     <Link href={`/categories/${category.slug}`}>
-                                                        +{category.subcategories.length - 8} more
+                                                        +{category.subcategories.length - 4} more
                                                     </Link>
                                                 </li>
                                             )}
