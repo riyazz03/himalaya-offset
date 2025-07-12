@@ -1,10 +1,73 @@
-import React from 'react'
-import "../styles/faqsection.css"
-import Title from '@/component/Title-Block-Rounded'
-import FaqCards from '@/component/FaqCards' // Adjust path as needed
+import React, { useState } from 'react';
+import Title from '@/component/Title-Block-Rounded';
+import '@/styles/faq.css'; // Ensure you have the correct path to your CSS file
 
-const FaqSection = () => {
-  const faqQuestions = [
+interface FaqItem {
+  id: number;
+  question: string;
+  answer: string;
+}
+
+interface FaqCardProps {
+  question: string;
+  answer: string;
+  isOpen: boolean;
+  onClick: () => void;
+}
+
+const FaqCard: React.FC<FaqCardProps> = ({ question, answer, isOpen, onClick }) => {
+  return (
+    <div className="faq-card">
+      <div
+        className="faq-card-question-wrapper"
+        onClick={onClick}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e: React.KeyboardEvent) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick();
+          }
+        }}
+        aria-expanded={isOpen}
+        aria-controls="faq-answer"
+      >
+        <h3 className="faq-card-question">{question}</h3>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="11"
+          viewBox="0 0 20 11"
+          fill="none"
+          className={`faq-chevron ${isOpen ? 'rotated' : ''}`}
+          aria-hidden="true"
+        >
+          <path
+            d="M2 1.5L10 8.5L18 1.5"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+        </svg>
+      </div>
+
+      <div
+        className={`faq-answer-wrapper ${isOpen ? 'open' : ''}`}
+        id="faq-answer"
+        aria-hidden={!isOpen}
+      >
+        <div className="faq-answer-content">
+          <p className="faq-card-answer">{answer}</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const FaqSection: React.FC = () => {
+  const [openFaqId, setOpenFaqId] = useState<number>(1); // First FAQ open by default
+
+  const faqQuestions: FaqItem[] = [
     {
       id: 1,
       question: "What information should I include on my visiting card?",
@@ -47,29 +110,37 @@ const FaqSection = () => {
     }
   ];
 
+  const handleFaqClick = (id: number): void => {
+    setOpenFaqId(openFaqId === id ? 0 : id); // Close if same, open if different
+  };
+
   return (
-    <div className='faq-section'>
+    <section className='faq-section'>
       <div className="main-container">
         <div className='faq-wrapper'>
-          <div className='faq-header'>
+          <header className='faq-header'>
             <div className='faq-header-title-wrapper'>
               <Title title='Need Help?' />
             </div>
-            <h1 className='faq-header-title'>We&apos;ve got all the <span> Answers you need</span></h1>
-          </div>
+            <h1 className='section-title '>
+              We&apos;ve got all the <span>Answers you need</span>
+            </h1>
+          </header>
           <div className='faq-questions'>
             {faqQuestions.map((faq) => (
-              <FaqCards
+              <FaqCard
                 key={faq.id}
                 question={faq.question}
                 answer={faq.answer}
+                isOpen={openFaqId === faq.id}
+                onClick={() => handleFaqClick(faq.id)}
               />
             ))}
           </div>
         </div>
       </div>
-    </div>
-  )
-}
+    </section>
+  );
+};
 
-export default FaqSection
+export default FaqSection;

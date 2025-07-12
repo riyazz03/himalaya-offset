@@ -52,6 +52,10 @@ p {
 .section-title span {
   color: var(--blue);
 }
+.section-title span.separate-line{
+  width: 100%;
+  display: inline-block;
+}
 
 .title-span {
   color: var(--blue);

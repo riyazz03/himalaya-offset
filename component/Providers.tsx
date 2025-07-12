@@ -5,7 +5,7 @@ import { ReactNode } from 'react'
 import AnnouncementBar from './AnnouncementBar'
 import Header from './Header'
 import MegaMenu from './MegaMenu'
-// import Footer from './Footer'
+import Footer from './Footer'
 
 interface ProvidersProps {
   children: ReactNode
@@ -18,7 +18,7 @@ export default function Providers({ children }: ProvidersProps) {
       <Header />
       <MegaMenu />
       {children}
-      {/* <Footer /> */}
+      <Footer />
     </SessionProvider>
   )
 }
