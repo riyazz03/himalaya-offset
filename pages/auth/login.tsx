@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { signIn, getSession } from 'next-auth/react'
+import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import '../../styles/auth.css'
@@ -28,7 +28,8 @@ export default function Login() {
       } else {
         router.push('/')
       }
-    } catch (error) {
+    } catch (err) {
+      console.error('Login error:', err)
       setError('An error occurred. Please try again.')
     } finally {
       setLoading(false)
@@ -38,7 +39,8 @@ export default function Login() {
   const handleGoogleSignIn = async () => {
     try {
       await signIn('google', { callbackUrl: '/' })
-    } catch (error) {
+    } catch (err) {
+      console.error('Google sign in error:', err)
       setError('Google sign in failed')
     }
   }
@@ -113,7 +115,7 @@ export default function Login() {
 
         <div className="auth-footer">
           <p>
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href="/auth/register" className="auth-link">
               Sign up
             </Link>

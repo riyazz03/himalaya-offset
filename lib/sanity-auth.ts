@@ -48,6 +48,32 @@ interface SanityUser {
   }
 }
 
+interface QueryParams {
+  email?: string
+  token?: string
+  [key: string]: unknown
+}
+
+interface SanityUserDocument {
+  _type: 'user'
+  name: string
+  email: string
+  phone: string
+  password?: string
+  provider: string
+  isVerified: boolean
+  phoneVerified: boolean
+  role: string
+  googleId?: string
+  avatar?: {
+    _type: 'image'
+    asset: {
+      _type: 'reference'
+      _ref: string
+    }
+  }
+}
+
 export const AuthService = {
   // Create new user
   async createUser(userData: UserData): Promise<{ data: SanityUser | null; error: string | null }> {
@@ -55,7 +81,7 @@ export const AuthService = {
       // Check if user already exists
       const existingUser = await client.fetch(
         '*[_type == "user" && email == $email][0]',
-        { email: userData.email } as any
+        { email: userData.email } as Record<string, unknown>
       )
 
       if (existingUser) {
@@ -66,7 +92,7 @@ export const AuthService = {
       const hashedPassword = await bcrypt.hash(userData.password, 12)
 
       // Create user in Sanity
-      const newUser = await client.create({
+      const newUserDoc: SanityUserDocument = {
         _type: 'user',
         name: userData.name,
         email: userData.email,
@@ -76,11 +102,13 @@ export const AuthService = {
         isVerified: false,
         phoneVerified: false,
         role: 'customer'
-      })
+      }
+
+      const newUser = await client.create(newUserDoc)
 
       return { data: newUser as SanityUser, error: null }
-    } catch (error) {
-      console.error('Error creating user:', error)
+    } catch (err) {
+      console.error('Error creating user:', err)
       return { data: null, error: 'Failed to create user' }
     }
   },
@@ -90,7 +118,7 @@ export const AuthService = {
     try {
       const user = await client.fetch(
         '*[_type == "user" && email == $email && provider == "credentials"][0]',
-        { email } as any
+        { email } as Record<string, unknown>
       )
 
       if (!user || !user.password) {
@@ -104,10 +132,11 @@ export const AuthService = {
       }
 
       // Remove password from response
-      const { password: _, ...userWithoutPassword } = user
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password: userPassword, ...userWithoutPassword } = user
       return { data: userWithoutPassword as SanityUser, error: null }
-    } catch (error) {
-      console.error('Error verifying user:', error)
+    } catch (err) {
+      console.error('Error verifying user:', err)
       return { data: null, error: 'Verification failed' }
     }
   },
@@ -118,12 +147,12 @@ export const AuthService = {
       // Check if user exists by email or googleId
       let user = await client.fetch(
         '*[_type == "user" && (email == $email || googleId == $googleId)][0]',
-        { email: userData.email, googleId: userData.googleId } as any
+        { email: userData.email, googleId: userData.googleId } as Record<string, unknown>
       )
 
       if (!user) {
         // Create user data without avatar first
-        const newUserData: any = {
+        const newUserData: SanityUserDocument = {
           _type: 'user',
           name: userData.name,
           email: userData.email,
@@ -168,8 +197,8 @@ export const AuthService = {
       }
 
       return { data: user as SanityUser, error: null }
-    } catch (error) {
-      console.error('Error with Google user:', error)
+    } catch (err) {
+      console.error('Error with Google user:', err)
       return { data: null, error: 'Google authentication failed' }
     }
   },
@@ -209,8 +238,8 @@ export const AuthService = {
       }
 
       return { data: { sent: true }, error: null }
-    } catch (error) {
-      console.error('Error generating OTP:', error)
+    } catch (err) {
+      console.error('Error generating OTP:', err)
       return { data: null, error: 'Failed to send OTP' }
     }
   },
@@ -224,7 +253,7 @@ export const AuthService = {
     try {
       const otpDoc = await client.fetch(
         '*[_type == "otp" && email == $email && code == $code && type == $type && isUsed == false && expiresAt > now()][0]',
-        { email, code: otpCode, type } as any
+        { email, code: otpCode, type } as Record<string, unknown>
       )
 
       if (!otpDoc) {
@@ -241,7 +270,7 @@ export const AuthService = {
       if (type === 'email_verification') {
         const users = await client.fetch(
           '*[_type == "user" && email == $email]',
-          { email } as any
+          { email } as Record<string, unknown>
         )
         
         if (users.length > 0) {
@@ -253,8 +282,8 @@ export const AuthService = {
       }
 
       return { data: { verified: true }, error: null }
-    } catch (error) {
-      console.error('Error verifying OTP:', error)
+    } catch (err) {
+      console.error('Error verifying OTP:', err)
       return { data: null, error: 'OTP verification failed' }
     }
   },
@@ -265,7 +294,7 @@ export const AuthService = {
       // Check if user exists
       const user = await client.fetch(
         '*[_type == "user" && email == $email][0]',
-        { email } as any
+        { email } as Record<string, unknown>
       )
 
       if (!user) {
@@ -289,8 +318,8 @@ export const AuthService = {
       await this.sendPasswordResetEmail(email, resetToken)
 
       return { data: { sent: true }, error: null }
-    } catch (error) {
-      console.error('Error generating reset token:', error)
+    } catch (err) {
+      console.error('Error generating reset token:', err)
       return { data: null, error: 'Failed to generate reset token' }
     }
   },
@@ -301,7 +330,7 @@ export const AuthService = {
       // Verify token
       const resetDoc = await client.fetch(
         '*[_type == "passwordReset" && token == $token && isUsed == false && expiresAt > now()][0]',
-        { token } as any
+        { token } as Record<string, unknown>
       )
 
       if (!resetDoc) {
@@ -314,7 +343,7 @@ export const AuthService = {
       // Find and update user password
       const users = await client.fetch(
         '*[_type == "user" && email == $email]',
-        { email: resetDoc.email } as any
+        { email: resetDoc.email } as Record<string, unknown>
       )
 
       if (users.length > 0) {
@@ -331,8 +360,8 @@ export const AuthService = {
         .commit()
 
       return { data: { reset: true }, error: null }
-    } catch (error) {
-      console.error('Error resetting password:', error)
+    } catch (err) {
+      console.error('Error resetting password:', err)
       return { data: null, error: 'Password reset failed' }
     }
   },
@@ -400,8 +429,8 @@ export const AuthService = {
       const buffer = await response.arrayBuffer()
       const asset = await client.assets.upload('image', Buffer.from(buffer))
       return asset._id
-    } catch (error) {
-      console.error('Error uploading image:', error)
+    } catch (err) {
+      console.error('Error uploading image:', err)
       return null
     }
   }

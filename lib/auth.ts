@@ -3,8 +3,6 @@ import { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { AuthService } from './sanity-auth'
-import type { JWT } from 'next-auth/jwt'
-import type { Session } from 'next-auth'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -18,7 +16,7 @@ export const authOptions: NextAuthOptions = {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' }
       },
-      async authorize(credentials): Promise<any> {
+      async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           return null
         }
@@ -37,8 +35,8 @@ export const authOptions: NextAuthOptions = {
             }
           }
           return null
-        } catch (error) {
-          console.error('Auth error:', error)
+        } catch (err) {
+          console.error('Auth error:', err)
           return null
         }
       }
@@ -51,15 +49,11 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
   },
   callbacks: {
-    async jwt({ token, user, account }: { 
-      token: JWT
-      user?: any
-      account?: any 
-    }): Promise<JWT> {
+    async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id
-        token.phone = user.phone
-        token.role = user.role
+        token.phone = (user as unknown as Record<string, unknown>).phone as string
+        token.role = (user as unknown as Record<string, unknown>).role as string
       }
       
       if (account?.provider === 'google' && user) {
@@ -76,21 +70,18 @@ export const authOptions: NextAuthOptions = {
             token.phone = result.data.phone
             token.role = result.data.role
           }
-        } catch (error) {
-          console.error('Google auth error:', error)
+        } catch (err) {
+          console.error('Google auth error:', err)
         }
       }
       
       return token
     },
-    async session({ session, token }: { 
-      session: Session
-      token: JWT 
-    }): Promise<Session> {
+    async session({ session, token }) {
       if (token && session.user) {
-        (session.user as any).id = token.id as string
-        (session.user as any).phone = token.phone as string
-        (session.user as any).role = token.role as string
+        (session.user as unknown as Record<string, unknown>).id = token.id as string
+        ;(session.user as unknown as Record<string, unknown>).phone = token.phone as string || ''
+        ;(session.user as unknown as Record<string, unknown>).role = token.role as string || 'customer'
       }
       return session
     }

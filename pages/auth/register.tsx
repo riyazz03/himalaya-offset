@@ -1,4 +1,3 @@
-// pages/auth/register.tsx
 import React, { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/router'
@@ -51,7 +50,8 @@ export default function Register() {
       } else {
         setError(data.message || 'Failed to resend OTP')
       }
-    } catch (error) {
+    } catch (err) {
+      console.error('Resend OTP error:', err)
       setError('An error occurred. Please try again.')
     } finally {
       setLoading(false)
@@ -90,7 +90,8 @@ export default function Register() {
       } else {
         setError(data.message || 'Registration failed')
       }
-    } catch (error) {
+    } catch (err) {
+      console.error('Registration error:', err)
       setError('An error occurred. Please try again.')
     } finally {
       setLoading(false)
@@ -126,7 +127,8 @@ export default function Register() {
       } else {
         setError(data.message || 'OTP verification failed')
       }
-    } catch (error) {
+    } catch (err) {
+      console.error('OTP verification error:', err)
       setError('An error occurred. Please try again.')
     } finally {
       setLoading(false)
@@ -136,7 +138,8 @@ export default function Register() {
   const handleGoogleSignIn = async () => {
     try {
       await signIn('google', { callbackUrl: '/' })
-    } catch (error) {
+    } catch (err) {
+      console.error('Google sign in error:', err)
       setError('Google sign in failed')
     }
   }
@@ -176,7 +179,7 @@ export default function Register() {
 
             <div className="auth-footer">
               <p>
-                Didn't receive OTP?{' '}
+                Didn&apos;t receive OTP?{' '}
                 <button
                   type="button"
                   className="auth-link"

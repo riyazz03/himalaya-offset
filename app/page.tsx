@@ -5,7 +5,6 @@ import Button from '../component/Button';
 import Ticker from '@/component/Ticker';
 import ImageGrid from '@/Sections/ImageGrid';
 import Categories from '@/Sections/Categories';
-import ProductCard from '@/component/ProductCard';
 import Products from '@/Sections/Products';
 import FaqSection from '@/Sections/FaqSection';
 import Testimonial from '@/Sections/Testimonial';

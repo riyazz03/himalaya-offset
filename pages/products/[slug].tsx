@@ -17,7 +17,6 @@ const ProductPage = ({ product: initialProduct }: ProductPageProps) => {
     const router = useRouter()
     const [product, setProduct] = useState<Subcategory | null>(initialProduct)
     const [loading, setLoading] = useState(!initialProduct)
-    const [selectedQuantity, setSelectedQuantity] = useState(1)
     const [selectedTier, setSelectedTier] = useState(0)
 
     const { slug } = router.query
@@ -35,9 +34,6 @@ const ProductPage = ({ product: initialProduct }: ProductPageProps) => {
 
             if (!error && data) {
                 setProduct(data)
-                if (data.pricingTiers && data.pricingTiers.length > 0) {
-                    setSelectedQuantity(data.pricingTiers[0].quantity)
-                }
             }
         } catch (err) {
             console.error('Error fetching product:', err)
@@ -67,8 +63,7 @@ const ProductPage = ({ product: initialProduct }: ProductPageProps) => {
         )
     }
 
-    const handleQuantityChange = (quantity: number, tierIndex: number) => {
-        setSelectedQuantity(quantity)
+    const handleTierSelection = (tierIndex: number) => {
         setSelectedTier(tierIndex)
     }
 
@@ -78,6 +73,8 @@ const ProductPage = ({ product: initialProduct }: ProductPageProps) => {
         }
         return product.pricingTiers[selectedTier]
     }
+
+    const currentTier = getCurrentPrice()
 
     return (
         <Providers>
@@ -150,7 +147,23 @@ const ProductPage = ({ product: initialProduct }: ProductPageProps) => {
                                         {/* Description */}
                                         {product.description && (
                                             <div className="product-description">
-                                                <p>{product.description}</p>
+                                                {Array.isArray(product.description) 
+                                                    ? product.description.map((item, index) => (
+                                                        <p key={index}>{String(item)}</p>
+                                                    ))
+                                                    : <p>{String(product.description)}</p>
+                                                }
+                                            </div>
+                                        )}
+
+                                        {/* Current Price Display */}
+                                        {currentTier && (
+                                            <div className="current-price-display">
+                                                <div className="price-info">
+                                                    <span className="current-price">₹{currentTier.pricePerUnit}/unit</span>
+                                                    <span className="quantity-info">({currentTier.quantity}+ units)</span>
+                                                </div>
+                                                <div className="total-price">Total: ₹{currentTier.price}</div>
                                             </div>
                                         )}
 
@@ -163,7 +176,7 @@ const ProductPage = ({ product: initialProduct }: ProductPageProps) => {
                                                         <div
                                                             key={index}
                                                             className={`pricing-tier ${selectedTier === index ? 'selected' : ''} ${tier.isRecommended ? 'recommended' : ''}`}
-                                                            onClick={() => handleQuantityChange(tier.quantity, index)}
+                                                            onClick={() => handleTierSelection(index)}
                                                         >
                                                             {tier.isRecommended && (
                                                                 <div className="recommended-badge">Recommended</div>
@@ -268,7 +281,8 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
             },
             revalidate: 60
         }
-    } catch (error) {
+    } catch (err) {
+        console.error('Error in getStaticProps:', err)
         return { notFound: true }
     }
 }

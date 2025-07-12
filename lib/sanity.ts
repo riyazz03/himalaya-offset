@@ -12,7 +12,7 @@ export const client = createClient({
 })
 
 const builder = imageUrlBuilder(client)
-export const urlFor = (source: any) => builder.image(source)
+export const urlFor = (source: Record<string, unknown>) => builder.image(source)
 
 // Database service functions
 export const SanityService = {
@@ -23,9 +23,9 @@ export const SanityService = {
         '*[_type == "category" && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, description, "image_url": image.asset->url, "image_alt": image.alt, sortOrder, isActive, bgColor, _createdAt, _updatedAt }'
       )
       return { data: categories, error: null }
-    } catch (error) {
-      console.error('Error fetching categories:', error)
-      return { data: null, error }
+    } catch (err) {
+      console.error('Error fetching categories:', err)
+      return { data: null, error: err }
     }
   },
 
@@ -34,12 +34,12 @@ export const SanityService = {
     try {
       const category = await client.fetch(
         '*[_type == "category" && slug.current == $slug && isActive == true][0] { _id, name, "slug": slug.current, description, "image_url": image.asset->url, "image_alt": image.alt, bgColor, "subcategories": *[_type == "subcategory" && references(^._id) && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, description, minOrderQuantity, isFeatured, sortOrder } }',
-        { slug } as any
+        { slug } as Record<string, unknown>
       )
       return { data: category, error: null }
-    } catch (error) {
-      console.error('Error fetching category:', error)
-      return { data: null, error }
+    } catch (err) {
+      console.error('Error fetching category:', err)
+      return { data: null, error: err }
     }
   },
 
@@ -48,12 +48,12 @@ export const SanityService = {
     try {
       const product = await client.fetch(
         '*[_type == "subcategory" && slug.current == $slug && isActive == true][0] { _id, name, "slug": slug.current, description, "image_url": image.asset->url, "image_alt": image.alt, deliveryOptions, productOptions, pricingTiers, specifications, minOrderQuantity, isFeatured, "category": category->{ _id, name, "slug": slug.current } }',
-        { slug } as any
+        { slug } as Record<string, unknown>
       )
       return { data: product, error: null }
-    } catch (error) {
-      console.error('Error fetching product:', error)
-      return { data: null, error }
+    } catch (err) {
+      console.error('Error fetching product:', err)
+      return { data: null, error: err }
     }
   },
 
@@ -64,9 +64,9 @@ export const SanityService = {
         '*[_type == "subcategory" && isFeatured == true && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, minOrderQuantity, "category": category->{ name, "slug": slug.current }, "startingPrice": pricingTiers[0].pricePerUnit }'
       )
       return { data: products, error: null }
-    } catch (error) {
-      console.error('Error fetching featured products:', error)
-      return { data: null, error }
+    } catch (err) {
+      console.error('Error fetching featured products:', err)
+      return { data: null, error: err }
     }
   },
 
@@ -75,12 +75,12 @@ export const SanityService = {
     try {
       const products = await client.fetch(
         '*[_type == "subcategory" && (name match $query || category->name match $query) && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, "category": category->{ name, "slug": slug.current }, "startingPrice": pricingTiers[0].pricePerUnit }',
-        { query: `${searchQuery}*` } as any
+        { query: `${searchQuery}*` } as Record<string, unknown>
       )
       return { data: products, error: null }
-    } catch (error) {
-      console.error('Error searching products:', error)
-      return { data: null, error }
+    } catch (err) {
+      console.error('Error searching products:', err)
+      return { data: null, error: err }
     }
   }
 }
@@ -105,7 +105,7 @@ export interface Subcategory {
   _id: string;
   name: string;
   slug: string;
-  description?: any[];
+  description?: unknown[];
   image_url?: string;
   image_alt?: string;
   deliveryOptions?: DeliveryOption[];
