@@ -19,7 +19,8 @@ const Title = ({title} : {title: string}) => {
         fontWeight: '600',
         lineHeight: 'normal',
         transition: 'all 0.3s ease',
-        margin: '0'
+        margin: '0',
+        whiteSpace: 'nowrap',
     }
 
     return (

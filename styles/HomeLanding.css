@@ -1,8 +1,12 @@
 .home-landing {
   width: 100%;
-  margin-top: 60px;
+  height: 85vh;
   text-align: center;
   overflow-x: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
 }
 .hero-landing-content-wrapper {
   display: flex;
@@ -10,6 +14,8 @@
   align-items: center;
   flex-direction: column;
   gap: 35px;
+  position: relative;
+  z-index: 3;
 }
 .home-landing-title {
   width: 750px;
@@ -18,7 +24,88 @@
   width: 700px;
 }
 
-.image-grid-wrapper {
-  width: 100%;
-  display: grid;
+.gradient-div {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle, #e9ecf6, #c1d4fb);
+  z-index: 1;
+}
+.gradient-div-bottom {
+  position: absolute;
+  height: 100px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(#c1d4fb00, #e9ecf6);
+  z-index: 2;
+}
+
+.left-side-images {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  height: 100%;
+  left: 10vw;
+}
+.left-side-images img {
+  border-radius: 5px;
+  position: absolute;
+  min-height: 20vh;
+  object-fit: cover;
+}
+.image-1-left {
+  width: 20vw;
+  min-width: 8vw;
+  left: -8vw;
+  top: 30%;
+}
+.image-2-left {
+  min-width: 8vw;
+  width: 8vw;
+  transform: rotate(10);
+  left: 2vw;
+  bottom: 10%;
+}
+.image-3-left {
+  min-width: 8vw;
+  width: 8vw;
+  top: 10%;
+  left: 3vw;
+}
+
+
+.right-side-images {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  height: 100%;
+  right: 10vw;
+}
+.right-side-images img {
+  border-radius: 5px;
+  position: absolute;
+  min-height: 8vw;
+  object-fit: cover;
+}
+.image-1-right {
+  width: 8vw;
+  min-width: 8vw;
+  right: -8vw;
+  top: 30%;
+}
+.image-2-right {
+  min-width: 8vw;
+  width: 8vw;
+  transform: rotate(10);
+  right: 2vw;
+  bottom: 10%;
+}
+.image-3-right {
+  min-width: 8vw;
+  width: 8vw;
+  top: 10%;
+  right: 3vw;
 }

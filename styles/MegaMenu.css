@@ -9,10 +9,7 @@
 
 .mega-menu-nav {
   position: relative;
-  margin-top: 0.75rem;
-  padding: 0 2rem;
-  border-top: 1px solid #d1d5db;
-  border-bottom: 1px solid #d1d5db;
+  padding: 0.5rem 2rem;
   background-color: transparent;
   z-index: 50;
   display: flex;

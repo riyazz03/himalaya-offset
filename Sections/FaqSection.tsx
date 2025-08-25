@@ -111,7 +111,7 @@ const FaqSection: React.FC = () => {
   ];
 
   const handleFaqClick = (id: number): void => {
-    setOpenFaqId(openFaqId === id ? 0 : id); // Close if same, open if different
+    setOpenFaqId(openFaqId === id ? 0 : id); 
   };
 
   return (

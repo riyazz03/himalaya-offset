@@ -2,7 +2,7 @@
   display: flex;
   justify-content: space-between;
   align-items: start;
-  margin: 10rem auto;
+  margin: 2rem auto;
 }
 .title-wrapper {
   width: 174px;
@@ -18,6 +18,7 @@
 
 .testimonial-section {
   padding: 80px 0;
+  padding-bottom: 0;
 }
 
 .testimonial-title-wrapper {
@@ -34,12 +35,6 @@
   font-style: normal;
   font-weight: 600;
   line-height: normal;
-}
-
-.testimonial-title::after {
-  content: "Our Clients";
-  color: #4285f4;
-  margin-left: 8px;
 }
 
 .testimonial-slider-wrapper {

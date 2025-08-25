@@ -16,6 +16,18 @@ export default function Home() {
     <Providers>
       <>
         <section className="home-landing">
+          <div className='left-side-images'>
+            <img src="heroImages/image-1.webp" className='image-1-left' alt="" />
+            <img src="heroImages/image-2.webp" className='image-2-left' alt="" />
+            <img src="heroImages/image-3.webp" className='image-3-left' alt="" />
+          </div>
+          <div className='right-side-images'>
+            <img src="heroImages/image-1.webp" className='image-1-right' alt="" />
+            <img src="heroImages/image-2.webp" className='image-2-right' alt="" />
+            <img src="heroImages/image-3.webp" className='image-3-right' alt="" />
+          </div>
+          <div className="gradient-div"></div>
+          <div className="gradient-div-bottom"></div>
           <div className="hero-landing-content-wrapper">
             <h1 className='home-landing-title'>
               Printing with Passion and <span className='title-span'>Purpose</span>
@@ -25,17 +37,15 @@ export default function Home() {
             </p>
             <Button text="Explore Products" link="/products" />
           </div>
-          <div className="h-[50px] md:h-[80px]"></div>
-
-          <ImageGrid />
-          <Ticker text="Best Deals On Coupons" speedSeconds={50} />
-          <div className="h-[50px] md:h-[80px]"></div>
-
-          <Categories />
-          <Products />
-          <Testimonial />
-          <FaqSection />
         </section>
+        <div className="h-[50px] md:h-[80px]"></div>
+        <Categories />
+        <Ticker text="Best Deals On Coupons" speedSeconds={50} />
+        <div className="h-[50px] md:h-[80px]"></div>
+        <Products />
+        <Testimonial />
+        <FaqSection />
+
       </>
     </Providers>
 

@@ -17,7 +17,6 @@ export default function Providers({ children }: ProvidersProps) {
             <div className="StickyComponent">
                 <AnnouncementBar />
                 <Header />
-                <MegaMenu />
             </div>
             {children}
             <Footer />

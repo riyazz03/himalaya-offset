@@ -10,7 +10,6 @@ import Title from '@/component/Title-Block-Rounded';
 import TestimonialCard from '@/component/TestimonialCard';
 
 const Testimonial = () => {
-    // Testimonial data array
     const testimonials = [
         {
             id: 1,
@@ -50,7 +49,7 @@ const Testimonial = () => {
                 <div className='title-wrapper'>
                     <Title title='Happy Clients' />
                 </div>
-                <h1 className='testimonial-title'>Words From Our Clients</h1>
+                <h1 className='section-title'>Words From <span> Our Clients</span></h1>
             </div>
             
             <div className='testimonial-slider-wrapper'>
@@ -118,9 +117,6 @@ const Testimonial = () => {
                         </svg>
                     </button>
                 </div>
-                
-                {/* Custom Pagination */}
-                <div className="testimonial-pagination"></div>
             </div>
         </div>
     );

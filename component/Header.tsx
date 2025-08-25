@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import '../styles/header.css';
+import MegaMenu from './MegaMenu';
 
 export default function Header() {
     const { data: session, status } = useSession();
@@ -17,42 +18,10 @@ export default function Header() {
             <div className="logo">
                 <Link href="/">
                     <img src="/logo.png" alt="Your Logo" className="logo-image" />
-                    <div>HIMALAYA OFFSET</div>
                 </Link>
             </div>
-
+            <MegaMenu />
             <div className="nav-components flex items-center justify-between gap-4">
-                <div className="relative w-full max-w-sm navbar-search">
-                    <svg
-                        className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400"
-                        width="20"
-                        height="21"
-                        viewBox="0 0 20 21"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                    >
-                        <path
-                            d="M8.74996 16.3333C12.662 16.3333 15.8333 13.1621 15.8333 9.24999C15.8333 5.33791 12.662 2.16666 8.74996 2.16666C4.83788 2.16666 1.66663 5.33791 1.66663 9.24999C1.66663 13.1621 4.83788 16.3333 8.74996 16.3333Z"
-                            stroke="#B8B8B8"
-                            strokeWidth="2"
-                            strokeLinejoin="round"
-                        />
-                        <path
-                            d="M11.107 6.47625C10.7977 6.16636 10.4303 5.92059 10.0258 5.75306C9.62131 5.58553 9.18772 5.49953 8.74991 5.5C8.31209 5.49953 7.8785 5.58553 7.47401 5.75306C7.06951 5.92059 6.70209 6.16636 6.39282 6.47625M13.8424 14.3425L17.3778 17.8779"
-                            stroke="#B8B8B8"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        />
-                    </svg>
-
-                    <input
-                        className="pl-10 pr-4 py-2 rounded-md w-full focus:outline-none focus:ring-0 focus:border-transparent"
-                        type="text"
-                        placeholder="Search Products"
-                    />
-                </div>
-
                 <div className="flex gap-3">
                     {status === 'loading' ? (
                         <div className="loading-spinner">Loading...</div>
@@ -70,7 +39,7 @@ export default function Header() {
                                             )}
                                         </div>
                                         <svg className="dropdown-arrow" width="12" height="12" viewBox="0 0 12 12">
-                                            <path d="M6 8L2 4h8L6 8z" fill="currentColor"/>
+                                            <path d="M6 8L2 4h8L6 8z" fill="currentColor" />
                                         </svg>
                                     </button>
                                     <div className="dropdown-menu">
@@ -83,7 +52,7 @@ export default function Header() {
                         </div>
                     ) : (
                         <Link href="/auth/login">
-                            <button className="flex items-center gap-3 rounded-full px-5 py-1 bg-custom-blue">
+                            <button className="flex items-center gap-3 rounded-full px-5 py-2 bg-custom-blue">
                                 <span className="text-white font-bold">Login</span>
                                 <svg
                                     width="20"
@@ -107,25 +76,6 @@ export default function Header() {
                             </button>
                         </Link>
                     )}
-
-                    <button className="flex items-center gap-3 border rounded-full px-3 py-1">
-                        <span className="text-black font-bold">Contact Us</span>
-                        <span className="bg-custom-blue text-white rounded-full p-2.5">
-                            <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="3"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    d="M7 17l10-10m0 0H7m10 0v10"
-                                />
-                            </svg>
-                        </span>
-                    </button>
                 </div>
             </div>
         </header>
