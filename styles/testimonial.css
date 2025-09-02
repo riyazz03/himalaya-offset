@@ -291,3 +291,56 @@
     margin-top: 25px;
   }
 }
+
+
+@media (max-width: 600px) {
+  .testimonial-section {
+    padding: 40px 0;
+    flex-direction: column; /* Stack vertically */
+    align-items: center;
+  }
+
+  .testimonial-title {
+    font-size: 1.6rem;
+    text-align: center;
+  }
+
+  .testimonial-slider-wrapper {
+    padding: 0 12px;
+    width: 100%;
+  }
+
+  .testimonial-slider-container {
+    padding: 20px 15px;
+    border-radius: 14px;
+  }
+
+  .testimonial-card {
+    padding: 18px;
+    min-height: 210px;
+    text-align: center;
+  }
+
+  .testimonial-text {
+    font-size: 0.95rem;
+    margin-bottom: 15px;
+  }
+
+  .author-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .author-name {
+    font-size: 0.85rem;
+  }
+
+  .swiper-nav-button {
+    display: none; /* hide arrows for mobile */
+  }
+
+  .testimonial-pagination {
+    margin-top: 20px;
+  }
+}
+

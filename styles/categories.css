@@ -126,3 +126,46 @@
     display: none !important;
   }
 }
+
+
+
+
+/* 📱 Mobile optimization for categories swiper */
+@media (max-width: 600px) {
+  .categories-container {
+    padding: 0 10px !important;
+  }
+
+  .categories-content {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 1rem !important;
+  }
+
+  .category-card {
+    flex: 0 0 auto !important;
+    width: 120px !important;
+    text-align: center;
+    scroll-snap-align: center;
+  }
+
+  .category-image-container {
+    width: 80px !important;
+    height: 80px !important;
+    margin: 0 auto 6px auto !important;
+  }
+
+  .category-card-title {
+    font-size: 12px !important;
+    line-height: 1.5;
+  }
+
+  /* Hide swiper arrows on mobile */
+  .swiper-button-prev-custom,
+  .swiper-button-next-custom {
+    display: none !important;
+  }
+}

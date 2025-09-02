@@ -109,3 +109,42 @@
   top: 10%;
   right: 3vw;
 }
+
+
+
+/* Mobile responsiveness for screens up to 600px */
+@media screen and (max-width: 600px) {
+  .home-landing {
+    height: auto;
+    padding: 50px 15px;
+    flex-direction: column;
+  }
+
+  .hero-landing-content-wrapper {
+    gap: 20px;
+    text-align: center;
+  }
+
+  .home-landing-title {
+    width: 100%;
+    font-size: 1.6rem;
+    line-height: 2.2rem;
+  }
+
+  .hero-landing-text {
+    width: 100%;
+    font-size: 0.95rem;
+    line-height: 1.5rem;
+  }
+
+  /* Hide floating side images on mobile */
+  .left-side-images,
+  .right-side-images {
+    display: none;
+  }
+
+  /* Adjust gradient overlays */
+  .gradient-div-bottom {
+    height: 60px;
+  }
+}
