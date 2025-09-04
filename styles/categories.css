@@ -128,44 +128,82 @@
 }
 
 
+/* ===== Mobile fixes (do not affect desktop) ===== */
 
-
-/* 📱 Mobile optimization for categories swiper */
-@media (max-width: 600px) {
-  .categories-container {
-    padding: 0 10px !important;
-  }
-
-  .categories-content {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    gap: 1rem !important;
-  }
-
-  .category-card {
-    flex: 0 0 auto !important;
-    width: 120px !important;
-    text-align: center;
-    scroll-snap-align: center;
-  }
-
-  .category-image-container {
-    width: 80px !important;
-    height: 80px !important;
-    margin: 0 auto 6px auto !important;
-  }
-
-  .category-card-title {
-    font-size: 12px !important;
-    line-height: 1.5;
-  }
-
-  /* Hide swiper arrows on mobile */
+/* Show arrows and tighten spacing on tablet and below */
+@media (max-width: 768px) {
   .swiper-button-prev-custom,
   .swiper-button-next-custom {
-    display: none !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 45%;
+    width: 34px;
+    height: 34px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 9999px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    z-index: 20;
+  }
+  .swiper-button-prev-custom { left: 8px !important; }
+  .swiper-button-next-custom { right: 8px !important; }
+}
+
+/* Phones: heading overflow fix + card spacing */
+@media (max-width: 600px) {
+  /* 1) Heading: prevent off-screen overflow and make it professional */
+  .categories-section h1,
+  .categories-section .section-title,
+  .categories-title,
+  .categories h1 {
+    /* Use what matches in your markup; these rules are safe if multiple apply */
+    font-size: clamp(22px, 6vw, 28px) !important;
+    line-height: 1.25 !important;
+    font-weight: 700;
+    letter-spacing: 0;
+    margin: 0 0 12px 0 !important;
+    padding: 0 12px !important;       /* breathing room on edges */
+    text-wrap: balance;                /* nicer line breaks (supported) */
+    overflow-wrap: break-word;         /* safety for long words */
+    word-break: normal;
+    overflow-x: hidden;
+  }
+
+  /* If any negative translation/left margin was used on desktop, neutralize it on mobile */
+  .categories-section .title-wrap,
+  .categories-title-wrap {
+    transform: none !important;
+    margin-left: 0 !important;
+  }
+
+  /* 2) Carousel spacing and containment */
+  .swiper {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    padding-bottom: 40px !important;   /* for pagination if present */
+  }
+
+  /* Reduce huge gaps between cards (overrides inline spaceBetween) */
+  .swiper-slide {
+    margin-right: 10px !important;     /* tighten gap */
+    width: auto !important;
+    min-width: 108px;                   /* keep cards consistently readable */
+    box-sizing: border-box;
+  }
+
+  /* Keep arrows visible and finger-friendly on phones */
+  .swiper-button-prev-custom,
+  .swiper-button-next-custom {
+    display: flex !important;
+    width: 32px;
+    height: 32px;
+    top: 44%;
+  }
+
+  /* Pagination closer to content on small screens */
+  .swiper-pagination {
+    bottom: 10px !important;
   }
 }
