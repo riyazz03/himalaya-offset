@@ -1,20 +1,21 @@
 "use client";
 
 import '../styles/HomeLanding.css';
-import Button from '../component/Button';
 import Ticker from '@/component/Ticker';
 import Categories from '@/Sections/Categories';
 import Products from '@/Sections/Products';
 import FaqSection from '@/Sections/FaqSection';
 import Testimonial from '@/Sections/Testimonial';
 import Providers from '@/component/Providers';
+import HeroSlider from '@/Sections/Hero';
+// import Button from '../component/Button';
 
 
 export default function Home() {
   return (
     <Providers>
       <>
-        <section className="home-landing">
+        {/* <section className="home-landing">
           <div className='left-side-images'>
             <img src="heroImages/image-1.webp" className='image-1-left' alt="" />
             <img src="heroImages/image-2.webp" className='image-2-left' alt="" />
@@ -36,7 +37,8 @@ export default function Home() {
             </p>
             <Button text="Explore Products" link="/products" />
           </div>
-        </section>
+        </section> */}
+        <HeroSlider />
         <div className="h-[50px] md:h-[80px]"></div>
         <Categories />
         <Ticker text="Best Deals On Coupons" speedSeconds={50} />
