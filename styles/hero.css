@@ -1,0 +1,252 @@
+.fs-slider-container {
+  width: 100%;
+  height: calc(85vh);
+  position: relative;
+  overflow: hidden;
+  cursor: grab;
+  overflow-x: hidden;
+}
+
+.fs-slider-container:active {
+  cursor: grabbing;
+}
+
+/* .fs-slider-wrapper {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  transition: $ {
+    istransitioning? 'transform 0.7s cubic-bezier(0.4, 0, 0.2, 1)' : "none";
+  };
+  transform: translateX(-${currentSlide * 100}%);
+} */
+
+.fs-slide {
+  min-width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: 60px;
+  color: white;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  user-select: none;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.fs-slide::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(0, 0, 0, 0.3) 50%,
+    rgba(0, 0, 0, 0.1) 100%
+  );
+}
+
+.fs-slide-content {
+  max-width: 800px;
+  animation: fs-fadeInUp 0.8s ease-out;
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes fs-fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fs-slide h1 {
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 700;
+  margin-bottom: 1rem;
+  line-height: 1.1;
+  text-shadow: 2px 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.fs-slide p {
+  font-size: clamp(1.1rem, 2.5vw, 1.8rem);
+  opacity: 0.95;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+  text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.fs-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.25);
+  border: none;
+  color: white;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.fs-arrow:hover {
+  background: rgba(255, 255, 255, 0.35);
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+.fs-arrow:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.fs-arrow-left {
+  left: 40px;
+}
+
+.fs-arrow-right {
+  right: 40px;
+}
+
+.fs-dots-container {
+  position: absolute;
+  bottom: 40px;
+  right: 60px;
+  display: flex;
+  gap: 14px;
+  z-index: 10;
+}
+
+.fs-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.fs-dot:hover {
+  background: rgba(255, 255, 255, 0.6);
+  transform: scale(1.2);
+}
+
+.fs-dot.fs-active {
+  background: white;
+  width: 40px;
+  border-radius: 7px;
+  border-color: white;
+}
+
+@media (max-width: 1024px) {
+  .fs-slide {
+    padding: 50px;
+  }
+
+  .fs-arrow {
+    width: 48px;
+    height: 48px;
+  }
+
+  .fs-arrow-left {
+    left: 30px;
+  }
+
+  .fs-arrow-right {
+    right: 30px;
+  }
+
+  .fs-dots-container {
+    bottom: 30px;
+    right: 50px;
+  }
+}
+
+@media (max-width: 768px) {
+  .fs-slide {
+    padding: 40px 30px;
+  }
+
+  .fs-arrow {
+    width: 42px;
+    height: 42px;
+  }
+
+  .fs-arrow-left {
+    left: 20px;
+  }
+
+  .fs-arrow-right {
+    right: 20px;
+  }
+
+  .fs-dots-container {
+    bottom: 25px;
+    right: 30px;
+    gap: 12px;
+  }
+
+  .fs-dot {
+    width: 12px;
+    height: 12px;
+  }
+
+  .fs-dot.fs-active {
+    width: 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  .fs-slide {
+    padding: 30px 20px;
+  }
+
+  .fs-arrow {
+    width: 38px;
+    height: 38px;
+  }
+
+  .fs-arrow-left {
+    left: 15px;
+  }
+
+  .fs-arrow-right {
+    right: 15px;
+  }
+
+  .fs-dots-container {
+    bottom: 20px;
+    right: 20px;
+    gap: 10px;
+  }
+
+  .fs-dot {
+    width: 10px;
+    height: 10px;
+  }
+
+  .fs-dot.fs-active {
+    width: 28px;
+  }
+  .fs-slider-container{
+    height: 40vh;
+  }
+}
