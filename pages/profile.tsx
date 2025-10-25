@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import Providers from '@/component/Providers';
 import '@/styles/profile.css';
 
@@ -281,6 +280,7 @@ export default function ProfilePage() {
                       <div className="simple-avatar-section">
                         <div className="simple-avatar">
                           {imagePreview ? (
+                            // eslint-disable-next-line @next/next/no-img-element
                             <img 
                               src={imagePreview} 
                               alt="Profile" 

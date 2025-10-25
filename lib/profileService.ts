@@ -13,7 +13,7 @@ export const ProfileService = {
       }
 
       return { data: user, error: null };
-    } catch (err) {
+    } catch {
       return { data: null, error: 'Failed to fetch profile' };
     }
   },
@@ -30,7 +30,7 @@ export const ProfileService = {
       }
 
       return { data: user, error: null };
-    } catch (err) {
+    } catch {
       return { data: null, error: 'Failed to fetch profile' };
     }
   },
@@ -43,7 +43,7 @@ export const ProfileService = {
         .commit();
 
       return { data: user, error: null };
-    } catch (err) {
+    } catch {
       return { data: null, error: 'Failed to update profile' };
     }
   },
@@ -52,7 +52,7 @@ export const ProfileService = {
     try {
       const asset = await client.assets.upload('image', imageFile);
       return asset._id;
-    } catch (err) {
+    } catch {
       return null;
     }
   }
