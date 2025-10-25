@@ -15,7 +15,6 @@ export default function Home() {
       <HeroSlider />
       <Ticker text="Best Deals On Coupons" speedSeconds={50} />
       <div className="h-[50px] md:h-[80px]"></div>
-      <div className="h-[50px] md:h-[80px]"></div>
       <Categories />
       <Products />
       <Testimonial />
