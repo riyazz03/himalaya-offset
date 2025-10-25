@@ -2,7 +2,7 @@
 
 import Title from '@/component/Title-Block-Rounded'
 import React, { useState, useEffect } from 'react'
-import "../styles/products.css"
+import "@/styles/homeProducts.css"
 import ProductCard from '@/component/ProductCard'
 import { SanityService, Subcategory } from '@/lib/sanity'
 

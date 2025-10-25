@@ -6,7 +6,7 @@ import Head from 'next/head'
 import Image from 'next/image'
 import Link from 'next/link'
 import { SanityService, Subcategory } from '../../lib/sanity'
-import '../../styles/product-page.css'
+import '@/styles/single-product-page.css'
 import Providers from '@/component/Providers'
 
 interface ProductPageProps {
