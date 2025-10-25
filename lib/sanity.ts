@@ -88,6 +88,26 @@ export const SanityService = {
       console.error('Error searching products:', err)
       return { data: null, error: err }
     }
+  },
+  async getAllProducts() {
+    try {
+      const products = await client.fetch(
+        `*[_type == "subcategory"] {
+        _id,
+        name,
+        category,
+        image_url,
+        startingPrice,
+        minOrderQuantity,
+        _createdAt
+      } | order(_createdAt desc)`
+      );
+
+      return { data: products, error: null };
+    } catch (err) {
+      console.error('Error fetching all products:', err);
+      return { data: null, error: 'Failed to fetch products' };
+    }
   }
 }
 

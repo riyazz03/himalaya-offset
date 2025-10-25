@@ -13,12 +13,9 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
   return (
     <SessionProvider>
       <div className="app-layout">
-        <AnnouncementBar />
-        <Header />
         <main className="main-content">
           {children}
         </main>
-        {/* <Footer /> */}
       </div>
     </SessionProvider>
   );

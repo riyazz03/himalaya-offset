@@ -1,6 +1,6 @@
-// pages/_app.tsx
 import { SessionProvider } from 'next-auth/react'
 import type { AppProps } from 'next/app'
+import ClientLayout from '@/component/ClientLayout'
 import '../app/globals.css'
 
 export default function App({
@@ -9,7 +9,9 @@ export default function App({
 }: AppProps) {
   return (
     <SessionProvider session={session}>
-      <Component {...pageProps} />
+      <ClientLayout>
+        <Component {...pageProps} />
+      </ClientLayout>
     </SessionProvider>
   )
 }
