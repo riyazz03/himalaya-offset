@@ -1,17 +1,5 @@
 import { client } from './sanity';
 
-interface UpdateProfileData {
-  name?: string;
-  phone?: string;
-  avatar?: {
-    _type: 'image';
-    asset: {
-      _type: 'reference';
-      _ref: string;
-    };
-  };
-}
-
 export const ProfileService = {
   async getProfileByEmail(email: string) {
     try {
@@ -26,7 +14,6 @@ export const ProfileService = {
 
       return { data: user, error: null };
     } catch (err) {
-      console.error('Error fetching profile:', err);
       return { data: null, error: 'Failed to fetch profile' };
     }
   },
@@ -44,7 +31,6 @@ export const ProfileService = {
 
       return { data: user, error: null };
     } catch (err) {
-      console.error('Error fetching profile:', err);
       return { data: null, error: 'Failed to fetch profile' };
     }
   },
@@ -58,7 +44,6 @@ export const ProfileService = {
 
       return { data: user, error: null };
     } catch (err) {
-      console.error('Error updating profile:', err);
       return { data: null, error: 'Failed to update profile' };
     }
   },
@@ -68,7 +53,6 @@ export const ProfileService = {
       const asset = await client.assets.upload('image', imageFile);
       return asset._id;
     } catch (err) {
-      console.error('Error uploading avatar:', err);
       return null;
     }
   }

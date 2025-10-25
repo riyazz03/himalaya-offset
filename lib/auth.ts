@@ -34,7 +34,7 @@ export const authOptions: NextAuthOptions = {
             }
           }
           return null
-        } catch (err) {
+        } catch {
           return null
         }
       }
@@ -72,7 +72,7 @@ export const authOptions: NextAuthOptions = {
             token.role = result.data.role
             token.image = result.data.avatar?.asset?.url || user.image
           }
-        } catch (err) {
+        } catch {
           return token
         }
       }

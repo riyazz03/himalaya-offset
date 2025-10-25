@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import Providers from '@/component/Providers';
-import '../styles/profile.css';
+import '@/styles/profile.css';
 
 interface User {
   _id: string;
@@ -40,18 +41,7 @@ export default function ProfilePage() {
     phone: ''
   });
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/login');
-      return;
-    }
-
-    if (status === 'authenticated' && session?.user?.email) {
-      fetchProfile();
-    }
-  }, [status, session?.user?.email]);
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       setError('');
       setLoading(true);
@@ -100,7 +90,18 @@ export default function ProfilePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [session?.user?.email, session?.user?.image]);
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/login');
+      return;
+    }
+
+    if (status === 'authenticated' && session?.user?.email) {
+      fetchProfile();
+    }
+  }, [status, session?.user?.email, router, fetchProfile]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -198,7 +199,7 @@ export default function ProfilePage() {
       }
       
       setTimeout(() => setSuccess(''), 3000);
-    } catch (err) {
+    } catch {
       setError('Failed to update profile. Please try again.');
     } finally {
       setLoading(false);
@@ -411,7 +412,7 @@ export default function ProfilePage() {
                     <p className="simple-subtitle">Leave your account securely</p>
 
                     <p className="simple-info">
-                      Are you sure you want to sign out? You'll need to log in again to access your account.
+                      Are you sure you want to sign out? You&apos;ll need to log in again to access your account.
                     </p>
                     <button 
                       onClick={handleSignOut}

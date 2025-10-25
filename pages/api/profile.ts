@@ -46,8 +46,6 @@ export default async function handler(
         return res.status(404).json({ error: 'User not found' });
       }
 
-      console.log('User with avatar:', user);
-
       return res.status(200).json({ data: user });
     }
 
@@ -73,12 +71,11 @@ export default async function handler(
         };
       }
 
-      const user = await client
+      await client
         .patch(session.user?.id as string)
         .set(updateData)
         .commit();
 
-      // Fetch updated user with full avatar data
       const updatedUser = await client.fetch(
         `*[_id == $id][0] {
           _id, 
@@ -100,8 +97,6 @@ export default async function handler(
         { id: session.user?.id }
       );
 
-      console.log('User updated with avatar:', updatedUser);
-
       return res.status(200).json({ 
         data: updatedUser,
         avatarUrl: updatedUser.avatar?.asset?.url 
@@ -110,10 +105,8 @@ export default async function handler(
 
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (err) {
-    console.error('Profile API Error:', err);
     return res.status(500).json({ 
-      error: 'Failed to process request',
-      details: err instanceof Error ? err.message : 'Unknown error'
+      error: 'Failed to process request'
     });
   }
 }
