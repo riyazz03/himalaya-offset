@@ -10,6 +10,11 @@ const Products = () => {
   const [products, setProducts] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [currentMobileIndex, setCurrentMobileIndex] = useState(0);
+
+  const itemsPerPage = 12;
+  const itemsPerMobileSlide = 1;
 
   useEffect(() => {
     fetchFeaturedProducts();
@@ -29,41 +34,46 @@ const Products = () => {
 
       setProducts(featuredProducts);
     } catch (err) {
-      console.error('Error fetching featured products:', err);
       setError('An error occurred while loading products');
     } finally {
       setLoading(false);
     }
   };
 
-  // Use fetched products only, limit to multiples of 3 (max 9)
-  const getDisplayProducts = (products: Subcategory[]) => {
-    if (products.length === 0) return [];
-    
-    // Calculate how many products to show (multiples of 3, max 9)
-    let productsToShow = products.length;
-    
-    if (productsToShow > 9) {
-      productsToShow = 9;
-    } else if (productsToShow % 3 !== 0) {
-      // Round down to nearest multiple of 3
-      productsToShow = Math.floor(productsToShow / 3) * 3;
-    }
-    
-    return products.slice(0, productsToShow);
-  };
-
-  const displayProducts = getDisplayProducts(products);
-
-  // Helper function to format product data for ProductCard
   const formatProductForCard = (product: Subcategory) => ({
-    image: product.image_url || "/placeholder.png", // Use local placeholder instead
+    image: product.image_url || "/placeholder.png",
     title: product.name,
     pricing: product.startingPrice 
       ? `${product.minOrderQuantity} starting at ₹${product.startingPrice}.00`
       : "Price on request",
     buttonText: "Choose Options"
   });
+
+  // Desktop: Show 12 items with pagination
+  const paginatedProducts = products.slice(
+    currentPage * itemsPerPage,
+    (currentPage + 1) * itemsPerPage
+  );
+
+  const totalPages = Math.ceil(products.length / itemsPerPage);
+
+  // Mobile: Show 1 item at a time (slider)
+  const mobileSliderProducts = products.slice(
+    currentMobileIndex,
+    currentMobileIndex + itemsPerMobileSlide
+  );
+
+  const handleNextMobile = () => {
+    if (currentMobileIndex < products.length - 1) {
+      setCurrentMobileIndex(currentMobileIndex + 1);
+    }
+  };
+
+  const handlePrevMobile = () => {
+    if (currentMobileIndex > 0) {
+      setCurrentMobileIndex(currentMobileIndex - 1);
+    }
+  };
 
   return (
     <div className='products-section'>
@@ -84,36 +94,107 @@ const Products = () => {
               </div>
             </div>
           </div>
+
           <div className='product-right'>
             {loading ? (
-              // Loading state
               <div className="products-loading">
                 <p>Loading featured products...</p>
               </div>
             ) : error ? (
-              // Error state
               <div className="products-error">
                 <p>Unable to load products. Please try again later.</p>
               </div>
-            ) : displayProducts.length === 0 ? (
-              // No products found
+            ) : products.length === 0 ? (
               <div className="products-empty">
                 <p>No featured products found.</p>
               </div>
             ) : (
-              // Products display
-              displayProducts.map((product) => {
-                const cardData = formatProductForCard(product);
-                return (
-                  <ProductCard 
-                    key={product._id} 
-                    image={cardData.image} 
-                    title={cardData.title} 
-                    pricing={cardData.pricing} 
-                    buttonText={cardData.buttonText} 
-                  />
-                );
-              })
+              <>
+                {/* Desktop: Grid Layout with 3 columns */}
+                <div className='products-desktop'>
+                  {paginatedProducts.map((product) => {
+                    const cardData = formatProductForCard(product);
+                    return (
+                      <ProductCard 
+                        key={product._id} 
+                        image={cardData.image} 
+                        title={cardData.title} 
+                        pricing={cardData.pricing} 
+                        buttonText={cardData.buttonText} 
+                      />
+                    );
+                  })}
+                </div>
+
+                {/* Desktop: Pagination */}
+                {totalPages > 1 && (
+                  <div className='products-pagination-desktop'>
+                    <button 
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 0))}
+                      disabled={currentPage === 0}
+                      className='pagination-btn'
+                    >
+                      Previous
+                    </button>
+                    <div className='pagination-numbers'>
+                      {Array.from({ length: totalPages }, (_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setCurrentPage(i)}
+                          className={`pagination-number ${currentPage === i ? 'active' : ''}`}
+                        >
+                          {i + 1}
+                        </button>
+                      ))}
+                    </div>
+                    <button 
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages - 1))}
+                      disabled={currentPage === totalPages - 1}
+                      className='pagination-btn'
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+
+                {/* Mobile: Slider Layout with 1 item */}
+                <div className='products-mobile-slider'>
+                  {mobileSliderProducts.map((product) => {
+                    const cardData = formatProductForCard(product);
+                    return (
+                      <div key={product._id} className='slider-item'>
+                        <ProductCard 
+                          image={cardData.image} 
+                          title={cardData.title} 
+                          pricing={cardData.pricing} 
+                          buttonText={cardData.buttonText} 
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Mobile: Slider Controls */}
+                <div className='mobile-slider-controls'>
+                  <button 
+                    onClick={handlePrevMobile}
+                    disabled={currentMobileIndex === 0}
+                    className='slider-btn prev'
+                  >
+                    ←
+                  </button>
+                  <span className='slider-counter'>
+                    {currentMobileIndex + 1} / {products.length}
+                  </span>
+                  <button 
+                    onClick={handleNextMobile}
+                    disabled={currentMobileIndex === products.length - 1}
+                    className='slider-btn next'
+                  >
+                    →
+                  </button>
+                </div>
+              </>
             )}
           </div>
         </div>
