@@ -1,4 +1,3 @@
-// lib/auth.ts
 import { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import CredentialsProvider from 'next-auth/providers/credentials'
@@ -36,7 +35,6 @@ export const authOptions: NextAuthOptions = {
           }
           return null
         } catch (err) {
-          console.error('Auth error:', err)
           return null
         }
       }
@@ -52,8 +50,11 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id
+        token.email = user.email
+        token.name = user.name
         token.phone = (user as unknown as Record<string, unknown>).phone as string
         token.role = (user as unknown as Record<string, unknown>).role as string
+        token.image = user.image || token.image
       }
       
       if (account?.provider === 'google' && user) {
@@ -69,9 +70,10 @@ export const authOptions: NextAuthOptions = {
             token.id = result.data._id
             token.phone = result.data.phone
             token.role = result.data.role
+            token.image = result.data.avatar?.asset?.url || user.image
           }
         } catch (err) {
-          console.error('Google auth error:', err)
+          return token
         }
       }
       
@@ -82,6 +84,9 @@ export const authOptions: NextAuthOptions = {
         (session.user as unknown as Record<string, unknown>).id = token.id as string
         ;(session.user as unknown as Record<string, unknown>).phone = token.phone as string || ''
         ;(session.user as unknown as Record<string, unknown>).role = token.role as string || 'customer'
+        if (token.image) {
+          session.user.image = token.image as string
+        }
       }
       return session
     }

@@ -1,25 +1,21 @@
-'use client'
+'use client';
 
-import { SessionProvider } from 'next-auth/react'
-import { ReactNode } from 'react'
-import AnnouncementBar from './AnnouncementBar'
-import Header from './Header'
-import MegaMenu from './MegaMenu'
-import Footer from './Footer'
+import { ReactNode } from 'react';
+import AnnouncementBar from './AnnouncementBar';
+import Header from './Header';
+import Footer from './Footer';
 
 interface ProvidersProps {
-    children: ReactNode
+  children: ReactNode;
 }
 
 export default function Providers({ children }: ProvidersProps) {
-    return (
-        <SessionProvider>
-            <div className="StickyComponent">
-                <AnnouncementBar />
-                <Header />
-            </div>
-            {children}
-            <Footer />
-        </SessionProvider>
-    )
+  return (
+    <div className="StickyComponent">
+      <AnnouncementBar />
+      <Header />
+      {children}
+      <Footer />
+    </div>
+  );
 }
