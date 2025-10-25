@@ -37,17 +37,6 @@ export default function Header() {
                 <Link href="/products" className="nav-link">All Products</Link>
                 <Link href="/categories" className="nav-link">Categories</Link>
                 <Link href="/contact" className="nav-link">Contact Us</Link>
-                <div className="navbar-search">
-                    <input
-                        type="text"
-                        placeholder="Search products..."
-                        className="search-input"
-                    />
-                    <svg className='search-svg' width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="8" cy="8" r="6" stroke="#6b7280" strokeWidth="2" />
-                        <path d="M12 12L18 18" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                </div>
 
                 {status === 'loading' ? (
                     <div className="loading-spinner">Loading...</div>
@@ -59,8 +48,8 @@ export default function Header() {
                         >
                             <div className="user-avatar">
                                 {displayImage ? (
-                                    <img 
-                                        src={displayImage} 
+                                    <img
+                                        src={displayImage}
                                         alt="Profile"
                                         key={displayImage}
                                     />
