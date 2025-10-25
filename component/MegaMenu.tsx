@@ -1,38 +1,23 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { SanityService, Category, Subcategory } from '../lib/sanity'; 
+import { Category, Subcategory } from '../lib/sanity'; 
 import '@/styles/MegaMenu.css'; 
 
 interface MenuCategory extends Category {
     subcategories: Subcategory[];
 }
 
-interface MegaMenuProps {
+interface MegaMenuClientProps {
+    allMenuData: MenuCategory[];
     className?: string;
 }
 
-const MegaMenu: React.FC<MegaMenuProps> = ({ className = '' }) => {
-    const [allMenuData, setAllMenuData] = useState<MenuCategory[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
-    const [mounted, setMounted] = useState<boolean>(false);
+const MegaMenuClient: React.FC<MegaMenuClientProps> = ({ allMenuData = [], className = '' }) => {
     const menuRef = useRef<HTMLDivElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    // Handle hydration
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    useEffect(() => {
-        if (mounted) {
-            fetchMenuData();
-        }
-    }, [mounted]);
-
-    // Calculate dropdown position
     useEffect(() => {
         const calculateDropdownPosition = () => {
             if (!menuRef.current || !dropdownRef.current) return;
@@ -41,20 +26,16 @@ const MegaMenu: React.FC<MegaMenuProps> = ({ className = '' }) => {
             const dropdownHeight = dropdownRef.current.offsetHeight;
             const viewportHeight = window.innerHeight;
             
-            // Calculate the top position based on menu position
-            const topPosition = menuRect.bottom + 8; // 8px gap
+            const topPosition = menuRect.bottom + 8;
             
-            // Set CSS custom property for top position
             dropdownRef.current.style.setProperty('--dropdown-top', `${topPosition}px`);
             
-            // Check if dropdown would be cut off at bottom
             if (topPosition + dropdownHeight > viewportHeight) {
                 dropdownRef.current.style.setProperty('--dropdown-top', `${viewportHeight - dropdownHeight - 20}px`);
             }
         };
 
-        if (mounted && allMenuData.length > 0) {
-            // Calculate on mount and resize
+        if (allMenuData && allMenuData.length > 0) {
             calculateDropdownPosition();
             window.addEventListener('resize', calculateDropdownPosition);
             window.addEventListener('scroll', calculateDropdownPosition);
@@ -64,93 +45,21 @@ const MegaMenu: React.FC<MegaMenuProps> = ({ className = '' }) => {
                 window.removeEventListener('scroll', calculateDropdownPosition);
             };
         }
-    }, [mounted, allMenuData]);
-
-    const fetchMenuData = async (): Promise<void> => {
-        try {
-            setLoading(true);
-            setError(null);
-
-            const { data: categories, error: fetchError } = await SanityService.getCategories();
-            
-            if (fetchError || !categories) {
-                setError('Failed to load categories');
-                return;
-            }
-
-            const categoriesWithSubcategories = await Promise.allSettled(
-                categories.map(async (category: Category): Promise<MenuCategory> => {
-                    try {
-                        const { data: categoryData } = await SanityService.getCategoryWithProducts(category.slug);
-                        return {
-                            ...category,
-                            subcategories: categoryData?.subcategories || []
-                        };
-                    } catch (err) {
-                        console.warn(`Error fetching subcategories for ${category.name}:`, err);
-                        return {
-                            ...category,
-                            subcategories: []
-                        };
-                    }
-                })
-            );
-
-            const successfulCategories = categoriesWithSubcategories
-                .filter((result): result is PromiseFulfilledResult<MenuCategory> => result.status === 'fulfilled')
-                .map(result => result.value);
-
-            setAllMenuData(successfulCategories);
-        } catch (err) {
-            console.error('Error in fetchMenuData:', err);
-            setError('An error occurred while loading the menu');
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, [allMenuData]);
 
     const getCategoryLink = (categorySlug: string): string => `/categories/${categorySlug}`;
     const getSubcategoryLink = (subcategorySlug: string): string => `/products/${subcategorySlug}`;
 
-    // Loading states
-    if (!mounted) {
-        return (
-            <nav className={`mega-menu-loading ${className}`}>
-                <div className="mega-menu-loading-content">
-                    <div className="loading-text">Loading...</div>
-                </div>
-            </nav>
-        );
+    if (!allMenuData || allMenuData.length === 0) {
+        return null;
     }
 
-    if (loading) {
-        return (
-            <nav className={`mega-menu-loading ${className}`}>
-                <div className="mega-menu-loading-content">
-                    <div className="loading-text loading-animated">Loading menu...</div>
-                </div>
-            </nav>
-        );
-    }
-
-    if (error || allMenuData.length === 0) {
-        return (
-            <nav className={`mega-menu-loading ${className}`}>
-                <div className="mega-menu-loading-content">
-                    <div className="loading-text error-text">Menu unavailable</div>
-                </div>
-            </nav>
-        );
-    }
-
-    // Get 7 categories for main menu (since All Categories takes one spot)
     const mainMenuCategories = allMenuData.slice(0, 7);
 
     return (
         <div className="mega-menu-wrapper">
             <nav ref={menuRef} className={`mega-menu-nav ${className}`}>
                 <ul className="mega-menu-list">
-                    {/* All Categories Menu - First Position */}
                     <li className="mega-menu-item mega-menu-all-categories">
                         <div className="mega-menu-link mega-menu-all-link">
                             All Categories
@@ -159,7 +68,6 @@ const MegaMenu: React.FC<MegaMenuProps> = ({ className = '' }) => {
                             </svg>
                         </div>
                         
-                        {/* All Categories Full Width Dropdown */}
                         <div ref={dropdownRef} className="mega-menu-all-dropdown">
                             <div className="mega-menu-all-container">
                                 <div className="mega-menu-all-header">
@@ -220,7 +128,6 @@ const MegaMenu: React.FC<MegaMenuProps> = ({ className = '' }) => {
                         </div>
                     </li>
 
-                    {/* Main 7 categories */}
                     {mainMenuCategories.map((category) => (
                         <li key={category._id} className="mega-menu-item">
                             <Link 
@@ -230,11 +137,9 @@ const MegaMenu: React.FC<MegaMenuProps> = ({ className = '' }) => {
                                 {category.name}
                             </Link>
                             
-                            {/* Dropdown for subcategories */}
                             {category.subcategories && category.subcategories.length > 0 && (
                                 <div className="mega-menu-dropdown">
                                     <div className="mega-menu-dropdown-content">
-                                        {/* Category header */}
                                         <div className="mega-menu-dropdown-header">
                                             <Link
                                                 href={getCategoryLink(category.slug)}
@@ -244,7 +149,6 @@ const MegaMenu: React.FC<MegaMenuProps> = ({ className = '' }) => {
                                             </Link>
                                         </div>
                                         
-                                        {/* Subcategories */}
                                         <div className="mega-menu-dropdown-list">
                                             {category.subcategories.slice(0, 8).map((subcategory) => (
                                                 <Link
@@ -257,7 +161,6 @@ const MegaMenu: React.FC<MegaMenuProps> = ({ className = '' }) => {
                                             ))}
                                         </div>
                                         
-                                        {/* Show more if category has more than 8 subcategories */}
                                         {category.subcategories.length > 8 && (
                                             <div className="mega-menu-dropdown-footer">
                                                 <Link
@@ -279,4 +182,4 @@ const MegaMenu: React.FC<MegaMenuProps> = ({ className = '' }) => {
     );
 };
 
-export default MegaMenu;
+export default MegaMenuClient;

@@ -3,20 +3,18 @@ import { createClient } from '@sanity/client'
 import imageUrlBuilder from '@sanity/image-url'
 
 export const client = createClient({
-  projectId: 'k0dxt5dl', // Your Sanity project ID
+  projectId: 'k0dxt5dl',
   dataset: 'production',
-  useCdn: false, // Important: set to false for development
+  useCdn: false,
   apiVersion: '2023-05-03',
   perspective: 'published',
-  token: process.env.SANITY_API_TOKEN, // API token for write operations
+  token: process.env.SANITY_API_TOKEN,
 })
 
 const builder = imageUrlBuilder(client)
 export const urlFor = (source: Record<string, unknown>) => builder.image(source)
 
-// Database service functions
 export const SanityService = {
-  // Get all active categories
   async getCategories() {
     try {
       const categories = await client.fetch(
@@ -29,7 +27,6 @@ export const SanityService = {
     }
   },
 
-  // Get single category with its subcategories
   async getCategoryWithProducts(slug: string) {
     try {
       const category = await client.fetch(
@@ -43,7 +40,18 @@ export const SanityService = {
     }
   },
 
-  // Get single product/subcategory with all options and pricing
+  async getAllCategoriesWithSubcategories() {
+    try {
+      const categories = await client.fetch(
+        '*[_type == "category" && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, description, "image_url": image.asset->url, "image_alt": image.alt, sortOrder, isActive, bgColor, _createdAt, _updatedAt, "subcategories": *[_type == "subcategory" && references(^._id) && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, description, minOrderQuantity, isFeatured, sortOrder } }'
+      )
+      return { data: categories, error: null }
+    } catch (err) {
+      console.error('Error fetching all categories with subcategories:', err)
+      return { data: null, error: err }
+    }
+  },
+
   async getProduct(slug: string) {
     try {
       const product = await client.fetch(
@@ -57,7 +65,6 @@ export const SanityService = {
     }
   },
 
-  // Get featured products
   async getFeaturedProducts() {
     try {
       const products = await client.fetch(
@@ -70,7 +77,6 @@ export const SanityService = {
     }
   },
 
-  // Search products
   async searchProducts(searchQuery: string) {
     try {
       const products = await client.fetch(
@@ -85,7 +91,6 @@ export const SanityService = {
   }
 }
 
-// TypeScript interfaces
 export interface Category {
   _id: string;
   name: string;

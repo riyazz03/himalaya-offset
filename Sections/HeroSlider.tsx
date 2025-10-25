@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, JSX } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import "@/styles/hero.css"
+import '@/styles/heroSlider.css';
 
 interface Slide {
   id: number;
@@ -23,25 +22,25 @@ export default function HeroSlider(): JSX.Element {
       id: 1,
       title: 'Discover Innovation',
       subtitle: 'Transform your digital experience',
-      bg: 'heroImages/image-1.webp',
+      bg: '/heroImages/image-1.webp',
     },
     {
       id: 2,
       title: 'Create Excellence',
       subtitle: 'Design solutions that inspire',
-      bg: 'heroImages/image-2.webp',
+      bg: '/heroImages/image-2.webp',
     },
     {
       id: 3,
       title: 'Build Future',
       subtitle: 'Technology meets creativity',
-      bg: 'heroImages/image-3.webp',
+      bg: '/heroImages/image-3.webp',
     },
     {
       id: 4,
       title: 'Achieve Growth',
       subtitle: 'Unlock your full potential',
-      bg: 'heroImages/image-2.webp',
+      bg: '/heroImages/image-4.webp',
     },
   ];
 
@@ -53,7 +52,7 @@ export default function HeroSlider(): JSX.Element {
     }
     timeoutRef.current = setTimeout(() => {
       goToNext();
-    }, 4000);
+    }, 5000);
   };
 
   useEffect(() => {
@@ -184,28 +183,6 @@ export default function HeroSlider(): JSX.Element {
           ))}
         </div>
 
-        <button
-          className="fs-arrow fs-arrow-left"
-          onClick={() => {
-            goToPrevious();
-            resetAutoPlay();
-          }}
-          aria-label="Previous slide"
-        >
-          <ChevronLeft size={24} strokeWidth={3} />
-        </button>
-
-        <button
-          className="fs-arrow fs-arrow-right"
-          onClick={() => {
-            goToNext();
-            resetAutoPlay();
-          }}
-          aria-label="Next slide"
-        >
-          <ChevronRight size={24} strokeWidth={3} />
-        </button>
-
         <div className="fs-dots-container">
           {slides.map((_, index) => (
             <button
@@ -213,6 +190,7 @@ export default function HeroSlider(): JSX.Element {
               className={`fs-dot ${actualSlideIndex === index ? 'fs-active' : ''}`}
               onClick={() => goToSlide(index)}
               aria-label={`Go to slide ${index + 1}`}
+              type="button"
             />
           ))}
         </div>
