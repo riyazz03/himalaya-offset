@@ -7,7 +7,7 @@ import '../styles/footer.css';
 export default function Footer() {
     return (
         <footer className="product-footer">
-            <div className="footer-container">
+            <div className="main-container">
                 <div className="footer-main">
                     <div className="footer-space-between">
                        <div>

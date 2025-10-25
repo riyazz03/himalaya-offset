@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import '@/styles/products-page.css';
 import Providers from '@/component/Providers';
+import ProductCard from '@/component/ProductCard';
 
 interface Product {
     _id: string;
@@ -132,6 +133,15 @@ export default function ProductsPage() {
     const startIndex = (currentPage - 1) * productsPerPage;
     const paginatedProducts = filteredProducts.slice(startIndex, startIndex + productsPerPage);
 
+    const formatProductForCard = (product: Product) => ({
+        image: product.image_url || '/placeholder.png',
+        title: product.name,
+        pricing: product.startingPrice 
+            ? `${product.minOrderQuantity} starting at ₹${product.startingPrice}.00`
+            : 'Price on request',
+        buttonText: 'Choose Options'
+    });
+
     return (
         <Providers>
             <div className="all-products-page">
@@ -214,29 +224,18 @@ export default function ProductsPage() {
                         ) : (
                             <>
                                 <div className="products-grid">
-                                    {paginatedProducts.map((product) => (
-                                        <div key={product._id} className="product-card">
-                                            <div className="product-image">
-                                                <img
-                                                    src={product.image_url || '/placeholder.png'}
-                                                    alt={product.name}
-                                                    onError={(e) => {
-                                                        const img = e.target as HTMLImageElement;
-                                                        img.src = '/placeholder.png';
-                                                    }}
-                                                />
-                                            </div>
-                                            <div className="product-info">
-                                                <h3 className="product-name">{product.name}</h3>
-                                                <p className="product-pricing">
-                                                    {product.startingPrice
-                                                        ? `${product.minOrderQuantity} starting at ₹${product.startingPrice}.00`
-                                                        : 'Price on request'}
-                                                </p>
-                                                <button className="product-button">Choose Options</button>
-                                            </div>
-                                        </div>
-                                    ))}
+                                    {paginatedProducts.map((product) => {
+                                        const cardData = formatProductForCard(product);
+                                        return (
+                                            <ProductCard
+                                                key={product._id}
+                                                image={cardData.image}
+                                                title={cardData.title}
+                                                pricing={cardData.pricing}
+                                                buttonText={cardData.buttonText}
+                                            />
+                                        );
+                                    })}
                                 </div>
 
                                 {totalPages > 1 && (
@@ -276,6 +275,5 @@ export default function ProductsPage() {
                 </div>
             </div>
         </Providers>
-
     );
 }

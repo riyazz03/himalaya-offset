@@ -8,14 +8,16 @@
   align-self: start;
   justify-self: start;
   border-radius: 12px;
-  background-color: #e2e9ff;
+  border: 1px solid #d0daf9;
 }
+
 .product-card-image-wrapper {
   width: 100%;
   min-height: 310px;
   height: 100%;
   border-radius: 12px;
 }
+
 .product-card-image {
   height: 100%;
   width: 100%;
@@ -24,6 +26,7 @@
   object-fit: cover;
   border-radius: 0.75rem;
 }
+
 .product-card-content {
   display: flex;
   width: 100%;
@@ -31,20 +34,30 @@
   align-items: flex-start;
   gap: 10px;
 }
+
 .product-card-title {
   color: #000;
   font-size: 22px;
   font-style: normal;
   font-weight: 700;
   line-height: normal;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
+
 .product-card-pricing {
   color: #000;
   font-size: 1rem;
   font-style: normal;
   font-weight: 400;
   line-height: normal;
+  margin: 0;
 }
+
 .product-card-button {
   display: flex;
   cursor: pointer;
@@ -59,14 +72,68 @@
   background: rgba(76, 76, 76, 0.03);
   backdrop-filter: blur(200px);
   transition: all 0.3s ease;
+  text-decoration: none;
 }
+
 .product-card-button:hover {
   border: 1px solid #2067ff;
+  background: rgba(32, 103, 255, 0.05);
 }
+
+.product-card-button:active {
+  transform: scale(0.98);
+}
+
 .product-card-button-text {
   color: #2067ff;
   font-size: 1rem;
   font-style: normal;
   font-weight: 700;
   line-height: normal;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .product-card {
+    padding: 15px;
+    gap: 15px;
+  }
+
+  .product-card-image {
+    min-height: 15rem;
+    max-height: 15rem;
+  }
+
+  .product-card-title {
+    font-size: 18px;
+  }
+
+  .product-card-button {
+    height: 2.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-card {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .product-card-image {
+    min-height: 12rem;
+    max-height: 12rem;
+  }
+
+  .product-card-title {
+    font-size: 16px;
+  }
+
+  .product-card-button {
+    height: 2.25rem;
+  }
+
+  .product-card-button-text {
+    font-size: 0.9rem;
+  }
 }
