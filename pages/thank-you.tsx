@@ -42,7 +42,7 @@ export default function ThankYouPage() {
             <h1 className="thank-you-title">Thank You!</h1>
             
             <p className="thank-you-subtitle">
-              We've received your submission
+              We&apos;ve received your submission
             </p>
 
             <p className="thank-you-description">
