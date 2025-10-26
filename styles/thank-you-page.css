@@ -1,0 +1,164 @@
+.thank-you-page {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+  padding: 2rem;
+}
+
+.thank-you-wrapper {
+  width: 100%;
+  max-width: 500px;
+}
+
+.thank-you-content {
+  background: white;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+  text-align: center;
+}
+
+.thank-you-icon-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.thank-you-icon {
+  width: 80px;
+  height: 80px;
+  color: #2067ff;
+  stroke-width: 1.5;
+}
+
+.thank-you-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.5px;
+}
+
+.thank-you-subtitle {
+  font-size: 1.125rem;
+  color: #4a5568;
+  margin: 0 0 1rem 0;
+  font-weight: 500;
+}
+
+.thank-you-description {
+  font-size: 0.95rem;
+  color: #718096;
+  line-height: 1.6;
+  margin: 0 0 2rem 0;
+}
+
+.countdown-container {
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.countdown-label {
+  font-size: 0.85rem;
+  color: #718096;
+  margin: 0 0 0.5rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.countdown-display {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2067ff;
+  margin: 0;
+}
+
+.redirect-button {
+  display: inline-block;
+  padding: 0.875rem 2rem;
+  background: #2067ff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(32, 103, 255, 0.2);
+}
+
+.redirect-button:hover {
+  background: #1a52cc;
+  box-shadow: 0 4px 12px rgba(32, 103, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.redirect-button:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 640px) {
+  .thank-you-content {
+    padding: 2rem 1.5rem;
+    border-radius: 10px;
+  }
+
+  .thank-you-title {
+    font-size: 1.75rem;
+  }
+
+  .thank-you-subtitle {
+    font-size: 1rem;
+  }
+
+  .thank-you-description {
+    font-size: 0.9rem;
+  }
+
+  .thank-you-icon {
+    width: 70px;
+    height: 70px;
+  }
+
+  .countdown-display {
+    font-size: 1.75rem;
+  }
+
+  .redirect-button {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .thank-you-page {
+    padding: 1rem;
+  }
+
+  .thank-you-content {
+    padding: 1.5rem 1rem;
+  }
+
+  .thank-you-title {
+    font-size: 1.5rem;
+  }
+
+  .thank-you-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .thank-you-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .redirect-button {
+    width: 100%;
+  }
+}
