@@ -1,0 +1,293 @@
+.hero-section {
+  width: 100%;
+  height: calc(100vh - 120px);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.3),
+    rgba(0, 0, 0, 0.5)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.hero-content {
+  text-align: center;
+  z-index: 1;
+}
+
+.hero-title {
+  font-size: 4rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  letter-spacing: -1px;
+}
+
+.hero-subtitle {
+  font-size: 1.5rem;
+  font-weight: 300;
+  opacity: 0.95;
+}
+
+.about-section {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 100px 60px;
+  display: flex;
+  align-items: center;
+  gap: 80px;
+}
+
+.about-image-container {
+  flex: 1;
+  min-width: 400px;
+}
+
+.about-image {
+  width: 100%;
+  /* height: 600px; */
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.about-content {
+  flex: 1;
+}
+
+.about-title {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #1a1a1a;
+}
+.about-para-top{
+    margin-top: 0.5rem;
+}
+
+.about-text {
+  font-size: 1.125rem;
+  line-height: 1.8;
+  color: #4a4a4a;
+  margin-bottom: 0.5rem;
+}
+
+.gallery-section {
+  background: #f8f9fa;
+  padding: 100px 20px;
+}
+
+.gallery-title-wrapper{
+    width: 100%;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 60px;
+}
+
+.gallery-title {
+  text-align: center;
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 60px;
+  color: #1a1a1a;
+}
+
+.slider-container {
+  position: relative;
+  max-width: 1600px;
+  margin: 0 auto;
+  height: 500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slider-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.slide {
+  position: absolute;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  top: 50%;
+}
+
+.slide-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.slide-left {
+  left: 10%;
+  width: 300px;
+  height: 380px;
+  z-index: 1;
+  opacity: 0.6;
+  transform: translateY(-50%);
+}
+
+.slide-center {
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 500px;
+  z-index: 3;
+  opacity: 1;
+}
+
+.slide-right {
+  right: 10%;
+  width: 300px;
+  height: 380px;
+  z-index: 1;
+  opacity: 0.6;
+  transform: translateY(-50%);
+}
+
+.slider-button {
+  position: absolute;
+  z-index: 4;
+  background: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.slider-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.25);
+}
+
+.slider-button:active {
+  transform: scale(0.95);
+}
+
+.slider-button-prev {
+  left: 40px;
+}
+
+.slider-button-next {
+  right: 40px;
+}
+
+.arrow {
+  width: 14px;
+  height: 14px;
+  border-top: 3px solid #1a1a1a;
+  border-right: 3px solid #1a1a1a;
+}
+
+.arrow-left {
+  transform: rotate(-135deg);
+  margin-left: 6px;
+}
+
+.arrow-right {
+  transform: rotate(45deg);
+  margin-right: 6px;
+}
+
+@media (max-width: 1024px) {
+  .about-section {
+    flex-direction: column;
+    padding: 60px 30px;
+    gap: 40px;
+  }
+
+  .about-image-container {
+    min-width: 100%;
+  }
+
+  .slide-center {
+    width: 450px;
+    height: 380px;
+  }
+
+  .slide-left,
+  .slide-right {
+    width: 200px;
+    height: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.2rem;
+  }
+
+  .about-title,
+  .gallery-title {
+    font-size: 2rem;
+  }
+
+  .slide-center {
+    width: 320px;
+    height: 300px;
+  }
+
+  .slide-left,
+  .slide-right {
+    width: 120px;
+    height: 200px;
+  }
+
+  .slider-button {
+    width: 45px;
+    height: 45px;
+  }
+
+  .slider-button-prev {
+    left: 20px;
+  }
+
+  .slider-button-next {
+    right: 20px;
+  }
+
+  .arrow {
+    width: 18px;
+    height: 18px;
+    border-width: 2px;
+  }
+}

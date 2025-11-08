@@ -35,8 +35,10 @@ export default function Header() {
 
             <nav className="nav-components">
                 <Link href="/products" className="nav-link">All Products</Link>
+                <Link href="/about" className="nav-link">About</Link>
                 <Link href="/categories" className="nav-link">Categories</Link>
                 <Link href="/contact" className="nav-link">Contact Us</Link>
+                {/* <Link href="/contact" className="nav-link"></Link> */}
 
                 {status === 'loading' ? (
                     <div className="loading-spinner">Loading...</div>
