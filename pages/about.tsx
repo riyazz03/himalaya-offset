@@ -3,6 +3,7 @@ import '@/styles/about.css';
 import Providers from '@/component/Providers';
 import Testimonial from '@/Sections/Testimonial';
 import FaqSection from '@/Sections/FaqSection';
+import Image from 'next/image';
 
 export default function AboutUs() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -33,10 +34,12 @@ export default function AboutUs() {
 
       {/* Hero Section */}
       <section className="hero-section">
-        <img
+        <Image
           src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1920"
           alt="Hero"
           className="hero-image"
+          width={100}
+          height={100}
         />
         <div className="hero-overlay">
           <div className="hero-content">
@@ -49,10 +52,12 @@ export default function AboutUs() {
       {/* About Section */}
       <section className="about-section">
         <div className="about-image-container">
-          <img
+          <Image
             src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800"
             alt="About Us"
             className="about-image"
+          width={100}
+          height={100}
           />
         </div>
         <div className="about-content">
@@ -63,13 +68,13 @@ export default function AboutUs() {
             and creativity.
           </p>
           <p className="about-text">
-            Over the years, we've grown into a diverse community of talented professionals who share 
+            Over the years, we&apos;sve grown into a diverse community of talented professionals who share 
             a common vision. We believe in the power of collaboration, continuous learning, and 
             pushing boundaries to achieve excellence.
           </p>
           <p className="about-text">
-            Our commitment to quality and customer satisfaction drives everything we do. We're not 
-            just building products; we're crafting solutions that empower people and transform businesses.
+            Our commitment to quality and customer satisfaction drives everything we do. We&apos;sre not 
+            just building products; we&apos;sre crafting solutions that empower people and transform businesses.
           </p>
         </div>
       </section>
@@ -82,24 +87,30 @@ export default function AboutUs() {
         <div className="slider-container">
           <div className="slider-wrapper">
             <div className="slide slide-left">
-              <img
+              <Image
                 src={galleryImages[getSlideIndex(-1)]}
                 alt="Previous slide"
                 className="slide-image"
+          width={600}
+          height={100}
               />
             </div>
             <div className="slide slide-center">
-              <img
+              <Image
                 src={galleryImages[getSlideIndex(0)]}
                 alt="Current slide"
                 className="slide-image"
+          width={600}
+          height={100}
               />
             </div>
             <div className="slide slide-right">
-              <img
+              <Image
                 src={galleryImages[getSlideIndex(1)]}
                 alt="Next slide"
                 className="slide-image"
+          width={600}
+          height={100}
               />
             </div>
           </div>
