@@ -12,7 +12,6 @@ interface ProvidersProps {
 export default function Providers({ children }: ProvidersProps) {
   return (
     <div className="StickyComponent">
-      <AnnouncementBar />
       <Header />
       {children}
       <Footer />

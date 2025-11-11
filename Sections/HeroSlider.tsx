@@ -22,25 +22,19 @@ export default function HeroSlider(): JSX.Element {
       id: 1,
       title: 'Discover Innovation',
       subtitle: 'Transform your digital experience',
-      bg: '/heroImages/image-1.webp',
+      bg: '/heroImages/banner-image-1.webp',
     },
     {
       id: 2,
       title: 'Create Excellence',
       subtitle: 'Design solutions that inspire',
-      bg: '/heroImages/image-2.webp',
+      bg: '/heroImages/banner-image-2.webp',
     },
     {
       id: 3,
       title: 'Build Future',
       subtitle: 'Technology meets creativity',
-      bg: '/heroImages/image-3.webp',
-    },
-    {
-      id: 4,
-      title: 'Achieve Growth',
-      subtitle: 'Unlock your full potential',
-      bg: '/heroImages/image-4.webp',
+      bg: '/heroImages/banner-image-3.webp',
     },
   ];
 

@@ -1,7 +1,7 @@
 /* Hero Slider Container */
 .fs-slider-container {
   width: 100%;
-  height: calc(82.5vh);
+  height: 95vh;
   position: relative;
   overflow: hidden;
   cursor: grab;
@@ -220,7 +220,7 @@
 /* Mobile Portrait (480px) */
 @media (max-width: 480px) {
   .fs-slider-container {
-    height: 50vh;
+    height: 95vh;
   }
 
   .fs-slide {
@@ -267,9 +267,6 @@
 
 /* Small Mobile (360px and below) */
 @media (max-width: 360px) {
-  .fs-slider-container {
-    height: 45vh;
-  }
 
   .fs-slide {
     padding: 25px 15px;

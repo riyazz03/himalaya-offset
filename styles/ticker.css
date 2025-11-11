@@ -26,3 +26,13 @@
   content: " — ";
   margin-left: 0.5rem;
 }
+
+@media screen and (max-width: 768px) {
+  .ticker-container{
+    padding: 0.1rem 0;
+  }
+  .ticker-content {
+    font-size: 12px;
+  }
+  
+}
