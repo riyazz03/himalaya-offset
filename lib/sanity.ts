@@ -1,4 +1,3 @@
-// lib/sanity.ts
 import { createClient } from '@sanity/client'
 import imageUrlBuilder from '@sanity/image-url'
 
@@ -89,21 +88,32 @@ export const SanityService = {
       return { data: null, error: err }
     }
   },
+
+  // ✅ FIXED: Now properly fetches images and builds URLs
   async getAllProducts() {
     try {
       const products = await client.fetch(
-        `*[_type == "subcategory"] {
-        _id,
-        name,
-        category,
-        image_url,
-        startingPrice,
-        minOrderQuantity,
-        _createdAt
-      } | order(_createdAt desc)`
+        `*[_type == "subcategory" && isActive == true] | order(_createdAt desc) {
+          _id,
+          name,
+          "slug": slug.current,
+          "image_url": image.asset->url,
+          "image_alt": image.alt,
+          "categoryName": category->name,
+          "categorySlug": category->slug.current,
+          minOrderQuantity,
+          pricingTiers,
+          _createdAt
+        }`
       );
 
-      return { data: products, error: null };
+      // Add starting price from first pricing tier
+      const productsWithPrice = products.map((product: any) => ({
+        ...product,
+        startingPrice: product.pricingTiers?.[0]?.pricePerUnit || null
+      }));
+
+      return { data: productsWithPrice, error: null };
     } catch (err) {
       console.error('Error fetching all products:', err);
       return { data: null, error: 'Failed to fetch products' };

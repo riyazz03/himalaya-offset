@@ -8,11 +8,14 @@ import ProductCard from '@/component/ProductCard';
 interface Product {
     _id: string;
     name: string;
+    slug: string;
     image_url?: string;
+    image_alt?: string;
     startingPrice?: number;
     minOrderQuantity?: number;
     _createdAt?: string;
     categoryName?: string;
+    categorySlug?: string;
 }
 
 export default function ProductsPage() {
@@ -37,22 +40,35 @@ export default function ProductsPage() {
             setLoading(true);
             setError(null);
 
-            console.log('Starting fetch...');
-
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 10000);
 
             const response = await fetch('/api/products', { signal: controller.signal });
             clearTimeout(timeoutId);
 
-            console.log('Response received:', response.status);
-
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }
 
             const result = await response.json();
-            console.log('Data parsed:', result.data?.length, 'products');
+
+            // 🔍 DEBUG: Check what we're getting
+            console.log('=== API RESPONSE DEBUG ===');
+            console.log('Total products:', result.data?.length);
+            
+            if (result.data && result.data.length > 0) {
+                console.log('First product FULL DATA:', JSON.stringify(result.data[0], null, 2));
+                console.log('Image URL:', result.data[0].image_url);
+                console.log('Slug:', result.data[0].slug);
+                
+                // Check if ANY products have images
+                const productsWithImages = result.data.filter((p: any) => p.image_url);
+                console.log(`Products with images: ${productsWithImages.length} out of ${result.data.length}`);
+                
+                if (productsWithImages.length > 0) {
+                    console.log('Example product with image:', productsWithImages[0]);
+                }
+            }
 
             if (!result.data || result.data.length === 0) {
                 setLoading(false);
@@ -81,7 +97,8 @@ export default function ProductsPage() {
 
         if (search) {
             filtered = filtered.filter(product =>
-                product.name.toLowerCase().includes(search.toLowerCase())
+                product.name.toLowerCase().includes(search.toLowerCase()) ||
+                product.categoryName?.toLowerCase().includes(search.toLowerCase())
             );
         }
 
@@ -139,7 +156,8 @@ export default function ProductsPage() {
         pricing: product.startingPrice 
             ? `${product.minOrderQuantity} starting at ₹${product.startingPrice}.00`
             : 'Price on request',
-        buttonText: 'Choose Options'
+        buttonText: 'Choose Options',
+        productId: product.slug
     });
 
     return (
@@ -149,6 +167,10 @@ export default function ProductsPage() {
                     <div className="header-content">
                         <h1>All Products</h1>
                         <p>Browse our complete collection of printing solutions</p>
+                        {/* Debug info */}
+                        <p style={{fontSize: '0.875rem', color: '#666', marginTop: '0.5rem'}}>
+                            Debug: {products.length} products loaded, {products.filter(p => p.image_url).length} with images
+                        </p>
                     </div>
                 </div>
 
@@ -212,7 +234,7 @@ export default function ProductsPage() {
                             </div>
                         ) : error ? (
                             <div className="products-error">
-                                <p>❌ Error: {error}</p>
+                                <p>Error: {error}</p>
                                 <button onClick={() => fetchAllProducts()} style={{ marginTop: '1rem', padding: '0.5rem 1rem', cursor: 'pointer', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '0.375rem' }}>
                                     Try Again
                                 </button>
@@ -233,6 +255,7 @@ export default function ProductsPage() {
                                                 title={cardData.title}
                                                 pricing={cardData.pricing}
                                                 buttonText={cardData.buttonText}
+                                                productId={cardData.productId}
                                             />
                                         );
                                     })}
