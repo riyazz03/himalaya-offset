@@ -108,7 +108,7 @@ export const SanityService = {
       );
 
       // Add starting price from first pricing tier
-      const productsWithPrice = products.map((product: any) => ({
+      const productsWithPrice = products.map((product: Subcategory) => ({
         ...product,
         startingPrice: product.pricingTiers?.[0]?.pricePerUnit || null
       }));
