@@ -53,7 +53,7 @@ p {
 .section-title span {
   color: var(--blue);
 }
-.section-title span.separate-line{
+.section-title span.separate-line {
   width: 100%;
   display: inline-block;
 }
@@ -72,7 +72,7 @@ p {
   margin: 0 auto;
 }
 
-.StickyComponent{
+.StickyComponent {
   position: sticky;
   top: 0px;
   z-index: 99999;
@@ -80,8 +80,12 @@ p {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 @media screen and (max-width: 768px) {
-  .StickyComponent{
+  .StickyComponent {
     overflow: hidden;
   }
-  
+  .section-title {
+    font-size: 2rem;
+    line-height: 90%;
+    text-align: center;
+  }
 }

@@ -66,12 +66,12 @@
 
 .swiper-button-prev-custom {
   position: absolute;
-  left: -40px;
-  top: 50%;
+  left: -50px;
+  top: 35%;
   transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
-  background-color: white;
+  width: 50px;
+  height: 50px;
+  background-color: var(--blue);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -79,19 +79,21 @@
   cursor: pointer;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   z-index: 10;
+  color: white;
   transition: all 0.3s ease;
   border: 2px solid #f1f2f6;
 }
 
 .swiper-button-next-custom {
   position: absolute;
-  right: -40px;
-  top: 50%;
+  right: -50px;
+  top: 35%;
   transform: translateY(-50%);
-  width: 40px;
-  height: 40px;
-  background-color: white;
+  width: 50px;
+  height: 50px;
+  background-color: var(--blue);
   border-radius: 50%;
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -126,11 +128,6 @@
     display: none !important;
   }
 }
-
-
-/* ===== Mobile fixes (do not affect desktop) ===== */
-
-/* Show arrows and tighten spacing on tablet and below */
 @media (max-width: 768px) {
   .swiper-button-prev-custom,
   .swiper-button-next-custom {
@@ -142,58 +139,46 @@
     width: 34px;
     height: 34px;
     background: #fff;
-    border: 1px solid rgba(0,0,0,0.08);
+    border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 9999px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
     z-index: 20;
   }
-  .swiper-button-prev-custom { left: 8px !important; }
-  .swiper-button-next-custom { right: 8px !important; }
+  .swiper-button-prev-custom {
+    left: 8px !important;
+  }
+  .swiper-button-next-custom {
+    right: 8px !important;
+  }
 }
 
-/* Phones: heading overflow fix + card spacing */
 @media (max-width: 600px) {
-  /* 1) Heading: prevent off-screen overflow and make it professional */
-  .categories-section h1,
-  .categories-section .section-title,
-  .categories-title,
-  .categories h1 {
-    /* Use what matches in your markup; these rules are safe if multiple apply */
-    font-size: clamp(22px, 6vw, 28px) !important;
-    line-height: 1.25 !important;
-    font-weight: 700;
-    letter-spacing: 0;
-    margin: 0 0 12px 0 !important;
-    padding: 0 12px !important;       /* breathing room on edges */
-    text-wrap: balance;                /* nicer line breaks (supported) */
-    overflow-wrap: break-word;         /* safety for long words */
-    word-break: normal;
-    overflow-x: hidden;
+  .categories-section {
+    padding: 0 1.25rem;
   }
-
-  /* If any negative translation/left margin was used on desktop, neutralize it on mobile */
-  .categories-section .title-wrap,
-  .categories-title-wrap {
-    transform: none !important;
-    margin-left: 0 !important;
+  .categoeries-header {
+    width: 100%;
   }
-
-  /* 2) Carousel spacing and containment */
+  .categories-content {
+    width: 100%;
+  }
+  .categoeries-header{
+    justify-content: center;
+    align-items: center;
+  }
   .swiper {
     padding-left: 12px !important;
     padding-right: 12px !important;
-    padding-bottom: 40px !important;   /* for pagination if present */
+    padding-bottom: 40px !important;
   }
 
-  /* Reduce huge gaps between cards (overrides inline spaceBetween) */
   .swiper-slide {
-    margin-right: 10px !important;     /* tighten gap */
+    margin-right: 10px !important;
     width: auto !important;
-    min-width: 108px;                   /* keep cards consistently readable */
+    min-width: 108px;
     box-sizing: border-box;
   }
 
-  /* Keep arrows visible and finger-friendly on phones */
   .swiper-button-prev-custom,
   .swiper-button-next-custom {
     display: flex !important;
@@ -201,8 +186,6 @@
     height: 32px;
     top: 44%;
   }
-
-  /* Pagination closer to content on small screens */
   .swiper-pagination {
     bottom: 10px !important;
   }

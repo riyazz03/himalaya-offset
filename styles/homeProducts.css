@@ -48,19 +48,6 @@
   line-height: normal;
 }
 
-.section-title {
-  color: #000;
-  font-size: 3.125rem;
-  font-style: normal;
-  font-weight: 600;
-  line-height: normal;
-  text-align: left;
-  margin: 0;
-}
-
-.section-title span {
-  color: #2067ff;
-}
 
 .product-left-bottom {
   display: flex;
@@ -229,12 +216,6 @@
     text-align: center;
   }
 
-  .product-left-top-title,
-  .section-title,
-  .section-title span {
-    font-size: 1.8rem;
-    line-height: 1.3;
-  }
 
   .product-left-bottom {
     height: auto;
@@ -327,11 +308,6 @@
 
 /* Small phones */
 @media (max-width: 480px) {
-  .product-left-top-title,
-  .section-title,
-  .section-title span {
-    font-size: 1.4rem;
-  }
 
   .slider-btn {
     width: 2rem;

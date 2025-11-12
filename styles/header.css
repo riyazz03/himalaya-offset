@@ -102,18 +102,17 @@
   gap: 0.75rem;
   padding: 0.5rem 1rem;
   background-color: transparent;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--blue);
   border-radius: 9999px;
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 0.875rem;
-  color: #374151;
+  color: var(--blue);
   font-weight: 500;
 }
 
 .user-button:hover {
-  background-color: #f9fafb;
-  border-color: #d1d5db;
+  background-color: #d8e1fa;
 }
 
 .user-avatar {
@@ -146,7 +145,7 @@
 
 .dropdown-arrow {
   transition: transform 0.2s ease;
-  color: #6b7280;
+  color: var(--blue);
 }
 
 .dropdown-arrow.open {
@@ -154,16 +153,16 @@
 }
 
 .dropdown-menu {
-  position: absolute;
-  top: calc(100% + 0.5rem);
-  right: 0;
-  background-color: #ffffff;
+  z-index: 50;
+  background-color: var(--background);
   border: 1px solid #e5e7eb;
   border-radius: 0.5rem;
   min-width: 180px;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  z-index: 50;
-  animation: slideDown 0.2s ease-out;
+  animation: 0.2s ease-out slideDown;
+  position: absolute;
+  top: calc(100% + 1rem);
+  right: 0;
+  box-shadow: 0 10px 15px -3px #0000001a;
 }
 
 .dropdown-item {
@@ -187,7 +186,6 @@
 }
 
 .dropdown-item:hover {
-  background-color: #f9fafb;
   color: var(--blue);
 }
 
@@ -196,7 +194,7 @@
 }
 
 .logout-item:hover {
-  background-color: #fef2f2;
+  background-color: #ffc2c2;
   color: #dc2626;
 }
 
@@ -244,7 +242,7 @@
 }
 
 .hamburger-button.open span:first-child {
-    transform: rotate(45deg) translate(7px, 2px);
+  transform: rotate(45deg) translate(7px, 2px);
 }
 
 .hamburger-button.open span:nth-child(2) {
@@ -252,7 +250,7 @@
 }
 
 .hamburger-button.open span:nth-child(3) {
-    transform: rotate(-45deg) translate(8px, -3px);
+  transform: rotate(-45deg) translate(8px, -3px);
 }
 .header-right-section {
   display: flex;
@@ -326,7 +324,6 @@
 @media (min-width: 1025px) {
   .header {
     padding: 10px 30px;
-    top: 0;
   }
 
   .logo img {
@@ -351,7 +348,7 @@
   }
 
   .hamburger-button {
-    display: flex;
+    display: none;
   }
 
   .hamburger-button span {

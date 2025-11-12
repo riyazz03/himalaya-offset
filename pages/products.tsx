@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import '@/styles/products-page.css';
 import Providers from '@/component/Providers';
 import ProductCard from '@/component/ProductCard';
@@ -18,6 +18,18 @@ interface Product {
     categorySlug?: string;
 }
 
+interface ApiResponse {
+    data: Product[];
+}
+
+interface CardData {
+    image: string;
+    title: string;
+    pricing: string;
+    buttonText: string;
+    productId: string;
+}
+
 export default function ProductsPage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
@@ -31,11 +43,8 @@ export default function ProductsPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const productsPerPage = 12;
 
-    useEffect(() => {
-        fetchAllProducts();
-    }, []);
-
-    const fetchAllProducts = async () => {
+    // Wrap fetchAllProducts in useCallback - fixes dependency warning
+    const fetchAllProducts = useCallback(async () => {
         try {
             setLoading(true);
             setError(null);
@@ -50,7 +59,7 @@ export default function ProductsPage() {
                 throw new Error(`HTTP ${response.status}`);
             }
 
-            const result = await response.json();
+            const result: ApiResponse = await response.json();
 
             // 🔍 DEBUG: Check what we're getting
             console.log('=== API RESPONSE DEBUG ===');
@@ -62,7 +71,7 @@ export default function ProductsPage() {
                 console.log('Slug:', result.data[0].slug);
                 
                 // Check if ANY products have images
-                const productsWithImages = result.data.filter((p: any) => p.image_url);
+                const productsWithImages = result.data.filter((p) => p.image_url);
                 console.log(`Products with images: ${productsWithImages.length} out of ${result.data.length}`);
                 
                 if (productsWithImages.length > 0) {
@@ -85,7 +94,11 @@ export default function ProductsPage() {
             setError(err instanceof Error ? err.message : 'Failed to load products');
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        fetchAllProducts();
+    }, [fetchAllProducts]);
 
     const applyFilters = (
         productsToFilter: Product[],
@@ -150,14 +163,14 @@ export default function ProductsPage() {
     const startIndex = (currentPage - 1) * productsPerPage;
     const paginatedProducts = filteredProducts.slice(startIndex, startIndex + productsPerPage);
 
-    const formatProductForCard = (product: Product) => ({
+    const formatProductForCard = (product: Product): CardData => ({
         image: product.image_url || '/placeholder.png',
         title: product.name,
         pricing: product.startingPrice 
             ? `${product.minOrderQuantity} starting at ₹${product.startingPrice}.00`
             : 'Price on request',
         buttonText: 'Choose Options',
-        productId: product.slug
+        productId: product.slug || ''
     });
 
     return (

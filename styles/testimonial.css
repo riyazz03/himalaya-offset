@@ -206,14 +206,6 @@
     justify-content: center;
   }
 
-  .testimonial-title,
-  .section-title {
-    font-size: 2rem !important;
-    line-height: 1.2;
-    text-align: center;
-    margin: 0;
-  }
-
   .testimonial-title span,
   .section-title span {
     display: block;
@@ -336,12 +328,6 @@
   .testimonial-section {
     padding: 30px 0;
   }
-
-  .testimonial-title,
-  .section-title {
-    font-size: 1.75rem !important;
-  }
-
   .testimonial-slider-wrapper {
     padding: 0 10px;
   }
