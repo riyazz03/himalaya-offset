@@ -35,31 +35,8 @@ const Categories = () => {
     }
   };
 
-  if (!isClient || loading) {
+  if (!isClient) {
     return null;
-  }
-
-  if (!categories.length) {
-    return (
-      <div className='categories-section'>
-        <div className='categories-content' style={{
-          maxWidth: '1200px',
-          margin: '0 auto'
-        }}>
-          <div className='categories-container'>
-            <div className='categoeries-header'>
-              <Title title='Categories' />
-              <div className="section-title-wrapper">
-                <h1 className='section-title'>Explore Our <span>Best Categories</span></h1>
-              </div>
-            </div>
-          </div>
-          <div className="text-center py-8">
-            <p className="text-gray-600">No categories available at the moment.</p>
-          </div>
-        </div>
-      </div>
-    );
   }
 
   return (
@@ -78,99 +55,120 @@ const Categories = () => {
         </div>
 
         <div className='swiper-container' style={{ position: 'relative' }}>
-          <Swiper
-            modules={[Autoplay, Pagination, Navigation]}
-            spaceBetween={30}
-            slidesPerView={5}
-            autoplay={{
-              delay: 3000,
-              disableOnInteraction: false,
-              pauseOnMouseEnter: true
-            }}
-            pagination={{
-              clickable: true,
-              dynamicBullets: true,
-              bulletClass: 'swiper-pagination-bullet-custom',
-              bulletActiveClass: 'swiper-pagination-bullet-active-custom'
-            }}
-            navigation={{
-              nextEl: '.swiper-button-next-custom',
-              prevEl: '.swiper-button-prev-custom'
-            }}
-            loop={categories.length > 5}
-            breakpoints={{
-              320: {
-                slidesPerView: 2,
-                spaceBetween: 20
-              },
-              640: {
-                slidesPerView: 2,
-                spaceBetween: 25
-              },
-              768: {
-                slidesPerView: 3,
-                spaceBetween: 25
-              },
-              1024: {
-                slidesPerView: 4,
-                spaceBetween: 30
-              },
-              1200: {
-                slidesPerView: 5,
-                spaceBetween: 30
-              }
-            }}
-            style={{
+          {loading ? (
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(5, 1fr)', 
+              gap: '30px',
               paddingBottom: '50px'
-            }}
-          >
-            {categories.map((category) => (
-              <SwiperSlide key={category._id}>
-                <Link href={`/categories/${category.slug}`}>
-                  <div className='category-card'>
-                    <div className='category-image-container'>
-                      {category.image_url ? (
-                        <Image
-                          src={category.image_url}
-                          alt={category.name}
-                          fill
-                          className='category-image'
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                          priority={false}
-                          onError={(e) => {
-                            const target = e.target as HTMLElement;
-                            target.style.display = 'none';
-                          }}
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center rounded-lg">
-                          <span className="text-white text-2xl font-bold">
-                            {category.name.charAt(0)}
-                          </span>
-                        </div>
-                      )}
+            }}>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="product-skeleton" style={{ height: '250px' }}></div>
+              ))}
+            </div>
+          ) : !categories.length ? (
+            <div className="text-center py-8">
+              <p className="text-gray-600">No categories available at the moment.</p>
+            </div>
+          ) : (
+            <Swiper
+              modules={[Autoplay, Pagination, Navigation]}
+              spaceBetween={30}
+              slidesPerView={5}
+              autoplay={{
+                delay: 3000,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true
+              }}
+              pagination={{
+                clickable: true,
+                dynamicBullets: true,
+                bulletClass: 'swiper-pagination-bullet-custom',
+                bulletActiveClass: 'swiper-pagination-bullet-active-custom'
+              }}
+              navigation={{
+                nextEl: '.swiper-button-next-custom',
+                prevEl: '.swiper-button-prev-custom'
+              }}
+              loop={categories.length > 5}
+              breakpoints={{
+                320: {
+                  slidesPerView: 2,
+                  spaceBetween: 20
+                },
+                640: {
+                  slidesPerView: 2,
+                  spaceBetween: 25
+                },
+                768: {
+                  slidesPerView: 3,
+                  spaceBetween: 25
+                },
+                1024: {
+                  slidesPerView: 4,
+                  spaceBetween: 30
+                },
+                1200: {
+                  slidesPerView: 5,
+                  spaceBetween: 30
+                }
+              }}
+              style={{
+                paddingBottom: '50px'
+              }}
+            >
+              {categories.map((category) => (
+                <SwiperSlide key={category._id}>
+                  <Link href={`/categories/${category.slug}`}>
+                    <div className='category-card'>
+                      <div className='category-image-container'>
+                        {category.image_url ? (
+                          <Image
+                            src={category.image_url}
+                            alt={category.name}
+                            fill
+                            className='category-image'
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            priority={false}
+                            onError={(e) => {
+                              const target = e.target as HTMLElement;
+                              target.style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center rounded-lg">
+                            <span className="text-white text-2xl font-bold">
+                              {category.name.charAt(0)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <h3 className='category-card-title'>
+                        {category.name}
+                      </h3>
                     </div>
+                  </Link>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          )}
 
-                    <h3 className='category-card-title'>
-                      {category.name}
-                    </h3>
-                  </div>
-                </Link>
-              </SwiperSlide>
-            ))}
-          </Swiper>
+          {!loading && categories.length > 0 && (
+            <>
+              <div className="swiper-button-prev-custom">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="15,18 9,12 15,6"></polyline>
+                </svg>
+              </div>
 
-          <div className="swiper-button-prev-custom">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="15,18 9,12 15,6"></polyline>
-            </svg>
-          </div>
-
-          <div className="swiper-button-next-custom">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <polyline points="9,18 15,12 9,6"></polyline>
-            </svg>
-          </div>
+              <div className="swiper-button-next-custom">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="9,18 15,12 9,6"></polyline>
+                </svg>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

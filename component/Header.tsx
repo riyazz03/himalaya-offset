@@ -17,7 +17,6 @@ export default function Header() {
         }
     }, [session?.user?.image]);
 
-    // Close mobile menu when clicking on a link
     const closeMobileMenu = () => {
         setIsMobileMenuOpen(false);
     };
@@ -45,14 +44,13 @@ export default function Header() {
                     </Link>
                 </div>
 
-                {/* Navigation Links - Visible on Desktop, Hidden on Tablet/Mobile */}
                 <nav className="nav-components">
                     <Link href="/products" className="nav-link">All Products</Link>
                     <Link href="/categories" className="nav-link">Categories</Link>
+                    <Link href="/about" className="nav-link">About Us</Link>
                     <Link href="/contact" className="nav-link">Contact Us</Link>
                 </nav>
 
-                {/* Right Section: Profile + Hamburger - Visible on All Devices */}
                 <div className="header-right-section">
                     {session ? (
                         <div className="user-menu">
@@ -124,7 +122,6 @@ export default function Header() {
                         )
                     )}
 
-                    {/* Hamburger Menu Button */}
                     <button
                         className={`hamburger-button ${isMobileMenuOpen ? 'open' : ''}`}
                         onClick={toggleMobileMenu}
@@ -137,13 +134,15 @@ export default function Header() {
                 </div>
             </header>
 
-            {/* Mobile Navigation Menu - Appears on all devices when hamburger is clicked */}
             <nav className={`mobile-nav-menu ${isMobileMenuOpen ? 'open' : ''}`}>
                 <Link href="/products" className="mobile-nav-link" onClick={closeMobileMenu}>
                     All Products
                 </Link>
                 <Link href="/categories" className="mobile-nav-link" onClick={closeMobileMenu}>
                     Categories
+                </Link>
+                <Link href="/about" className="mobile-nav-link" onClick={closeMobileMenu}>
+                    About Us
                 </Link>
                 <Link href="/contact" className="mobile-nav-link" onClick={closeMobileMenu}>
                     Contact Us

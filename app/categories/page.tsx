@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import '@/styles/categories-page.css';
-import Providers from '@/component/Providers';
 import ProductCard from '@/component/ProductCard';
 import { SanityService, Category } from '@/lib/sanity';
 
@@ -55,7 +54,6 @@ export default function CategoriesPage() {
   });
 
   return (
-    <Providers>
       <div className="categories-page">
         <div className="categories-header">
           <div className="header-content">
@@ -110,6 +108,5 @@ export default function CategoriesPage() {
           )}
         </div>
       </div>
-    </Providers>
   );
 }

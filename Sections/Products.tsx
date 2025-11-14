@@ -54,10 +54,6 @@ const Products = () => {
 
   const totalPages = Math.ceil(products.length / itemsPerPage);
 
-  if (loading) {
-    return null;
-  }
-
   return (
     <div className='products-section'>
       <div className="main-container">
@@ -79,7 +75,15 @@ const Products = () => {
           </div>
 
           <div className='product-right'>
-            {error ? (
+            {loading ? (
+              <div className='products-desktop'>
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} style={{ opacity: 0.5 }}>
+                    <div className="product-skeleton"></div>
+                  </div>
+                ))}
+              </div>
+            ) : error ? (
               <div className="products-error">
                 <p>Unable to load products. Please try again later.</p>
               </div>

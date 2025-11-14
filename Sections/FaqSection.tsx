@@ -1,3 +1,4 @@
+'use client';
 import React, { useState } from 'react';
 import Title from '@/component/Title-Block-Rounded';
 import '@/styles/SectionStyles/faq.css'; 

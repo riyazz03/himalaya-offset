@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import '@/styles/thank-you-page.css';
-import Providers from '@/component/Providers';
 
 export default function ThankYouPage() {
   const router = useRouter();
@@ -29,7 +28,6 @@ export default function ThankYouPage() {
   };
 
   return (
-    <Providers>
       <div className="thank-you-page">
         <div className="thank-you-wrapper">
           <div className="thank-you-content">
@@ -60,6 +58,5 @@ export default function ThankYouPage() {
           </div>
         </div>
       </div>
-    </Providers>
   );
 }

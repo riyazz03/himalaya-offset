@@ -2,7 +2,6 @@
 
 import { useState, ChangeEvent } from 'react';
 import '@/styles/contact.css';
-import Providers from '@/component/Providers';
 
 interface FormData {
   name: string;
@@ -81,7 +80,7 @@ export default function ContactPage() {
       // Since mode is 'no-cors', we can't read the response
       // We'll assume success if no error is thrown
       showToast('Form submitted successfully! We\'ll get back to you soon.', 'success');
-      
+
       // Reset form
       setFormData({
         name: '',
@@ -100,7 +99,7 @@ export default function ContactPage() {
   };
 
   return (
-    <Providers>
+    <>
       {/* Toast Notification */}
       {toast.show && (
         <div className={`toast-notification ${toast.type}`}>
@@ -110,7 +109,7 @@ export default function ContactPage() {
             </span>
             <span className="toast-message">{toast.message}</span>
           </div>
-          <button 
+          <button
             className="toast-close"
             onClick={() => setToast({ ...toast, show: false })}
           >
@@ -127,7 +126,7 @@ export default function ContactPage() {
             <a href="mailto:himalayaoffsetvlr1@gmail.com" className="contact-email">
               himalayaoffsetvlr1@gmail.com
             </a>
-            
+
             <div className="contact-address">
               <h3 className="address-label">INDIA</h3>
               <p className="address-text">
@@ -142,11 +141,11 @@ export default function ContactPage() {
               <svg xmlns="http://www.w3.org/2000/svg" width="648" height="500" viewBox="0 0 648 500" fill="none">
                 <defs>
                   <radialGradient id="paint0_radial" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(324 250) rotate(90) scale(250 324)">
-                    <stop stopColor="white" stopOpacity="0.1"/>
-                    <stop offset="1" stopColor="white" stopOpacity="0"/>
+                    <stop stopColor="white" stopOpacity="0.1" />
+                    <stop offset="1" stopColor="white" stopOpacity="0" />
                   </radialGradient>
                 </defs>
-                <rect width="648" height="500" fill="url(#paint0_radial)" opacity="0.1"/>
+                <rect width="648" height="500" fill="url(#paint0_radial)" opacity="0.1" />
               </svg>
             </div>
           </div>
@@ -227,8 +226,8 @@ export default function ContactPage() {
               </div>
 
               <div className='submit-button-container'>
-                <button 
-                  onClick={handleSubmit} 
+                <button
+                  onClick={handleSubmit}
                   className="submit-button"
                   disabled={isSubmitting}
                 >
@@ -239,6 +238,7 @@ export default function ContactPage() {
           </div>
         </div>
       </div>
-    </Providers>
+    </>
+
   );
 }

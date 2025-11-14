@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import Providers from '@/component/Providers';
 import '@/styles/profile.css';
 
 interface User {
@@ -212,12 +211,10 @@ export default function ProfilePage() {
 
   if (status === 'loading') {
     return (
-      <Providers>
         <div className="profile-loading">
           <div className="spinner"></div>
           <p>Loading profile...</p>
         </div>
-      </Providers>
     );
   }
 
@@ -226,7 +223,6 @@ export default function ProfilePage() {
   }
 
   return (
-    <Providers>
       <div className="simple-profile-wrapper">
         <div className="simple-profile-container">
           <div className="simple-profile-header">
@@ -427,6 +423,5 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
-    </Providers>
   );
 }
