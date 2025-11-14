@@ -5,16 +5,19 @@ import React, { useState, useEffect } from 'react'
 import "@/styles/homeProducts.css"
 import ProductCard from '@/component/ProductCard'
 import { SanityService, Subcategory } from '@/lib/sanity'
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay, Pagination, Navigation } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/pagination';
+import 'swiper/css/navigation';
 
 const Products = () => {
   const [products, setProducts] = useState<Subcategory[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
-  const [currentMobileIndex, setCurrentMobileIndex] = useState(0);
 
   const itemsPerPage = 12;
-  const itemsPerMobileSlide = 1;
 
   useEffect(() => {
     fetchFeaturedProducts();
@@ -22,17 +25,12 @@ const Products = () => {
 
   const fetchFeaturedProducts = async () => {
     try {
-      setLoading(true);
-      setError(null);
-
       const { data: featuredProducts, error: fetchError } = await SanityService.getFeaturedProducts();
       
-      if (fetchError || !featuredProducts) {
+      setProducts(featuredProducts || []);
+      if (fetchError) {
         setError('Failed to load featured products');
-        return;
       }
-
-      setProducts(featuredProducts);
     } catch (err) {
       setError('An error occurred while loading products');
     } finally {
@@ -49,7 +47,6 @@ const Products = () => {
     buttonText: "Choose Options"
   });
 
-  // Desktop: Show 12 items with pagination
   const paginatedProducts = products.slice(
     currentPage * itemsPerPage,
     (currentPage + 1) * itemsPerPage
@@ -57,23 +54,9 @@ const Products = () => {
 
   const totalPages = Math.ceil(products.length / itemsPerPage);
 
-  // Mobile: Show 1 item at a time (slider)
-  const mobileSliderProducts = products.slice(
-    currentMobileIndex,
-    currentMobileIndex + itemsPerMobileSlide
-  );
-
-  const handleNextMobile = () => {
-    if (currentMobileIndex < products.length - 1) {
-      setCurrentMobileIndex(currentMobileIndex + 1);
-    }
-  };
-
-  const handlePrevMobile = () => {
-    if (currentMobileIndex > 0) {
-      setCurrentMobileIndex(currentMobileIndex - 1);
-    }
-  };
+  if (loading) {
+    return null;
+  }
 
   return (
     <div className='products-section'>
@@ -96,11 +79,7 @@ const Products = () => {
           </div>
 
           <div className='product-right'>
-            {loading ? (
-              <div className="products-loading">
-                <p>Loading featured products...</p>
-              </div>
-            ) : error ? (
+            {error ? (
               <div className="products-error">
                 <p>Unable to load products. Please try again later.</p>
               </div>
@@ -110,7 +89,6 @@ const Products = () => {
               </div>
             ) : (
               <>
-                {/* Desktop: Grid Layout with 3 columns */}
                 <div className='products-desktop'>
                   {paginatedProducts.map((product) => {
                     const cardData = formatProductForCard(product);
@@ -126,7 +104,6 @@ const Products = () => {
                   })}
                 </div>
 
-                {/* Desktop: Pagination */}
                 {totalPages > 1 && (
                   <div className='products-pagination-desktop'>
                     <button 
@@ -157,42 +134,52 @@ const Products = () => {
                   </div>
                 )}
 
-                {/* Mobile: Slider Layout with 1 item */}
-                <div className='products-mobile-slider'>
-                  {mobileSliderProducts.map((product) => {
-                    const cardData = formatProductForCard(product);
-                    return (
-                      <div key={product._id} className='slider-item'>
-                        <ProductCard 
-                          image={cardData.image} 
-                          title={cardData.title} 
-                          pricing={cardData.pricing} 
-                          buttonText={cardData.buttonText} 
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
+                <div className='products-mobile-slider' style={{ position: 'relative' }}>
+                  <Swiper
+                    modules={[Autoplay, Pagination, Navigation]}
+                    spaceBetween={15}
+                    slidesPerView={1}
+                    
+                    pagination={{
+                      clickable: true,
+                      dynamicBullets: true,
+                      bulletClass: 'swiper-pagination-bullet-custom',
+                      bulletActiveClass: 'swiper-pagination-bullet-active-custom'
+                    }}
+                    navigation={{
+                      nextEl: '.swiper-button-next-products',
+                      prevEl: '.swiper-button-prev-products'
+                    }}
+                    loop={products.length > 1}
+                  >
+                    {products.map((product) => {
+                      const cardData = formatProductForCard(product);
+                      return (
+                        <SwiperSlide key={product._id}>
+                          <div className='slider-item'>
+                            <ProductCard 
+                              image={cardData.image} 
+                              title={cardData.title} 
+                              pricing={cardData.pricing} 
+                              buttonText={cardData.buttonText} 
+                            />
+                          </div>
+                        </SwiperSlide>
+                      );
+                    })}
+                  </Swiper>
 
-                {/* Mobile: Slider Controls */}
-                <div className='mobile-slider-controls'>
-                  <button 
-                    onClick={handlePrevMobile}
-                    disabled={currentMobileIndex === 0}
-                    className='slider-btn prev'
-                  >
-                    ←
-                  </button>
-                  <span className='slider-counter'>
-                    {currentMobileIndex + 1} / {products.length}
-                  </span>
-                  <button 
-                    onClick={handleNextMobile}
-                    disabled={currentMobileIndex === products.length - 1}
-                    className='slider-btn next'
-                  >
-                    →
-                  </button>
+                  <div className="swiper-button-prev-products">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="15,18 9,12 15,6"></polyline>
+                    </svg>
+                  </div>
+
+                  <div className="swiper-button-next-products">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="9,18 15,12 9,6"></polyline>
+                    </svg>
+                  </div>
                 </div>
               </>
             )}

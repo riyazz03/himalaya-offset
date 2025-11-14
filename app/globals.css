@@ -48,6 +48,7 @@ p {
   font-weight: 600;
   line-height: normal;
   text-align: left;
+  text-transform: capitalize;
 }
 
 .section-title span {
@@ -83,9 +84,12 @@ p {
   .StickyComponent {
     overflow: hidden;
   }
+  .main-container {
+    max-width: 95%;
+  }
   .section-title {
-    font-size: 2rem;
-    line-height: 90%;
+    font-size: 1.75rem;
+    line-height: 100%;
     text-align: center;
   }
 }

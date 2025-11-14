@@ -23,70 +23,20 @@ const Categories = () => {
 
   const fetchCategories = async () => {
     try {
-      console.log('Fetching categories using DatabaseService...');
       const { data, error } = await SanityService.getCategories();
-      
-      console.log('Categories data:', data);
-      console.log('Categories error:', error);
-      console.log('Data length:', data?.length);
-      
+      setCategories(data || []);
       if (error) {
         console.error('Error fetching categories:', error);
-      } else {
-        console.log('Setting categories:', data);
-        setCategories(data || []);
       }
     } catch (error) {
-      console.error('Catch block error:', error);
+      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  if (!isClient) {
-    return (
-      <div className='categories-section'>
-        <div className='categories-content' style={{
-          maxWidth: '1200px',
-          margin: '0 auto'
-        }}>
-          <div className='categories-container'>
-            <div className='categoeries-header'>
-              <Title title='Categories' />
-              <div className="section-title-wrapper">
-                <h1 className='section-title'>Explore Our <span>Best Categories</span></h1>
-              </div>
-            </div>
-          </div>
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className='categories-section'>
-        <div className='categories-content' style={{
-          maxWidth: '1200px',
-          margin: '0 auto'
-        }}>
-          <div className='categories-container'>
-            <div className='categoeries-header'>
-              <Title title='Categories' />
-              <div className="section-title-wrapper">
-                <h1 className='section-title'>Explore Our <span>Best Categories</span></h1>
-              </div>
-            </div>
-          </div>
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-        </div>
-      </div>
-    );
+  if (!isClient || loading) {
+    return null;
   }
 
   if (!categories.length) {
@@ -118,7 +68,6 @@ const Categories = () => {
         maxWidth: '1200px',
         margin: '0 auto'
       }}>
-        {/* Header Section */}
         <div className='categories-container'>
           <div className='categoeries-header'>
             <Title title='Categories' />
@@ -128,8 +77,7 @@ const Categories = () => {
           </div>
         </div>
 
-        {/* Swiper Section */}
-        <div style={{ position: 'relative' }}>
+        <div className='swiper-container' style={{ position: 'relative' }}>
           <Swiper
             modules={[Autoplay, Pagination, Navigation]}
             spaceBetween={30}
@@ -151,16 +99,20 @@ const Categories = () => {
             }}
             loop={categories.length > 5}
             breakpoints={{
+              320: {
+                slidesPerView: 2,
+                spaceBetween: 20
+              },
               640: {
-                slidesPerView: 5,
-                spaceBetween: 30
+                slidesPerView: 2,
+                spaceBetween: 25
               },
               768: {
-                slidesPerView: 5,
-                spaceBetween: 30
+                slidesPerView: 3,
+                spaceBetween: 25
               },
               1024: {
-                slidesPerView: 5,
+                slidesPerView: 4,
                 spaceBetween: 30
               },
               1200: {
@@ -176,7 +128,6 @@ const Categories = () => {
               <SwiperSlide key={category._id}>
                 <Link href={`/categories/${category.slug}`}>
                   <div className='category-card'>
-                    {/* Category Image Container */}
                     <div className='category-image-container'>
                       {category.image_url ? (
                         <Image
@@ -200,7 +151,6 @@ const Categories = () => {
                       )}
                     </div>
 
-                    {/* Category Title */}
                     <h3 className='category-card-title'>
                       {category.name}
                     </h3>
@@ -210,7 +160,6 @@ const Categories = () => {
             ))}
           </Swiper>
 
-          {/* Custom Navigation Buttons */}
           <div className="swiper-button-prev-custom">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="15,18 9,12 15,6"></polyline>

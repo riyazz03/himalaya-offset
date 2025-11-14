@@ -130,13 +130,16 @@
 /* Tablet Styles */
 @media (max-width: 768px) {
   .faq-section {
-    padding: 3rem 1.5rem;
+    padding: 1rem 1.5rem;
   }
 
   .faq-header {
-    gap: 1.5rem;
+    gap: 1rem;
   }
-
+  .faq-header-title-wrapper {
+    display: flex;
+    justify-content: center;
+  }
   .faq-header-title {
     font-size: 2.5rem;
     max-width: 100%;
@@ -173,15 +176,11 @@
 /* Mobile Styles */
 @media (max-width: 480px) {
   .faq-section {
-    padding: 2.5rem 1rem;
-  }
-
-  .faq-header-title {
-    font-size: 2rem;
+    padding: 1rem 0.25rem;
   }
 
   .faq-wrapper {
-    gap: 2rem;
+    gap: 1.5rem;
   }
 
   .faq-card-question-wrapper {
@@ -212,10 +211,6 @@
 @media (max-width: 320px) {
   .faq-section {
     padding: 2rem 0.75rem;
-  }
-
-  .faq-header-title {
-    font-size: 1.75rem;
   }
 
   .faq-card-question-wrapper {

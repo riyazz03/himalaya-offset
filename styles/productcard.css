@@ -69,15 +69,15 @@
   gap: 0.625rem;
   border-radius: 62.5rem;
   border: 1px solid #a9a9a9;
-  background: rgba(76, 76, 76, 0.03);
+  background: var(--background);
   backdrop-filter: blur(200px);
   transition: all 0.3s ease;
   text-decoration: none;
 }
 
 .product-card-button:hover {
+  background: var(--background);
   border: 1px solid #2067ff;
-  background: rgba(32, 103, 255, 0.05);
 }
 
 .product-card-button:active {
@@ -99,7 +99,9 @@
     padding: 15px;
     gap: 15px;
   }
-
+.product-card-image-wrapper {
+  min-height: 15rem;
+}
   .product-card-image {
     min-height: 15rem;
     max-height: 15rem;
@@ -119,12 +121,6 @@
     padding: 12px;
     gap: 12px;
   }
-
-  .product-card-image {
-    min-height: 12rem;
-    max-height: 12rem;
-  }
-
   .product-card-title {
     font-size: 16px;
   }

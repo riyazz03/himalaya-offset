@@ -29,16 +29,13 @@ export default function Footer() {
                             <h3 className="section-title-footer">Contact Info</h3>
                             <div className="contact-info">
                                 <div className="contact-item">
-                                    <span className="contact-icon">📍</span>
-                                    <span>Your Address Here</span>
+                                    <span>14, Chunnambukara Street, Vellore - 632 004</span>
                                 </div>
                                 <div className="contact-item">
-                                    <span className="contact-icon">📞</span>
-                                    <a href="tel:+1234567890">+1 (234) 567-890</a>
+                                    <a href="tel:+918838435916">+91 88384 35916</a>
                                 </div>
                                 <div className="contact-item">
-                                    <span className="contact-icon">✉️</span>
-                                    <a href="mailto:info@yoursite.com">info@yoursite.com</a>
+                                    <a href="mailto:himalayaoffsetvlr1@gmail.com">himalayaoffsetvlr1@gmail.com</a>
                                 </div>
                             </div>
                         </div>
@@ -46,12 +43,8 @@ export default function Footer() {
                         <div className="social-section">
                             <h3 className="section-title-footer">Follow Us</h3>
                             <div className="social-links">
-                                <a href="https://facebook.com" className="social-link">Facebook</a>
-                                <a href="https://twitter.com" className="social-link">Twitter</a>
-                                <a href="https://instagram.com" className="social-link">Instagram</a>
-                                <a href="https://linkedin.com" className="social-link">LinkedIn</a>
-                                <a href="https://youtube.com" className="social-link">YouTube</a>
-                                <a href="https://pinterest.com" className="social-link">Pinterest</a>
+                                <a href="https://www.facebook.com/share/17PmkpzjAj/" className="social-link">Facebook</a>
+                                <a href="https://www.instagram.com/himalaya_offset?igsh=MTVteGhxaHp3bmloMA==" className="social-link">Instagram</a>
                             </div>
                         </div>
                     </div>
@@ -68,7 +61,7 @@ export default function Footer() {
                             <Link href="/sitemap">Sitemap</Link>
                         </div>
                         <div className="copyright">
-                            <p>&copy; 2024 Your Company. All rights reserved.</p>
+                            <p>&copy; 2025 Himalaya Offset. All rights reserved.</p>
                         </div>
                     </div>
                 </div>
