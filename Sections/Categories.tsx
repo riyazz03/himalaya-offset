@@ -83,7 +83,7 @@ const Categories = () => {
             spaceBetween={30}
             slidesPerView={5}
             autoplay={{
-              delay: 2000,
+              delay: 3000,
               disableOnInteraction: false,
               pauseOnMouseEnter: true
             }}

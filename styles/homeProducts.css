@@ -330,6 +330,7 @@
   .products-section .swiper-button-next-products {
     width: 40px;
     height: 40px;
+    display: none;
   }
 
   .slider-btn {

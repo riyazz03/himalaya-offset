@@ -1,4 +1,3 @@
-/* FAQ Section Styles */
 .faq-section {
   position: relative;
   padding: 5rem 2rem;
@@ -34,7 +33,6 @@
   margin: 0 auto;
 }
 
-/* FAQ Card Styles */
 .faq-card {
   width: 100%;
   border-radius: 0.5rem;
@@ -77,9 +75,11 @@
   flex: 1;
   text-align: left;
 }
+
 .faq-card-question-wrapper:hover .faq-card-question {
   color: #2067ff;
 }
+
 .faq-chevron {
   color: #333;
   transition: transform 0.3s ease, color 0.2s ease;
@@ -127,8 +127,10 @@
   transform: translateY(0);
 }
 
-/* Tablet Styles */
 @media (max-width: 768px) {
+  .separate-line{
+    display: contents !important;
+  }
   .faq-section {
     padding: 1rem 1.5rem;
   }
@@ -173,7 +175,6 @@
   }
 }
 
-/* Mobile Styles */
 @media (max-width: 480px) {
   .faq-section {
     padding: 1rem 0.25rem;
@@ -207,7 +208,6 @@
   }
 }
 
-/* Extra Small Mobile */
 @media (max-width: 320px) {
   .faq-section {
     padding: 2rem 0.75rem;
@@ -222,7 +222,6 @@
   }
 }
 
-/* Large Desktop */
 @media (min-width: 1200px) {
   .faq-section {
     padding: 6rem 2.5rem;
@@ -242,7 +241,6 @@
   }
 }
 
-/* Accessibility & Motion */
 @media (prefers-contrast: high) {
   .faq-card {
     border-color: #000;

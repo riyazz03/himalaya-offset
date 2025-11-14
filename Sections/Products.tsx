@@ -138,8 +138,12 @@ const Products = () => {
                   <Swiper
                     modules={[Autoplay, Pagination, Navigation]}
                     spaceBetween={15}
-                    slidesPerView={1}
-                    
+                    slidesPerView={1.2}
+                    autoplay={{
+                      delay: 3000,
+                      disableOnInteraction: false,
+                      pauseOnMouseEnter: true
+                    }}
                     pagination={{
                       clickable: true,
                       dynamicBullets: true,

@@ -65,7 +65,7 @@ const FaqCard: React.FC<FaqCardProps> = ({ question, answer, isOpen, onClick }) 
 };
 
 const FaqSection: React.FC = () => {
-  const [openFaqId, setOpenFaqId] = useState<number>(1); // First FAQ open by default
+  const [openFaqId, setOpenFaqId] = useState<number>(1);
 
   const faqQuestions: FaqItem[] = [
     {
