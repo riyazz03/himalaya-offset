@@ -1,10 +1,6 @@
 import { NextResponse } from 'next/server';
 import { client } from '@/lib/sanity';
 
-interface Params {
-  slug: string;
-}
-
 interface Product {
   _id: string;
   name: string;
@@ -20,10 +16,10 @@ interface Product {
 
 export async function GET(
   _request: unknown,
-  { params }: { params: Params }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { slug } = params;
+    const { slug } = await params;
 
     const product = await client.fetch(
       `*[_type == "subcategory" && slug.current == $slug][0] {
