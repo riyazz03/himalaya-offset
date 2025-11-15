@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
 import { SanityService, Subcategory } from '@/lib/sanity';
@@ -28,9 +27,9 @@ export default function ProductPage() {
         const fetchProductData = async (productSlug: string) => {
             try {
                 setLoading(true);
-                const { data, error } = await SanityService.getProduct(productSlug);
+                const { data } = await SanityService.getProduct(productSlug);
 
-                if (!error && data) {
+                if (data) {
                     setProduct(data);
                 }
             } catch (err) {
@@ -128,7 +127,6 @@ export default function ProductPage() {
 
         console.log('Order Data for Razorpay:', orderData);
         
-        // TODO: Integrate Razorpay here
         alert(`Order Total: ₹${priceData.totalPrice}\n\nRazorpay integration pending...`);
     };
 
@@ -137,11 +135,6 @@ export default function ProductPage() {
 
     return (
         <>
-            <head>
-                <title>{product.name} - Himalaya Offset</title>
-                <meta name="description" content={`Order ${product.name} with custom specifications. Minimum order: ${product.minOrderQuantity} units.`} />
-            </head>
-
             <div className="product-page">
                 {/* Breadcrumb */}
                 <div className="breadcrumb">

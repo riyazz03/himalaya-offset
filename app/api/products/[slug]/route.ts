@@ -1,63 +1,63 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { client } from '@/lib/sanity';
-import imageUrlBuilder from '@sanity/image-url';
 
-const imageBuilder = imageUrlBuilder(client);
-
-function getImageUrl(source: any): string | undefined {
-  if (!source) return undefined;
-  
-  try {
-    return imageBuilder.image(source).width(500).height(500).url();
-  } catch (error) {
-    return undefined;
-  }
+interface Params {
+  slug: string;
 }
 
-export async function GET(request: NextRequest) {
+interface Product {
+  _id: string;
+  name: string;
+  slug: string;
+  image?: unknown;
+  image_url?: string;
+  description?: string;
+  startingPrice?: number;
+  minOrderQuantity?: number;
+  categoryName?: string;
+  _createdAt?: string;
+}
+
+export async function GET(
+  _request: unknown,
+  { params }: { params: Params }
+) {
   try {
-    const products = await client.fetch(
-      `*[_type == "subcategory"] | order(_createdAt desc) {
+    const { slug } = params;
+
+    const product = await client.fetch(
+      `*[_type == "subcategory" && slug.current == $slug][0] {
         _id,
         name,
         "slug": slug.current,
-        "categoryName": category->name,
+        image,
         image_url,
+        description,
         startingPrice,
         minOrderQuantity,
+        "categoryName": category->name,
         _createdAt
       }`,
-      {},
-      { 
-        cache: 'force-cache',
-        next: { revalidate: 3600 } // Cache for 1 hour
-      }
+      { slug }
     );
 
-    const productsWithImages = products.map((product: any) => ({
-      _id: product._id,
-      name: product.name,
-      slug: product.slug,
-      categoryName: product.categoryName,
-      image_url: product.image_url || null,
-      startingPrice: product.startingPrice,
-      minOrderQuantity: product.minOrderQuantity,
-      _createdAt: product._createdAt
-    }));
+    if (!product) {
+      return NextResponse.json(
+        { error: 'Product not found' },
+        { status: 404 }
+      );
+    }
 
-    return NextResponse.json(
-      { data: productsWithImages },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400'
-        }
-      }
-    );
+    const productWithImage: Product = {
+      ...product,
+      image_url: product.image_url || null
+    };
+
+    return NextResponse.json({ data: productWithImage });
   } catch (error) {
-    console.error('Error fetching products:', error);
+    console.error('Error fetching product:', error);
     return NextResponse.json(
-      { data: [], error: 'Failed to fetch products' },
+      { error: 'Failed to fetch product' },
       { status: 500 }
     );
   }

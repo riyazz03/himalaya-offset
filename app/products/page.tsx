@@ -42,9 +42,26 @@ export default function ProductsPage() {
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
 
-    useEffect(() => {
-        setIsClient(true);
-        fetchAllProducts();
+    const applyFilters = useCallback((
+        productsToFilter: Product[],
+        search: string,
+        category: string
+    ) => {
+        let filtered = productsToFilter;
+
+        if (search) {
+            filtered = filtered.filter(product =>
+                product.name.toLowerCase().includes(search.toLowerCase()) ||
+                product.categoryName?.toLowerCase().includes(search.toLowerCase())
+            );
+        }
+
+        if (category !== 'all') {
+            filtered = filtered.filter(product => product.categoryName === category);
+        }
+
+        setFilteredProducts(filtered);
+        setCurrentPage(1);
     }, []);
 
     const fetchAllProducts = useCallback(async () => {
@@ -80,29 +97,17 @@ export default function ProductsPage() {
         } finally {
             setLoading(false);
         }
+    }, [applyFilters]);
+
+    useEffect(() => {
+        setIsClient(true);
     }, []);
 
-    const applyFilters = useCallback((
-        productsToFilter: Product[],
-        search: string,
-        category: string
-    ) => {
-        let filtered = productsToFilter;
-
-        if (search) {
-            filtered = filtered.filter(product =>
-                product.name.toLowerCase().includes(search.toLowerCase()) ||
-                product.categoryName?.toLowerCase().includes(search.toLowerCase())
-            );
+    useEffect(() => {
+        if (isClient) {
+            fetchAllProducts();
         }
-
-        if (category !== 'all') {
-            filtered = filtered.filter(product => product.categoryName === category);
-        }
-
-        setFilteredProducts(filtered);
-        setCurrentPage(1);
-    }, []);
+    }, [isClient, fetchAllProducts]);
 
     const handleSearch = useCallback((query: string) => {
         setSearchQuery(query);

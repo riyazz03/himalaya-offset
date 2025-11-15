@@ -14,33 +14,45 @@ const Testimonial = () => {
     const testimonials = [
         {
             id: 1,
-            review: "Absolutely loved the quality and design! My visiting cards look super professional and have already impressed a few clients.",
-            name: "Rahul Mehta, Freelance Designer",
-            image: "/testimonial-profile-pic.png"
+            review: "Outstanding print quality! Himalaya Offset handled our entire packaging project with professionalism and speed. The colors were perfect, and the finish was exactly what we wanted.",
+            name: "Rahul S., Aarya Foods",
+            image: "/testimonial-profile-pic.png",
+            rating: 5
         },
         {
             id: 2,
-            review: "The process was smooth, the team was helpful, and I got exactly what I envisioned. Highly recommended!",
-            name: "Sneha Kapoor, Marketing Consultant",
-            image: "/testimonial-profile-pic.png"
+            review: "Reliable service and excellent communication. They delivered our business cards and brochures on time with exceptional clarity. Highly recommended!",
+            name: "Meena K., Creative Studio",
+            image: "/testimonial-profile-pic.png",
+            rating: 5
         },
         {
             id: 3,
-            review: "Outstanding service and exceptional quality. The attention to detail in every aspect of the design was remarkable.",
-            name: "Arjun Sharma, Business Owner",
-            image: "/testimonial-profile-pic.png"
+            review: "Very impressed with the consistency and detail in their offset printing. They understand exactly what the customer needs and deliver the best results.",
+            name: "Vikram P., Retail Owner",
+            image: "/testimonial-profile-pic.png",
+            rating: 5
         },
         {
             id: 4,
-            review: "Professional work delivered on time. The team understood our requirements perfectly and exceeded expectations.",
-            name: "Priya Patel, Creative Director",
-            image: "/testimonial-profile-pic.png"
+            review: "Professional, honest, and quality-focused. We've trusted Himalaya Offset for multiple print jobs, and the results have always exceeded expectations.",
+            name: "Sanjay L., Event Management Company",
+            image: "/testimonial-profile-pic.png",
+            rating: 5
         },
         {
             id: 5,
-            review: "Amazing experience from start to finish. The quality of work and customer service is truly top-notch.",
-            name: "Vikram Singh, Entrepreneur",
-            image: "/testimonial-profile-pic.png"
+            review: "One of the best printing services we've worked with. Fast turnaround, high-quality prints, and competitive pricing. Truly dependable.",
+            name: "Priya N., Branding Consultant",
+            image: "/testimonial-profile-pic.png",
+            rating: 5
+        },
+        {
+            id: 6,
+            review: "Their commitment to quality is genuine. Every print comes out sharp, clean, and perfectly aligned. Great experience!",
+            name: "Karthik R., Advertising Agency",
+            image: "/testimonial-profile-pic.png",
+            rating: 5
         }
     ];
 
@@ -109,6 +121,7 @@ const Testimonial = () => {
                                     review={testimonial.review}
                                     image={testimonial.image}
                                     name={testimonial.name}
+                                    rating={testimonial.rating}
                                 />
                             </SwiperSlide>
                         ))}
