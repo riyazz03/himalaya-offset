@@ -1,17 +1,36 @@
 import { NextResponse } from 'next/server';
 import { client } from '@/lib/sanity';
+import imageUrlBuilder from '@sanity/image-url';
+
+const imageBuilder = imageUrlBuilder(client);
 
 interface Product {
   _id: string;
   name: string;
   slug: string;
-  image?: unknown;
-  image_url?: string;
+  image?: {
+    _type: string;
+    asset?: {
+      _ref: string;
+    };
+  };
+  image_url?: string | null;
   description?: string;
   startingPrice?: number;
   minOrderQuantity?: number;
   categoryName?: string;
   _createdAt?: string;
+}
+
+function getImageUrl(source: Product['image']): string | null {
+  if (!source) return null;
+  
+  try {
+    return imageBuilder.image(source).width(500).height(500).url();
+  } catch (error) {
+    console.error('Error building image URL:', error);
+    return null;
+  }
 }
 
 export async function GET(
@@ -44,9 +63,16 @@ export async function GET(
       );
     }
 
+    // Prefer image_url if available, otherwise build from image field
+    let finalImageUrl = product.image_url;
+    
+    if (!finalImageUrl && product.image) {
+      finalImageUrl = getImageUrl(product.image);
+    }
+
     const productWithImage: Product = {
       ...product,
-      image_url: product.image_url || null
+      image_url: finalImageUrl || null
     };
 
     return NextResponse.json({ data: productWithImage });
