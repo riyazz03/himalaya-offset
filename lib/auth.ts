@@ -1,94 +1,115 @@
-import { NextAuthOptions } from 'next-auth'
-import GoogleProvider from 'next-auth/providers/google'
+// lib/auth.ts
+
+import { type NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { AuthService } from './sanity-auth'
+import { compare } from 'bcryptjs'
+import { db } from './db'
+import { SessionUser } from './types'
+
+declare module 'next-auth' {
+  interface User extends SessionUser {}
+  
+  interface Session {
+    user: SessionUser & {
+      id: string
+    }
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
     CredentialsProvider({
-      name: 'credentials',
+      name: 'Credentials',
       credentials: {
-        email: { label: 'Email', type: 'email' },
+        email: { label: 'Email', type: 'email', placeholder: 'your@email.com' },
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          return null
+          throw new Error('Email and password are required')
         }
 
-        try {
-          const result = await AuthService.verifyUser(credentials.email, credentials.password)
-          
-          if (result.data) {
-            return {
-              id: result.data._id,
-              email: result.data.email,
-              name: result.data.name,
-              phone: result.data.phone,
-              role: result.data.role,
-              image: result.data.avatar?.asset?.url || null
-            }
-          }
-          return null
-        } catch {
-          return null
+        const user = await db.getUserByEmail(credentials.email)
+        if (!user) {
+          throw new Error('No user found with this email')
+        }
+
+        const isPasswordValid = await compare(credentials.password, user.password)
+        if (!isPasswordValid) {
+          throw new Error('Incorrect password')
+        }
+
+        return {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          phone: user.phone,
+          company: user.company,
+          address: user.address,
+          city: user.city,
+          state: user.state,
+          pincode: user.pincode,
+          phoneVerified: user.phoneVerified,
+          emailVerified: user.emailVerified
         }
       }
     })
   ],
+  
   pages: {
     signIn: '/auth/login',
+    error: '/auth/login'
   },
-  session: {
-    strategy: 'jwt',
-  },
+  
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id
-        token.email = user.email
-        token.name = user.name
-        token.phone = (user as unknown as Record<string, unknown>).phone as string
-        token.role = (user as unknown as Record<string, unknown>).role as string
-        token.image = user.image || token.image
+        token.firstName = user.firstName
+        token.lastName = user.lastName
+        token.phone = user.phone
+        token.company = user.company
+        token.address = user.address
+        token.city = user.city
+        token.state = user.state
+        token.pincode = user.pincode
+        token.phoneVerified = user.phoneVerified
+        token.emailVerified = user.emailVerified
       }
-      
-      if (account?.provider === 'google' && user) {
-        try {
-          const result = await AuthService.findOrCreateGoogleUser({
-            email: user.email!,
-            name: user.name!,
-            googleId: account.providerAccountId,
-            avatar: user.image
-          })
-          
-          if (result.data) {
-            token.id = result.data._id
-            token.phone = result.data.phone
-            token.role = result.data.role
-            token.image = result.data.avatar?.asset?.url || user.image
-          }
-        } catch {
-          return token
-        }
-      }
-      
       return token
     },
+    
     async session({ session, token }) {
-      if (token && session.user) {
-        (session.user as unknown as Record<string, unknown>).id = token.id as string
-        ;(session.user as unknown as Record<string, unknown>).phone = token.phone as string || ''
-        ;(session.user as unknown as Record<string, unknown>).role = token.role as string || 'customer'
-        if (token.image) {
-          session.user.image = token.image as string
-        }
+      if (session.user) {
+        session.user.id = token.id as string
+        session.user.firstName = token.firstName as string
+        session.user.lastName = token.lastName as string
+        session.user.phone = token.phone as string
+        session.user.company = token.company as string
+        session.user.address = token.address as string
+        session.user.city = token.city as string
+        session.user.state = token.state as string
+        session.user.pincode = token.pincode as string
+        session.user.phoneVerified = token.phoneVerified as boolean
+        session.user.emailVerified = token.emailVerified as boolean
       }
       return session
+    }
+  },
+  
+  session: {
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60 // 30 days
+  },
+  
+  jwt: {
+    secret: process.env.NEXTAUTH_SECRET || 'your-secret-key'
+  },
+  
+  events: {
+    async signIn({ user }) {
+      console.log('User signed in:', user.email)
     }
   }
 }

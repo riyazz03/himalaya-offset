@@ -9,13 +9,6 @@ export default function Header() {
     const { data: session, status } = useSession();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [displayImage, setDisplayImage] = useState<string | null>(null);
-
-    useEffect(() => {
-        if (session?.user?.image) {
-            setDisplayImage(session.user.image);
-        }
-    }, [session?.user?.image]);
 
     const closeMobileMenu = () => {
         setIsMobileMenuOpen(false);
@@ -33,6 +26,16 @@ export default function Header() {
 
     const toggleMobileMenu = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
+    };
+
+    const getInitial = () => {
+        if (session?.user?.name) {
+            return session.user.name.charAt(0).toUpperCase();
+        }
+        if (session?.user?.email) {
+            return session.user.email.charAt(0).toUpperCase();
+        }
+        return 'U';
     };
 
     return (
@@ -59,15 +62,7 @@ export default function Header() {
                                 onClick={toggleDropdown}
                             >
                                 <div className="user-avatar">
-                                    {displayImage ? (
-                                        <img
-                                            src={displayImage}
-                                            alt="Profile"
-                                            key={displayImage}
-                                        />
-                                    ) : (
-                                        <span>{session.user?.name?.charAt(0) || 'U'}</span>
-                                    )}
+                                    <span>{getInitial()}</span>
                                 </div>
                                 <span className="user-name">{session.user?.name?.split(' ')[0] || 'User'}</span>
                                 <svg

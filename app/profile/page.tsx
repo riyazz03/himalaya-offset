@@ -10,12 +10,6 @@ interface User {
   name: string;
   email: string;
   phone: string;
-  avatar?: {
-    asset: {
-      url: string;
-      _ref: string;
-    };
-  };
   isVerified: boolean;
   phoneVerified: boolean;
   role: string;
@@ -31,8 +25,6 @@ export default function ProfilePage() {
   const [profileData, setProfileData] = useState<User | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [imagePreview, setImagePreview] = useState<string>('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -77,18 +69,12 @@ export default function ProfilePage() {
         name: result.data.name || '',
         phone: result.data.phone || ''
       });
-
-      if (result.data.avatar?.asset?.url) {
-        setImagePreview(result.data.avatar.asset.url);
-      } else if (session?.user?.image) {
-        setImagePreview(session.user.image);
-      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load profile');
     } finally {
       setLoading(false);
     }
-  }, [session?.user?.email, session?.user?.image]);
+  }, [session?.user?.email]);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -100,27 +86,6 @@ export default function ProfilePage() {
       fetchProfile();
     }
   }, [status, session?.user?.email, router, fetchProfile]);
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (!file.type.startsWith('image/')) {
-        setError('Please select a valid image file');
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) {
-        setError('Image size must be less than 5MB');
-        return;
-      }
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-      setError('');
-    }
-  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -137,41 +102,15 @@ export default function ProfilePage() {
     setSuccess('');
 
     try {
-      const updatePayload: Record<string, unknown> = {
-        name: formData.name,
-        phone: formData.phone
-      };
-
-      if (selectedFile && imagePreview && imagePreview.startsWith('data:')) {
-        const uploadPayload = {
-          file: imagePreview
-        };
-
-        const uploadResponse = await fetch('/api/upload', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(uploadPayload)
-        });
-
-        const uploadResult = await uploadResponse.json();
-
-        if (uploadResult.error) {
-          setError('Failed to upload image');
-          setLoading(false);
-          return;
-        }
-
-        updatePayload.avatarAssetId = uploadResult.assetId;
-      }
-
       const response = await fetch('/api/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(updatePayload)
+        body: JSON.stringify({
+          name: formData.name,
+          phone: formData.phone
+        })
       });
 
       const result = await response.json();
@@ -183,18 +122,11 @@ export default function ProfilePage() {
       }
 
       setSuccess('Profile updated successfully!');
-      setSelectedFile(null);
       setProfileData(result.data);
       
-      if (result.data.avatar?.asset?.url) {
-        const newAvatarUrl: string = result.data.avatar.asset.url;
-        setImagePreview(newAvatarUrl);
-        
-        await update({
-          image: newAvatarUrl,
-          name: result.data.name
-        });
-      }
+      await update({
+        name: result.data.name
+      });
       
       setTimeout(() => setSuccess(''), 3000);
     } catch {
@@ -275,32 +207,10 @@ export default function ProfilePage() {
                     <form onSubmit={handleUpdateProfile} className="simple-form">
                       <div className="simple-avatar-section">
                         <div className="simple-avatar">
-                          {imagePreview ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img 
-                              src={imagePreview} 
-                              alt="Profile" 
-                              onError={(e) => {
-                                const img = e.target as HTMLImageElement;
-                                img.style.display = 'none';
-                              }}
-                            />
-                          ) : (
-                            <div className="simple-avatar-placeholder">
-                              {formData.name?.charAt(0)?.toUpperCase() || 'U'}
-                            </div>
-                          )}
+                          <div className="simple-avatar-placeholder">
+                            {formData.name?.charAt(0)?.toUpperCase() || 'U'}
+                          </div>
                         </div>
-                        <label htmlFor="avatar-input" className="simple-upload-btn">
-                          📷 Change Photo
-                        </label>
-                        <input
-                          id="avatar-input"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageChange}
-                          className="hidden-input"
-                        />
                       </div>
 
                       <div className="simple-form-group">
