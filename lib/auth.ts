@@ -9,6 +9,7 @@ import type { SessionUser, User } from '@/lib/types'
 
 // Extend NextAuth default types
 declare module 'next-auth' {
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface User extends SessionUser {}
   interface Session extends DefaultSession {
     user: SessionUser
@@ -16,6 +17,7 @@ declare module 'next-auth' {
 }
 
 declare module 'next-auth/jwt' {
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface JWT extends SessionUser {}
 }
 
