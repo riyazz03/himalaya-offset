@@ -1,7 +1,8 @@
+// app/api/auth/register/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { hash } from 'bcryptjs'
 import { db } from '@/lib/db'
-import { ApiResponse } from '@/lib/types'
+import type { ApiResponse } from '@/lib/types'
 
 export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
   try {
@@ -93,6 +94,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       email: email.toLowerCase().trim(),
       phone: cleanPhone,
       password: hashedPassword,
+      image: null,
       company: company?.trim() || '',
       address: address?.trim() || '',
       city: city?.trim() || '',
@@ -117,11 +119,12 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
     )
   } catch (error) {
     console.error('Registration error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'An error occurred during registration'
     return NextResponse.json<ApiResponse>(
       {
         success: false,
         message: 'Registration failed',
-        error: error instanceof Error ? error.message : 'An error occurred during registration'
+        error: errorMessage
       },
       { status: 500 }
     )

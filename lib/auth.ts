@@ -1,5 +1,5 @@
 // lib/auth.ts
-import { type NextAuthOptions } from 'next-auth'
+import { type NextAuthOptions, type DefaultSession } from 'next-auth'
 import NextAuth from 'next-auth/next'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
@@ -10,7 +10,7 @@ import type { SessionUser, User } from '@/lib/types'
 // Extend NextAuth default types
 declare module 'next-auth' {
   interface User extends SessionUser {}
-  interface Session {
+  interface Session extends DefaultSession {
     user: SessionUser
   }
 }
@@ -89,7 +89,7 @@ export const authOptions: NextAuthOptions = {
           }
 
           // Return mapped user
-          return mapUserToSession(user) as any
+          return mapUserToSession(user) as SessionUser
         } catch (error) {
           console.error('[Auth] Credentials authorization error:', error)
           throw error

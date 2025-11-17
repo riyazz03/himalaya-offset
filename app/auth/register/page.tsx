@@ -1,8 +1,8 @@
+// app/auth/register/page.tsx
 'use client'
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import PublicRoute from '@/component/PublicRoute'
 import '@/styles/auth.css'
@@ -11,9 +11,23 @@ interface FormErrors {
   [key: string]: string
 }
 
+interface FormData {
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  password: string
+  confirmPassword: string
+  company: string
+  address: string
+  city: string
+  state: string
+  pincode: string
+}
+
 function RegisterContent(): React.ReactElement {
   const router = useRouter()
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
     email: '',
@@ -104,15 +118,16 @@ function RegisterContent(): React.ReactElement {
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.message || 'Registration failed')
+        setError(data.message || data.error || 'Registration failed')
         setLoading(false)
         return
       }
 
       // Registration successful, redirect to login with success message
       router.push('/auth/login?registered=true')
-    } catch {
-      setError('Registration failed. Please try again.')
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Registration failed. Please try again.'
+      setError(errorMessage)
       setLoading(false)
     }
   }
