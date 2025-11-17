@@ -1,5 +1,3 @@
-// app/api/auth/send-otp/route.ts
-
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { ApiResponse } from '@/lib/types'
@@ -33,10 +31,10 @@ async function sendSMS(phone: string, otp: string): Promise<boolean> {
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
   try {
     const body = await request.json()
-    const { phone, email } = body
+    const { phone } = body
 
     if (!phone) {
       return NextResponse.json<ApiResponse>(

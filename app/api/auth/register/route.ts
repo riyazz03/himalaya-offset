@@ -1,17 +1,25 @@
-// app/api/auth/register/route.ts
-
 import { NextRequest, NextResponse } from 'next/server'
 import { hash } from 'bcryptjs'
 import { db } from '@/lib/db'
-import { RegisterFormData, ApiResponse } from '@/lib/types'
+import { ApiResponse } from '@/lib/types'
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse>> {
   try {
-    const body: RegisterFormData = await request.json()
+    const body = await request.json()
+    const {
+      firstName,
+      lastName,
+      email,
+      phone,
+      password,
+      company,
+      address,
+      city,
+      state,
+      pincode
+    } = body
 
-    // Validate required fields
-    const { firstName, lastName, email, phone, password } = body
-
+    // Validation
     if (!firstName || !lastName || !email || !phone || !password) {
       return NextResponse.json<ApiResponse>(
         {
@@ -23,7 +31,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate email format
+    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
       return NextResponse.json<ApiResponse>(
@@ -36,9 +44,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate phone format (10 digits)
+    // Phone validation (10 digits)
     const phoneRegex = /^\d{10}$/
-    if (!phoneRegex.test(phone)) {
+    const cleanPhone = phone.replace(/\D/g, '')
+    if (!phoneRegex.test(cleanPhone)) {
       return NextResponse.json<ApiResponse>(
         {
           success: false,
@@ -49,28 +58,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if user already exists
-    const existingUserByEmail = await db.getUserByEmail(email)
-    if (existingUserByEmail) {
+    // Password validation
+    if (password.length < 8) {
       return NextResponse.json<ApiResponse>(
         {
           success: false,
-          message: 'User already exists',
-          error: 'A user with this email already exists'
+          message: 'Invalid password',
+          error: 'Password must be at least 8 characters'
         },
         { status: 400 }
       )
     }
 
-    const existingUserByPhone = await db.getUserByPhone(phone)
-    if (existingUserByPhone) {
+    // Check if user already exists
+    const existingUser = await db.getUserByEmail(email)
+    if (existingUser) {
       return NextResponse.json<ApiResponse>(
         {
           success: false,
-          message: 'Phone number already registered',
-          error: 'This phone number is already associated with an account'
+          message: 'User already exists',
+          error: 'An account with this email already exists'
         },
-        { status: 400 }
+        { status: 409 }
       )
     }
 
@@ -78,33 +87,30 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await hash(password, 10)
 
     // Create user
-    const newUser = await db.createUser({
-      firstName,
-      lastName,
-      email,
-      phone,
+    const user = await db.createUser({
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      email: email.toLowerCase().trim(),
+      phone: cleanPhone,
       password: hashedPassword,
-      company: body.company || '',
-      address: body.address || '',
-      city: body.city || '',
-      state: body.state || '',
-      pincode: body.pincode || '',
+      company: company?.trim() || '',
+      address: address?.trim() || '',
+      city: city?.trim() || '',
+      state: state?.trim() || '',
+      pincode: pincode?.trim() || '',
       phoneVerified: false,
       emailVerified: false
     })
 
-    console.log('User registered:', newUser.email)
-
     return NextResponse.json<ApiResponse>(
       {
         success: true,
-        message: 'User registered successfully. Please verify your phone number.',
+        message: 'User registered successfully',
         data: {
-          id: newUser.id,
-          firstName: newUser.firstName,
-          lastName: newUser.lastName,
-          email: newUser.email,
-          phone: newUser.phone
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName
         }
       },
       { status: 201 }
@@ -115,7 +121,7 @@ export async function POST(request: NextRequest) {
       {
         success: false,
         message: 'Registration failed',
-        error: error instanceof Error ? error.message : 'An error occurred'
+        error: error instanceof Error ? error.message : 'An error occurred during registration'
       },
       { status: 500 }
     )

@@ -1,18 +1,22 @@
-// lib/db.ts
 import { User } from './types'
 
-// In-memory database (replace with MongoDB/PostgreSQL in production)
 class Database {
   private users: Map<string, User> = new Map()
   private otps: Map<string, { code: string; expiresAt: number; attempts: number }> = new Map()
 
-  // USER OPERATIONS
   async createUser(user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
     const id = Math.random().toString(36).substr(2, 9)
     const newUser: User = {
       ...user,
       id,
       image: user.image || null,
+      company: user.company || '',
+      address: user.address || '',
+      city: user.city || '',
+      state: user.state || '',
+      pincode: user.pincode || '',
+      phoneVerified: user.phoneVerified ?? null,
+      emailVerified: user.emailVerified ?? null,
       createdAt: new Date(),
       updatedAt: new Date()
     }
@@ -44,7 +48,6 @@ class Database {
     return updated
   }
 
-  // OTP OPERATIONS
   async saveOTP(phone: string, otp: string, expiresInMinutes: number = 10): Promise<void> {
     this.otps.set(phone, {
       code: otp,

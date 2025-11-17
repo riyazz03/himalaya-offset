@@ -1,3 +1,4 @@
+// types/auth.ts
 export interface User {
   id: string
   firstName: string
@@ -5,16 +6,33 @@ export interface User {
   email: string
   phone: string
   password: string
-  image?: string | null
-  company?: string
-  address?: string
-  city?: string
-  state?: string
-  pincode?: string
-  phoneVerified: boolean
-  emailVerified: boolean
+  image: string | null
+  company: string
+  address: string
+  city: string
+  state: string
+  pincode: string
+  phoneVerified: boolean | null
+  emailVerified: boolean | null
   createdAt: Date
   updatedAt: Date
+}
+
+export interface SessionUser {
+  id: string
+  email: string
+  name?: string
+  image: string | null
+  firstName: string
+  lastName: string
+  phone: string
+  company: string
+  address: string
+  city: string
+  state: string
+  pincode: string
+  phoneVerified: boolean | null
+  emailVerified: boolean | null
 }
 
 export interface RegisterFormData {
@@ -38,26 +56,21 @@ export interface OTPData {
   attempts: number
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean
   message: string
   data?: T
   error?: string
 }
 
-export interface SessionUser {
-  id: string
-  name?: string
-  email?: string
-  image?: string | null
-  firstName: string
-  lastName: string
-  phone: string
-  company?: string
-  address?: string
-  city?: string
-  state?: string
-  pincode?: string
-  phoneVerified: boolean
-  emailVerified: boolean
+export interface OTPResponse {
+  sent: boolean
+}
+
+export interface VerifyOTPResponse {
+  verified: boolean
+}
+
+export interface PasswordResetResponse {
+  reset: boolean
 }

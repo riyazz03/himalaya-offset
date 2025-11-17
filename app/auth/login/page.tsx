@@ -47,7 +47,7 @@ function LoginContent(): React.ReactElement {
       } else if (result?.ok) {
         router.replace('/')
       }
-    } catch (err) {
+    } catch {
       setError('Login failed. Please try again.')
       setLoading(false)
     }
@@ -65,7 +65,7 @@ function LoginContent(): React.ReactElement {
         setError('Google sign in failed. Please try again.')
         setGoogleLoading(false)
       }
-    } catch (err) {
+    } catch {
       setError('Google sign in failed. Please try again.')
       setGoogleLoading(false)
     }
@@ -143,7 +143,7 @@ function LoginContent(): React.ReactElement {
 
         <div className="auth-footer">
           <p>
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href="/auth/register" className="auth-link">
               Sign up
             </Link>
