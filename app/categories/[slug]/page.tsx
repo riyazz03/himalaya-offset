@@ -24,7 +24,7 @@ export default function CategoryPage() {
         setError(null);
 
         const { data, error: fetchError } = await SanityService.getCategoryWithProducts(categorySlug);
-        
+
         if (fetchError) {
           setError('Failed to load category');
           console.error('Error fetching category:', fetchError);
@@ -68,10 +68,10 @@ export default function CategoryPage() {
   const formatProductForCard = (product: Subcategory) => ({
     image: product.image_url || "/placeholder.png",
     title: product.name,
-    pricing: typeof product.description === 'string' 
-      ? product.description 
-      : Array.isArray(product.description) 
-        ? product.description.join(' ') 
+    pricing: typeof product.description === 'string'
+      ? product.description
+      : Array.isArray(product.description)
+        ? product.description.join(' ')
         : "Click to explore",
     buttonText: "Choose Options"
   });
@@ -104,7 +104,7 @@ export default function CategoryPage() {
                 </span>
               </div>
             </div>
-            
+
             {category.image_url && (
               <div className="category-header-image">
                 <Image
@@ -130,7 +130,7 @@ export default function CategoryPage() {
                 <h2>Available Products</h2>
                 <p>Choose from our wide range of {category.name.toLowerCase()} products</p>
               </div>
-              
+
               <div className="products-grid">
                 {subcategories.map((subcategory: Subcategory) => {
                   const cardData = formatProductForCard(subcategory);
@@ -153,12 +153,12 @@ export default function CategoryPage() {
               <div className="no-products-content">
                 <div className="no-products-icon">
                   <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="m9 12 2 2 4-4"/>
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="m9 12 2 2 4-4" />
                   </svg>
                 </div>
                 <h3>Products Coming Soon</h3>
-                <p>We're working on adding products to this category. Please check back later!</p>
+                <p>We&apos;re working on adding products to this category. Please check back later!</p>
                 <Link href="/categories" className="back-home-btn">
                   Explore Other Categories
                 </Link>
