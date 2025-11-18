@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import '@/styles/categories-page.css';
 import ProductCard from '@/component/ProductCard';
+import Image from 'next/image';
 import { SanityService, Category } from '@/lib/sanity';
 
 interface CategoryWithCount extends Category {
@@ -11,7 +12,6 @@ interface CategoryWithCount extends Category {
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<CategoryWithCount[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -21,23 +21,19 @@ export default function CategoriesPage() {
 
   const fetchCategories = async () => {
     try {
-      setLoading(true);
       setError(null);
 
       const { data: fetchedCategories, error: fetchError } = await SanityService.getCategories();
 
       if (fetchError || !fetchedCategories) {
         setError('Failed to load categories');
-        setLoading(false);
         return;
       }
 
       setCategories(fetchedCategories);
-      setLoading(false);
     } catch (err) {
       console.error('Error fetching categories:', err);
       setError('An error occurred while loading categories');
-      setLoading(false);
     }
   };
 
@@ -54,59 +50,74 @@ export default function CategoriesPage() {
   });
 
   return (
-      <div className="categories-page">
-        <div className="categories-header">
-          <div className="header-content">
-            <h1>All Categories</h1>
-            <p>Browse our complete range of printing solutions and services</p>
-          </div>
+    <div className="categories-page">
+      <div className="categories-header">
+        <div className="header-bg-left">
+          <Image
+            src="/allProducts/product-image-1.webp"
+            alt="decoration"
+            width={180}
+            height={280}
+            priority={false}
+            className="header-image"
+          />
         </div>
-
-        <div className="categories-container">
-          <div className="categories-search">
-            <input
-              type="text"
-              placeholder="Search categories..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="search-input"
-            />
-          </div>
-
-          {loading ? (
-            <div className="categories-loading">
-              <div className="spinner"></div>
-              <p>Loading categories...</p>
-            </div>
-          ) : error ? (
-            <div className="categories-error">
-              <p>❌ Error: {error}</p>
-              <button onClick={() => fetchCategories()} className="retry-btn">
-                Try Again
-              </button>
-            </div>
-          ) : filteredCategories.length === 0 ? (
-            <div className="categories-empty">
-              <p>No categories found. Try adjusting your search.</p>
-            </div>
-          ) : (
-            <div className="categories-grid">
-              {filteredCategories.map((category) => {
-                const cardData = formatCategoryForCard(category);
-                return (
-                  <ProductCard
-                    key={category._id}
-                    image={cardData.image}
-                    title={cardData.title}
-                    pricing={cardData.pricing}
-                    buttonText={cardData.buttonText}
-                    productId={category.slug}
-                  />
-                );
-              })}
-            </div>
-          )}
+        <div className="header-content">
+          <h1>All Categories</h1>
+          <p>Browse our complete range of printing solutions and services</p>
+        </div>
+        <div className="header-bg-right">
+          <Image
+            src="/allProducts/product-image-2.webp"
+            alt="decoration"
+            width={180}
+            height={280}
+            priority={false}
+            className="header-image"
+          />
         </div>
       </div>
+
+      <div className="categories-search-container">
+        <input
+          type="text"
+          placeholder="Search categories..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="categories-search-input"
+        />
+      </div>
+
+      <div className="categories-container">
+        {error ? (
+          <div className="categories-error">
+            <p>❌ Error: {error}</p>
+            <button onClick={() => fetchCategories()} className="retry-btn">
+              Try Again
+            </button>
+          </div>
+        ) : filteredCategories.length === 0 ? (
+          <div className="categories-empty">
+            <p></p>
+          </div>
+        ) : (
+          <div className="categories-grid">
+            {filteredCategories.map((category) => {
+              const cardData = formatCategoryForCard(category);
+              return (
+                <ProductCard
+                  key={category._id}
+                  image={cardData.image}
+                  title={cardData.title}
+                  pricing={cardData.pricing}
+                  buttonText={cardData.buttonText}
+                  productId={category.slug}
+                />
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

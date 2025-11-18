@@ -28,7 +28,8 @@
   justify-content: flex-start;
   padding: 60px;
   color: white;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
   user-select: none;
   background-size: cover;
   background-position: center;
@@ -41,13 +42,18 @@
 
 /* Dark Gradient Overlay */
 .fs-slide::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.25) 50%, rgba(0, 0, 0, 0) 100%);
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.6) 0%,
+    rgba(0, 0, 0, 0.25) 50%,
+    rgba(0, 0, 0, 0) 100%
+  );
   pointer-events: none;
 }
 
@@ -175,6 +181,9 @@
 
 /* Mobile Landscape (768px) */
 @media (max-width: 768px) {
+  .fs-slider-container {
+    height: 60vh;
+  }
   .fs-slide {
     padding: 40px 30px;
   }
@@ -220,7 +229,7 @@
 /* Mobile Portrait (480px) */
 @media (max-width: 480px) {
   .fs-slider-container {
-    height: 95vh;
+    height: 60vh;
   }
 
   .fs-slide {
@@ -267,7 +276,6 @@
 
 /* Small Mobile (360px and below) */
 @media (max-width: 360px) {
-
   .fs-slide {
     padding: 25px 15px;
   }
