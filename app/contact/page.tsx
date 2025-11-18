@@ -2,6 +2,7 @@
 
 import { useState, ChangeEvent } from 'react';
 import '@/styles/contact.css';
+import Image from 'next/image';
 
 interface FormData {
   name: string;
@@ -122,32 +123,28 @@ export default function ContactPage() {
         <div className="contact-container">
           {/* Left Side */}
           <div className="contact-left">
-            <h1 className="contact-title">Contact</h1>
+            <h1 className="section-title">Contact <span>Us</span></h1> <br />
             <a href="mailto:himalayaoffsetvlr1@gmail.com" className="contact-email">
               himalayaoffsetvlr1@gmail.com
             </a>
 
             <div className="contact-address">
-              <h3 className="address-label">INDIA</h3>
+              <h3 className="address-label">ADDRESS:</h3>
               <p className="address-text">
                 14, Chunnambukara St, Sripuram,<br />
                 Arasamarapettai, Vellore,<br />
                 Tamil Nadu 632004
               </p>
             </div>
-
-            {/* Simplified Background SVG */}
-            <div className='contact-background-svg'>
-              <svg xmlns="http://www.w3.org/2000/svg" width="648" height="500" viewBox="0 0 648 500" fill="none">
-                <defs>
-                  <radialGradient id="paint0_radial" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(324 250) rotate(90) scale(250 324)">
-                    <stop stopColor="white" stopOpacity="0.1" />
-                    <stop offset="1" stopColor="white" stopOpacity="0" />
-                  </radialGradient>
-                </defs>
-                <rect width="648" height="500" fill="url(#paint0_radial)" opacity="0.1" />
-              </svg>
+            <div className="contact-address">
+              <h3 className="address-label">PHONE NUMBER:</h3>
+              <p className="address-text">
+                <a href="tel:+918838435916">+91 88384 35916</a> <br />
+                <a href="tel:0416-4051648">0416-4051648</a><br />
+              </p>
             </div>
+
+            <Image src="https://images.unsplash.com/photo-1528747045269-390fe33c19f2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8Y29udGFjdCUyMHVzfGVufDB8fDB8fHww" alt='contact image'  width={500} height={150} className='contact-us-image' />
           </div>
 
           {/* Right Side - Form */}
@@ -161,7 +158,7 @@ export default function ContactPage() {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  placeholder="John Doe"
+                  placeholder="Your Name"
                   className="form-input"
                 />
               </div>
@@ -174,7 +171,7 @@ export default function ContactPage() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="john@example.com"
+                  placeholder="yourgmail@example.com"
                   className="form-input"
                 />
               </div>
@@ -187,7 +184,7 @@ export default function ContactPage() {
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  placeholder="+1"
+                  placeholder="+91 XXXXXXXXXX"
                   className="form-input"
                 />
               </div>
