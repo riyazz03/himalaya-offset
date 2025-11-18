@@ -16,7 +16,7 @@ export default function ProductPage() {
     const slug = params?.slug as string;
 
     const [product, setProduct] = useState<Subcategory | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [selectedTier, setSelectedTier] = useState(0);
     const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({});
     const [quantity, setQuantity] = useState(0);
@@ -26,43 +26,33 @@ export default function ProductPage() {
 
         const fetchProductData = async (productSlug: string) => {
             try {
-                setLoading(true);
                 const { data } = await SanityService.getProduct(productSlug);
 
                 if (data) {
                     setProduct(data);
+                    if (data.pricingTiers && data.pricingTiers.length > 0) {
+                        setQuantity(data.pricingTiers[0].quantity);
+                    }
+                } else {
+                    setError('Product not found');
                 }
             } catch (err) {
                 console.error('Error fetching product:', err);
-            } finally {
-                setLoading(false);
+                setError('Failed to load product');
             }
         };
 
         fetchProductData(slug);
     }, [slug]);
 
-    useEffect(() => {
-        if (product?.pricingTiers && product.pricingTiers.length > 0) {
-            setQuantity(product.pricingTiers[0].quantity);
-        }
-    }, [product]);
-
-    if (loading) {
+    if (error || !product) {
         return (
-            <div className="product-loading">
-                <div className="loading-spinner"></div>
-                <p>Loading product details...</p>
-            </div>
-        );
-    }
-
-    if (!product) {
-        return (
-            <div className="product-error">
-                <h1>Product Not Found</h1>
-                <p>The product you are looking for does not exist.</p>
-                <Link href="/" className="back-link">Go Back Home</Link>
+            <div className="product-page">
+                <div className="product-error">
+                    <h1>Product Not Found</h1>
+                    <p>{error || 'The product you are looking for does not exist.'}</p>
+                    <Link href="/products" className="back-home-btn">Go Back</Link>
+                </div>
             </div>
         );
     }
@@ -95,11 +85,11 @@ export default function ProductPage() {
 
                 if (option.optionType === 'number' && option.numberConfig) {
                     const numValue = Number(selectedValue) || 0;
-                    optionsPrice += numValue * (option.numberConfig.pricePerUnit || 0);
+                    optionsPrice += numValue * (option.numberConfig.pricePerUnit || 0) * quantity;
                 } else if (selectedValue && option.values) {
                     const selectedOptionValue = option.values.find(v => v.value === selectedValue);
                     if (selectedOptionValue && selectedOptionValue.priceModifier) {
-                        optionsPrice += selectedOptionValue.priceModifier;
+                        optionsPrice += selectedOptionValue.priceModifier * quantity;
                     }
                 }
             });
@@ -117,7 +107,8 @@ export default function ProductPage() {
             product: {
                 id: product._id,
                 name: product.name,
-                slug: product.slug
+                slug: product.slug,
+                image: product.image_url
             },
             quantity: quantity,
             selectedTier: product.pricingTiers?.[selectedTier],
@@ -125,274 +116,188 @@ export default function ProductPage() {
             pricing: priceData
         };
 
-        console.log('Order Data for Razorpay:', orderData);
-        
-        alert(`Order Total: ₹${priceData.totalPrice}\n\nRazorpay integration pending...`);
+        // Encode order data and redirect to confirmation page
+        const encodedData = encodeURIComponent(JSON.stringify(orderData));
+        window.location.href = `/order-confirmation?data=${encodedData}`;
     };
 
     const priceBreakdown = calculateTotalPrice();
     const currentTier = product.pricingTiers?.[selectedTier];
 
     return (
-        <>
-            <div className="product-page">
-                {/* Breadcrumb */}
-                <div className="breadcrumb">
-                    <Link href="/">Home</Link>
-                    <span>/</span>
+        <div className="product-page">
+            {/* Breadcrumb */}
+            <div className="breadcrumb">
+                <div className="breadcrumb-container">
+                    <Link href="/" className="breadcrumb-link">Home</Link>
+                    <span className="breadcrumb-separator">/</span>
                     {product.category && (
                         <>
-                            <Link href={`/categories/${product.category.slug}`}>
+                            <Link href={`/categories/${product.category.slug}`} className="breadcrumb-link">
                                 {product.category.name}
                             </Link>
-                            <span>/</span>
+                            <span className="breadcrumb-separator">/</span>
                         </>
                     )}
-                    <span className="current">{product.name}</span>
+                    <span className="breadcrumb-current">{product.name}</span>
                 </div>
+            </div>
 
-                {/* Product Content */}
-                <div className="product-container">
-                    <div className="product-layout">
-                        {/* Left: Image */}
-                        <div className="product-left">
-                            <div className="product-image-wrapper">
-                                {product.image_url ? (
-                                    <Image
-                                        src={product.image_url}
-                                        alt={product.name}
-                                        fill
-                                        className="product-image"
-                                        priority
-                                    />
-                                ) : (
-                                    <div className="image-placeholder">
-                                        <div className="placeholder-text">No Image</div>
-                                    </div>
-                                )}
+            {/* Product Container */}
+            <div className="product-container">
+                <div className="product-layout">
+                    {/* Left: Image */}
+                    <div className="product-left">
+                        <div className="product-image-wrapper">
+                            {product.image_url ? (
+                                <Image
+                                    src={product.image_url}
+                                    alt={product.name}
+                                    fill
+                                    className="product-image"
+                                    priority
+                                />
+                            ) : (
+                                <div className="image-placeholder">
+                                    <div className="placeholder-text">No Image</div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Right: Product Info */}
+                    <div className="product-right">
+                        {/* Title */}
+                        <h1 className="product-title">{product.name}</h1>
+
+                        {/* Category */}
+                        {product.category && (
+                            <div className="product-category">
+                                <Link href={`/categories/${product.category.slug}`}>
+                                    {product.category.name}
+                                </Link>
+                            </div>
+                        )}
+
+                        {/* Description */}
+                        {product.description && (
+                            <div className="product-description">
+                                {Array.isArray(product.description) 
+                                    ? product.description.map((item, index) => (
+                                        <p key={index}>{String(item)}</p>
+                                    ))
+                                    : <p>{String(product.description)}</p>
+                                }
+                            </div>
+                        )}
+
+                        {/* Specifications */}
+                        {product.specifications && product.specifications.length > 0 && (
+                            <ul className="product-specs">
+                                {product.specifications.map((spec, index) => (
+                                    <li key={index}>{spec.label}: {spec.value}</li>
+                                ))}
+                            </ul>
+                        )}
+
+                        {/* Price Display */}
+                        <div className="price-header">
+                            <div className="price-main">₹{priceBreakdown.totalPrice.toLocaleString()}</div>
+                            <div className="price-sub">
+                                ₹{currentTier?.pricePerUnit || 0} each / {quantity} units
                             </div>
                         </div>
 
-                        {/* Right: Product Info */}
-                        <div className="product-right">
-                            {/* Title */}
-                            <h1 className="product-title">{product.name}</h1>
-
-                            {/* Category */}
-                            {product.category && (
-                                <div className="product-category">
-                                    <Link href={`/categories/${product.category.slug}`}>
-                                        {product.category.name}
-                                    </Link>
-                                </div>
-                            )}
-
-                            {/* Description */}
-                            {product.description && (
-                                <div className="product-description">
-                                    {Array.isArray(product.description) 
-                                        ? product.description.map((item, index) => (
-                                            <p key={index}>{String(item)}</p>
-                                        ))
-                                        : <p>{String(product.description)}</p>
-                                    }
-                                </div>
-                            )}
-
-                            {/* Specifications */}
-                            {product.specifications && product.specifications.length > 0 && (
-                                <ul className="product-specs">
-                                    {product.specifications.map((spec, index) => (
-                                        <li key={index}>{spec.label}: {spec.value}</li>
+                        {/* Quantity Selection - Dropdown */}
+                        {product.pricingTiers && product.pricingTiers.length > 0 && (
+                            <div className="option-section">
+                                <label className="option-label">Quantity</label>
+                                <select
+                                    className="option-select"
+                                    value={selectedTier}
+                                    onChange={(e) => {
+                                        const index = parseInt(e.target.value);
+                                        handleTierSelection(index, product.pricingTiers![index].quantity);
+                                    }}
+                                >
+                                    {product.pricingTiers.map((tier, index) => (
+                                        <option key={index} value={index}>
+                                            {tier.quantity} units - ₹{tier.price} (₹{tier.pricePerUnit}/unit)
+                                            {tier.isRecommended ? ' (Recommended)' : ''}
+                                            {tier.savingsPercentage ? ` - ${tier.savingsPercentage}% OFF` : ''}
+                                        </option>
                                     ))}
-                                </ul>
-                            )}
+                                </select>
+                            </div>
+                        )}
 
-                            {/* Price Display */}
-                            <div className="price-header">
-                                <div className="price-main">₹{currentTier?.price || 0}</div>
-                                <div className="price-sub">
-                                    ₹{currentTier?.pricePerUnit || 0} each / {quantity} units
+                        {/* Product Options - Dropdown Only */}
+                        {product.productOptions && product.productOptions.length > 0 && (
+                            <>
+                                {product.productOptions.map((option, optionIndex) => (
+                                    <div key={optionIndex} className="option-section">
+                                        <label className="option-label">
+                                            {option.label}
+                                            {option.isRequired && <span className="required">*</span>}
+                                        </label>
+
+                                        <select
+                                            className="option-select"
+                                            value={selectedOptions[option.label] || ''}
+                                            onChange={(e) => handleOptionChange(option.label, e.target.value)}
+                                        >
+                                            <option value="">Select {option.label}...</option>
+                                            {option.values && option.values.map((value, valueIndex) => (
+                                                <option key={valueIndex} value={value.value}>
+                                                    {value.label}
+                                                    {value.priceModifier ? ` (+₹${value.priceModifier}/unit)` : ''}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                ))}
+                            </>
+                        )}
+
+                        {/* Price Breakdown */}
+                        {priceBreakdown.optionsPrice > 0 && (
+                            <div className="price-summary">
+                                <div className="summary-row">
+                                    <span>Base Price ({quantity} units)</span>
+                                    <span>₹{priceBreakdown.basePrice.toLocaleString()}</span>
+                                </div>
+                                <div className="summary-row">
+                                    <span>Customizations</span>
+                                    <span>+₹{priceBreakdown.optionsPrice.toLocaleString()}</span>
+                                </div>
+                                <div className="summary-total">
+                                    <span>Total</span>
+                                    <span>₹{priceBreakdown.totalPrice.toLocaleString()}</span>
                                 </div>
                             </div>
+                        )}
 
-                            {/* Delivery Info */}
-                            {product.deliveryOptions && product.deliveryOptions.length > 0 && (
-                                <div className="delivery-info">
-                                    {product.deliveryOptions.map((option, index) => (
-                                        <div key={index} className="delivery-item">
-                                            <div className="delivery-type">
-                                                {option.type.replace('_', ' ').toUpperCase()}
-                                            </div>
-                                            <div className="delivery-desc">{option.description}</div>
-                                            {option.locations && (
-                                                <div className="delivery-location">{option.locations}</div>
-                                            )}
-                                        </div>
-                                    ))}
+                        {/* Place Order Button */}
+                        <button 
+                            className="order-button"
+                            onClick={handlePlaceOrder}
+                        >
+                            Continue to Order - ₹{priceBreakdown.totalPrice.toLocaleString()}
+                        </button>
+
+                        {/* Footer Notes */}
+                        <div className="footer-notes">
+                            <div className="note-item">✓ Multiple payment options available</div>
+                            <div className="note-item">✓ Price inclusive of all taxes</div>
+                            {product.minOrderQuantity && (
+                                <div className="note-item">
+                                    ✓ Minimum order: {product.minOrderQuantity} units
                                 </div>
                             )}
-
-                            {/* Delivery Speed */}
-                            {product.deliveryOptions && product.deliveryOptions.length > 0 && (
-                                <div className="option-section">
-                                    <label className="option-label">Delivery Speed</label>
-                                    <div className="delivery-options">
-                                        {product.deliveryOptions.map((option, index) => (
-                                            <div key={index} className="delivery-option-card">
-                                                <div className="delivery-option-type">
-                                                    {option.type === 'standard' ? 'Standard' : 
-                                                     option.type === 'same_day' ? 'Same Day Delivery' : 
-                                                     'Express'}
-                                                </div>
-                                                {option.locations && (
-                                                    <div className="delivery-option-info">
-                                                        {option.locations}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Product Options */}
-                            {product.productOptions && product.productOptions.length > 0 && (
-                                <>
-                                    {product.productOptions.map((option, optionIndex) => (
-                                        <div key={optionIndex} className="option-section">
-                                            <label className="option-label">
-                                                {option.label}
-                                                {option.isRequired && <span className="required">*</span>}
-                                            </label>
-
-                                            {/* Dropdown */}
-                                            {option.optionType === 'dropdown' && option.values && (
-                                                <select
-                                                    className="option-select"
-                                                    value={selectedOptions[option.label] || ''}
-                                                    onChange={(e) => handleOptionChange(option.label, e.target.value)}
-                                                >
-                                                    <option value="">Select...</option>
-                                                    {option.values.map((value, valueIndex) => (
-                                                        <option key={valueIndex} value={value.value}>
-                                                            {value.label}
-                                                            {value.priceModifier ? ` (+₹${value.priceModifier})` : ''}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            )}
-
-                                            {/* Radio Buttons */}
-                                            {option.optionType === 'radio' && option.values && (
-                                                <div className="radio-options">
-                                                    {option.values.map((value, valueIndex) => (
-                                                        <label key={valueIndex} className="radio-option">
-                                                            <input
-                                                                type="radio"
-                                                                name={option.label}
-                                                                value={value.value}
-                                                                checked={selectedOptions[option.label] === value.value}
-                                                                onChange={(e) => handleOptionChange(option.label, e.target.value)}
-                                                            />
-                                                            <span className="radio-text">
-                                                                {value.label}
-                                                                {value.priceModifier ? ` (+₹${value.priceModifier})` : ''}
-                                                            </span>
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                            )}
-
-                                            {/* Number Input */}
-                                            {option.optionType === 'number' && option.numberConfig && (
-                                                <div className="number-option">
-                                                    <input
-                                                        type="number"
-                                                        className="number-input"
-                                                        min={option.numberConfig.min}
-                                                        max={option.numberConfig.max}
-                                                        step={option.numberConfig.step}
-                                                        value={selectedOptions[option.label] || option.numberConfig.min || 0}
-                                                        onChange={(e) => handleOptionChange(option.label, Number(e.target.value))}
-                                                    />
-                                                    {option.numberConfig.pricePerUnit && selectedOptions[option.label] && (
-                                                        <div className="number-total">
-                                                            = ₹{(Number(selectedOptions[option.label]) * option.numberConfig.pricePerUnit).toLocaleString()}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </>
-                            )}
-
-                            {/* Quantity Selection */}
-                            {product.pricingTiers && product.pricingTiers.length > 0 && (
-                                <div className="option-section">
-                                    <label className="option-label">Quantity</label>
-                                    <div className="quantity-tiers">
-                                        {product.pricingTiers.map((tier, index) => (
-                                            <div
-                                                key={index}
-                                                className={`quantity-tier ${selectedTier === index ? 'selected' : ''}`}
-                                                onClick={() => handleTierSelection(index, tier.quantity)}
-                                            >
-                                                <div className="tier-qty">{tier.quantity}</div>
-                                                <div className="tier-price">
-                                                    ₹{tier.price} 
-                                                    <span className="tier-unit">₹{tier.pricePerUnit} / unit</span>
-                                                </div>
-                                                {tier.isRecommended && (
-                                                    <div className="tier-badge">Recommended</div>
-                                                )}
-                                                {tier.savingsPercentage && (
-                                                    <div className="tier-savings">{tier.savingsPercentage}% savings</div>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className="see-more">See more quantities</div>
-                                </div>
-                            )}
-
-                            {/* Price Summary */}
-                            {priceBreakdown.optionsPrice > 0 && (
-                                <div className="price-summary">
-                                    <div className="summary-row">
-                                        <span>Base Price ({quantity} units @ ₹{priceBreakdown.pricePerUnit}/unit)</span>
-                                        <span>₹{priceBreakdown.basePrice.toLocaleString()}</span>
-                                    </div>
-                                    <div className="summary-row">
-                                        <span>Customizations</span>
-                                        <span>+₹{priceBreakdown.optionsPrice.toLocaleString()}</span>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Place Order Button */}
-                            <button 
-                                className="order-button"
-                                onClick={handlePlaceOrder}
-                            >
-                                Place Order - ₹{priceBreakdown.totalPrice.toLocaleString()}
-                            </button>
-
-                            {/* Footer Notes */}
-                            <div className="footer-notes">
-                                <div className="note-item">Cash on Delivery available</div>
-                                <div className="note-item">Price below is MRP (inclusive of all taxes)</div>
-                                {product.minOrderQuantity && (
-                                    <div className="note-item">
-                                        Minimum order quantity: {product.minOrderQuantity} units
-                                    </div>
-                                )}
-                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     );
 }

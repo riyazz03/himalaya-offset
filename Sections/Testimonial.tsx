@@ -6,8 +6,8 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import 'swiper/css/effect-fade';
-import "@/styles/testimonial.css";
 import "@/styles/homeProducts.css"
+import "@/styles/testimonial.css";
 import Title from '@/component/Title-Block-Rounded';
 import TestimonialCard from '@/component/TestimonialCard';
 
