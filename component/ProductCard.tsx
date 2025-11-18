@@ -3,8 +3,18 @@ import "@/styles/productcard.css"
 import Image from 'next/image'
 import Link from 'next/link'
 
-const ProductCard = ({ image, title, pricing, buttonText, productId }: { image: string, title: string, pricing: string, buttonText: string, productId?: string }) => {
+interface ProductCardProps {
+  image: string;
+  title: string;
+  pricing: string;
+  buttonText: string;
+  productId?: string;
+  href?: string;
+}
+
+const ProductCard: React.FC<ProductCardProps> = ({ image, title, pricing, buttonText, productId, href }) => {
   const slug = productId || title.toLowerCase().replace(/\s+/g, '-');
+  const defaultHref = href || `/products/${slug}`;
   
   return (
     <div className='product-card'>
@@ -23,7 +33,7 @@ const ProductCard = ({ image, title, pricing, buttonText, productId }: { image: 
         <h1 className='product-card-title'>{title}</h1>
         <p className='product-card-pricing'>{pricing}</p>
       </div>
-      <Link className='product-card-button' href={`/products/${slug}`}>
+      <Link className='product-card-button' href={defaultHref}>
           <p className='product-card-button-text'>{buttonText}</p>
           <Image 
             src="/icons/cards-plus.svg" 

@@ -499,7 +499,7 @@
   }
 
   .filter-options {
-    max-height: 200px;
+    max-height: 100%;
   }
 
   .products-search-container {
