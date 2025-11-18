@@ -101,7 +101,7 @@
 .products-container {
   max-width: 90%;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 0rem;
   display: grid;
   grid-template-columns: 280px 1fr;
   gap: 2rem;
@@ -226,12 +226,12 @@
 }
 
 .pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 2rem;
   flex-wrap: wrap;
+  justify-content: start;
+  align-items: start;
+  gap: 0.5rem;
+  margin-top: 0;
+  display: flex;
 }
 
 .pagination-btn {
@@ -432,12 +432,12 @@
   }
 
   .products-container {
-    padding: 0 0.5rem;
+    padding: 0 0rem;
     gap: 1rem;
   }
 
   .products-main {
-    padding: 1.5rem;
+    padding: 0rem;
   }
 
   .products-filters {
@@ -504,7 +504,7 @@
 
   .products-search-container {
     max-width: 100%;
-    padding: 0 0.75rem;
+    padding: 0 1rem;
     margin: 0 auto 1.5rem;
   }
 }
