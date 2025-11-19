@@ -14,7 +14,6 @@ export default function CategoryPage() {
 
   const [category, setCategory] = useState<Category | null>(null);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -22,21 +21,18 @@ export default function CategoryPage() {
 
     const fetchCategoryData = async (categorySlug: string) => {
       try {
-        setLoading(true);
         setError(null);
 
         const { data, error: fetchError } = await SanityService.getCategoryWithProducts(categorySlug);
-        
+
         if (fetchError) {
           setError('Failed to load category');
           console.error('Error fetching category:', fetchError);
-          setLoading(false);
           return;
         }
 
         if (!data) {
           setError('Category not found');
-          setLoading(false);
           return;
         }
 
@@ -45,40 +41,40 @@ export default function CategoryPage() {
       } catch (err) {
         console.error('Error in fetchCategoryData:', err);
         setError('An error occurred while loading the category');
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchCategoryData(slug);
   }, [slug]);
 
-  if (loading) {
-    return (
-      <div className="category-page">
-        <div className="category-loading">
-          <div className="loading-spinner">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          </div>
-          <p>Loading category...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !category) {
+  if (error) {
     return (
       <div className="category-page">
         <div className="category-error">
           <h1>Category Not Found</h1>
           <p>{error || 'The category you are looking for does not exist.'}</p>
-          <Link href="/" className="back-home-btn">
-            Go Back Home
+          <Link href="/categories" className="back-home-btn">
+            Go Back
           </Link>
         </div>
       </div>
     );
   }
+
+  if (!category) {
+    return null;
+  }
+
+  const formatProductForCard = (product: Subcategory) => ({
+    image: product.image_url || "/placeholder.png",
+    title: product.name,
+    pricing: typeof product.description === 'string'
+      ? product.description
+      : Array.isArray(product.description)
+        ? product.description.join(' ')
+        : "Click to explore",
+    buttonText: "Choose Options"
+  });
 
   return (
     <div className="category-page">
@@ -87,7 +83,7 @@ export default function CategoryPage() {
         <div className="breadcrumb-container">
           <Link href="/" className="breadcrumb-link">Home</Link>
           <span className="breadcrumb-separator">/</span>
-          <Link href="/#categories" className="breadcrumb-link">Categories</Link>
+          <Link href="/categories" className="breadcrumb-link">Categories</Link>
           <span className="breadcrumb-separator">/</span>
           <span className="breadcrumb-current">{category.name}</span>
         </div>
@@ -108,7 +104,7 @@ export default function CategoryPage() {
                 </span>
               </div>
             </div>
-            
+
             {category.image_url && (
               <div className="category-header-image">
                 <Image
@@ -134,23 +130,22 @@ export default function CategoryPage() {
                 <h2>Available Products</h2>
                 <p>Choose from our wide range of {category.name.toLowerCase()} products</p>
               </div>
-              
+
               <div className="products-grid">
-                {subcategories.map((subcategory: Subcategory) => (
-                  <div key={subcategory._id} className="product-card-wrapper">
-                    <Link href={`/products/${subcategory.slug}`}>
+                {subcategories.map((subcategory: Subcategory) => {
+                  const cardData = formatProductForCard(subcategory);
+                  return (
+                    <div key={subcategory._id} className="product-card-wrapper">
                       <ProductCard
-                        image={subcategory.image_url || '/placeholder-product.jpg'}
-                        title={subcategory.name}
-                        pricing={subcategory.startingPrice 
-                          ? `Starting from ₹${subcategory.startingPrice}` 
-                          : `Min Order: ${subcategory.minOrderQuantity} units`
-                        }
-                        buttonText="View Details"
+                        image={cardData.image}
+                        title={cardData.title}
+                        pricing={cardData.pricing}
+                        buttonText={cardData.buttonText}
+                        href={`/products/${subcategory.slug}`}
                       />
-                    </Link>
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
               </div>
             </>
           ) : (
@@ -158,36 +153,18 @@ export default function CategoryPage() {
               <div className="no-products-content">
                 <div className="no-products-icon">
                   <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="m9 12 2 2 4-4"/>
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="m9 12 2 2 4-4" />
                   </svg>
                 </div>
                 <h3>Products Coming Soon</h3>
                 <p>We&apos;re working on adding products to this category. Please check back later!</p>
-                <Link href="/" className="back-home-btn">
+                <Link href="/categories" className="back-home-btn">
                   Explore Other Categories
                 </Link>
               </div>
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Call to Action */}
-      <div className="category-cta">
-        <div className="category-cta-container">
-          <div className="cta-content">
-            <h3>Need Custom {category.name}?</h3>
-            <p>Get in touch with our experts for customized solutions and bulk orders.</p>
-            <div className="cta-buttons">
-              <Link href="/contact" className="cta-button primary">
-                Contact Us
-              </Link>
-              <Link href="/quote" className="cta-button secondary">
-                Get Quote
-              </Link>
-            </div>
-          </div>
         </div>
       </div>
     </div>

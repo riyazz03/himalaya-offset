@@ -46,7 +46,8 @@ export default function CategoriesPage() {
     image: category.image_url || '/placeholder.png',
     title: category.name,
     pricing: category.description || 'Click to explore',
-    buttonText: 'Explore Category'
+    buttonText: 'Explore Category',
+    href: `/categories/${category.slug}`
   });
 
   return (
@@ -111,7 +112,7 @@ export default function CategoriesPage() {
                   title={cardData.title}
                   pricing={cardData.pricing}
                   buttonText={cardData.buttonText}
-                  productId={category.slug}
+                  href={cardData.href}
                 />
               );
             })}
