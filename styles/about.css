@@ -1,8 +1,13 @@
+body, html{
+  background: var(--background);
+}
+
 .hero-section {
   width: 100%;
-  height: calc(100vh - 120px);
+  height: calc(55vh - 74px);
   position: relative;
   overflow: hidden;
+  background-color: #fff;
 }
 
 .hero-image {
@@ -31,17 +36,18 @@
 .hero-content {
   text-align: center;
   z-index: 1;
+  padding-top: 5rem;
 }
 
 .hero-title {
-  font-size: 4rem;
+  font-size: 3.5vw;
   font-weight: 700;
   margin-bottom: 1rem;
   letter-spacing: -1px;
 }
 
 .hero-subtitle {
-  font-size: 1.5rem;
+  font-size: 1.2vw;
   font-weight: 300;
   opacity: 0.95;
 }
@@ -49,20 +55,22 @@
 .about-section {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 100px 60px;
+  padding: 50px 60px;
   display: flex;
   align-items: center;
   gap: 80px;
+  background: var(--background);
 }
 
 .about-image-container {
   flex: 1;
   min-width: 400px;
+  min-height: 450px;
 }
 
 .about-image {
   width: 100%;
-  /* height: 600px; */
+  height: 450px;
   object-fit: cover;
   border-radius: 12px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
@@ -90,8 +98,8 @@
 }
 
 .gallery-section {
-  background: #f8f9fa;
-  padding: 100px 20px;
+  background: var(--background);
+  padding: 80px 0 0;
 }
 
 .gallery-title-wrapper{
@@ -131,14 +139,18 @@
   overflow: hidden;
 }
 
+
 .slide {
   position: absolute;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   top: 50%;
-  transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  will-change: transform, opacity, width, height, left, right;
+  transition: all 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform, opacity, width, height;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 
 .slide-image {
@@ -146,7 +158,8 @@
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  /* transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94); */
+  transition: all 1s ease-in-out;
 }
 
 .slide-left {
@@ -229,7 +242,7 @@
 @media (max-width: 1024px) {
   .about-section {
     flex-direction: column;
-    padding: 60px 30px;
+    padding: 60px 30px 30px 30px;
     gap: 40px;
   }
 
@@ -251,11 +264,12 @@
 
 @media (max-width: 768px) {
   .hero-title {
-    font-size: 2.5rem;
+    font-size: 2rem;
+    line-height: 1.3;
   }
 
   .hero-subtitle {
-    font-size: 1.2rem;
+    font-size: 1rem;
   }
 
   .about-title,
@@ -290,6 +304,18 @@
   .arrow {
     width: 18px;
     height: 18px;
-    border-width: 2px;
+    /* border-width: 2px; */
+  }
+  .gallery-title-wrapper{
+    margin-bottom: 0;
+  }
+  .slider-container{
+    height: 400px;
+  }
+  .gallery-section{
+    padding: 40px 0 0;
+  }
+  .section-para{
+    font-size: 1rem;
   }
 }
