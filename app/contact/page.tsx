@@ -2,7 +2,15 @@
 
 import { useState, ChangeEvent } from 'react';
 import '@/styles/contact.css';
-import Image from 'next/image';
+// import Image from 'next/image';
+import { MdEmail } from "react-icons/md";
+import { IoCall } from "react-icons/io5";
+// import { ImAddressBook } from "react-icons/im";
+// import { PiAddressBookLight } from "react-icons/pi";
+// import { MdOutlineEmail } from "react-icons/md";
+// import { IoCallOutline } from "react-icons/io5";
+import { FaLocationDot } from "react-icons/fa6";
+import Title from '@/component/Title-Block-Rounded';
 
 interface FormData {
   name: string;
@@ -80,7 +88,7 @@ export default function ContactPage() {
 
       // Since mode is 'no-cors', we can't read the response
       // We'll assume success if no error is thrown
-      showToast('Form submitted successfully! We\'ll get back to you soon.', 'success');
+      showToast('Enquiry submitted successfully! We\'ll get back to you soon.', 'success');
 
       // Reset form
       setFormData({
@@ -123,55 +131,70 @@ export default function ContactPage() {
         <div className="contact-container">
           {/* Left Side */}
           <div className="contact-left">
-            <h1 className="section-title">Contact <span>Us</span></h1> <br />
+            {/* <h1 className="section-title">Contact <span>Us</span></h1> <br /> */}
+            <div className='contact-header'>
+              <div className='contact-header-title-wrapper'>
+                <Title title='Contact Us' />
+              </div>
+              <h2 className='section-title '>
+                We&apos;d Love to<span className='separate-line'>Hear From You</span>
+              </h2>
+            </div>
 
             <div className="contact-address">
               <h3 className="address-label">Email Id:</h3>
-              <p className="address-text">
+              <p className="contact-item-wrapper">
+                <div className="form-icon">
+                  <MdEmail />
+                  {/* <MdOutlineEmail /> */}
+                </div>
                 <a href="mailto:himalayaoffsetvlr1@gmail.com" className="address-text">
-              himalayaoffsetvlr1@gmail.com
-            </a>
+                  himalayaoffsetvlr1@gmail.com
+                </a>
               </p>
             </div>
 
             <div className="contact-address">
               <h3 className="address-label">ADDRESS:</h3>
-              <p className="address-text">
-                14, Chunnambukara St, Sripuram,<br />
-                Arasamarapettai, Vellore,<br />
-                Tamil Nadu 632004
-              </p>
+              <div className="contact-item-wrapper">
+                <div className="form-icon">
+                  <FaLocationDot />
+                </div>
+                <p className="address-text">
+                  14, Chunnambukara St, Sripuram,<br />
+                  Arasamarapettai, Vellore,<br />
+                  Tamil Nadu 632004
+                </p>
+              </div>
             </div>
             <div className="contact-address">
               <h3 className="address-label">PHONE NUMBER:</h3>
               <p className="address-text">
                 <div className="contact-item-wrapper">
-                  <div className="contact-icon">
-                    <svg viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
-                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                    </svg>
+                  <div className="form-icon">
+                    <IoCall />
+                    {/* <IoCallOutline /> */}
                   </div>
                   <a href="tel:+918838435916">+91 88384 35916</a>
                 </div>
                 <div className="contact-item-wrapper">
-                  <div className="contact-icon">
-                    <svg viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2">
-                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                    </svg>
+                  <div className="form-icon">
+                    <IoCall />
+                    {/* <IoCallOutline /> */}
                   </div>
                   <a href="tel:0416-4051648">0416-4051648</a>
                 </div>
               </p>
             </div>
 
-            <Image src="https://images.unsplash.com/photo-1528747045269-390fe33c19f2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8Y29udGFjdCUyMHVzfGVufDB8fDB8fHww" alt='contact image'  width={500} height={150} className='contact-us-image' />
+            {/* <Image src="https://images.unsplash.com/photo-1528747045269-390fe33c19f2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8Y29udGFjdCUyMHVzfGVufDB8fDB8fHww" alt='contact image'  width={500} height={150} className='contact-us-image' /> */}
           </div>
 
           {/* Right Side - Form */}
           <div className="contact-right">
             <div className="form-container">
               <div className="form-group">
-                <label htmlFor="name" className="form-label">Name <span>*</span></label>
+                <label htmlFor="name" className="form-label">Name </label>
                 <input
                   type="text"
                   id="name"
@@ -184,7 +207,7 @@ export default function ContactPage() {
               </div>
 
               <div className="form-group">
-                <label htmlFor="email" className="form-label">Email Address <span>*</span></label>
+                <label htmlFor="email" className="form-label">Email Address </label>
                 <input
                   type="email"
                   id="email"
@@ -197,7 +220,7 @@ export default function ContactPage() {
               </div>
 
               <div className="form-group">
-                <label htmlFor="phone" className="form-label">Contact Number <span>*</span></label>
+                <label htmlFor="phone" className="form-label">Contact Number</label>
                 <input
                   type="tel"
                   id="phone"
@@ -210,7 +233,7 @@ export default function ContactPage() {
               </div>
 
               <div className="form-group">
-                <label htmlFor="purpose" className="form-label">Purpose <span>*</span></label>
+                <label htmlFor="purpose" className="form-label">Purpose</label>
                 <select
                   id="purpose"
                   name="purpose"

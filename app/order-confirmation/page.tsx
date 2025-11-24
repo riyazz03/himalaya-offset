@@ -197,7 +197,7 @@ export default function OrderConfirmationPage() {
                         <div className="delivery-info">
                             <h4>Delivery Details</h4>
                             <p className="info-note">
-                                We'll contact you at the number provided during order completion to confirm delivery address and timeline.
+                                We&apos;ll contact you at the number provided during order completion to confirm delivery address and timeline.
                             </p>
                         </div>
 

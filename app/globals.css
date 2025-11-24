@@ -93,3 +93,41 @@ p {
     text-align: center;
   }
 }
+.whatapp-icon-wrapper{
+  z-index: 9999;
+  position: fixed;
+  bottom: 5rem;
+  right: 1rem;
+}
+/* Desktop Floating Button */
+.floating-enquiry-btn {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  background: #25D366;
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  z-index: 9999;
+  transition: transform 0.2s ease;
+}
+
+.floating-enquiry-btn:hover {
+  transform: scale(1.05);
+}
+
+/* Mobile Responsive Fix */
+@media (max-width: 600px) {
+  .floating-enquiry-btn {
+    bottom: 20px;
+    right: 12px;
+    font-size: 12px;
+    padding: 8px 12px;
+    border-radius: 6px;
+  }
+}
