@@ -54,7 +54,7 @@ export const SanityService = {
   async getProduct(slug: string) {
     try {
       const product = await client.fetch(
-        '*[_type == "subcategory" && slug.current == $slug && isActive == true][0] { _id, name, "slug": slug.current, description, "image_url": image.asset->url, "image_alt": image.alt, "images": images[] { "asset": asset->url, "alt": alt }, deliveryOptions, productOptions, pricingTiers, specifications, minOrderQuantity, isFeatured, "category": category->{ _id, name, "slug": slug.current } }',
+        '*[_type == "subcategory" && slug.current == $slug && isActive == true][0] { _id, name, "slug": slug.current, description, instructions, "image_url": image.asset->url, "image_alt": image.alt, "images": images[] { "asset": asset->url, "alt": alt }, deliveryOptions, productOptions, pricingTiers, specifications, minOrderQuantity, isFeatured, "category": category->{ _id, name, "slug": slug.current } }',
         { slug } as Record<string, unknown>
       )
       return { data: product, error: null }
@@ -147,6 +147,7 @@ export interface Subcategory {
   name: string;
   slug: string;
   description?: unknown[];
+  instructions?: unknown[];
   image_url?: string;
   image_alt?: string;
   images?: ProductImage[];
