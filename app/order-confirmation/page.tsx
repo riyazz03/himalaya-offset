@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -28,7 +28,7 @@ interface OrderData {
     };
 }
 
-export default function OrderConfirmationPage() {
+function OrderConfirmationContent() {
     const searchParams = useSearchParams();
     const [orderData, setOrderData] = useState<OrderData | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -218,5 +218,13 @@ export default function OrderConfirmationPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function OrderConfirmationPage() {
+    return (
+        <Suspense fallback={<div className="order-page"><div className="order-loading">Loading order...</div></div>}>
+            <OrderConfirmationContent />
+        </Suspense>
     );
 }
