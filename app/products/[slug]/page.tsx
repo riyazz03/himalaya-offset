@@ -17,13 +17,20 @@ export default function ProductPage() {
 
     const [product, setProduct] = useState<Subcategory | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
     const [selectedTier, setSelectedTier] = useState(0);
     const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({});
     const [quantity, setQuantity] = useState(0);
     const [activeTab, setActiveTab] = useState<'details' | 'instructions'>('details');
 
     useEffect(() => {
-        if (!slug) return;
+        if (!slug) {
+            setLoading(false);
+            return;
+        }
+
+        setLoading(true);
+        setError(null);
 
         const fetchProductData = async (productSlug: string) => {
             try {
@@ -34,17 +41,26 @@ export default function ProductPage() {
                     if (data.pricingTiers && data.pricingTiers.length > 0) {
                         setQuantity(data.pricingTiers[0].quantity);
                     }
+                    setError(null);
                 } else {
                     setError('Product not found');
+                    setProduct(null);
                 }
             } catch (err) {
                 console.error('Error fetching product:', err);
                 setError('Failed to load product');
+                setProduct(null);
+            } finally {
+                setLoading(false);
             }
         };
 
         fetchProductData(slug);
     }, [slug]);
+
+    if (loading) {
+        return <div className="product-page"></div>;
+    }
 
     if (error || !product) {
         return (
@@ -334,17 +350,6 @@ export default function ProductPage() {
                         >
                             Continue to Order - ₹{priceBreakdown.totalPrice.toLocaleString()}
                         </button>
-
-                        {/* Footer Notes */}
-                        <div className="footer-notes">
-                            <div className="note-item">✓ Multiple payment options available</div>
-                            <div className="note-item">✓ Price inclusive of all taxes</div>
-                            {product.minOrderQuantity && (
-                                <div className="note-item">
-                                    ✓ Minimum order: {product.minOrderQuantity} units
-                                </div>
-                            )}
-                        </div>
                     </div>
                 </div>
             </div>
