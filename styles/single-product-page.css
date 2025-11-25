@@ -84,7 +84,7 @@
 
 /* ===== Main Container ===== */
 .product-container {
-    max-width: 90%;
+    max-width: 80rem;
     margin: 0 auto;
     padding: 3rem 0;
 }

@@ -29,7 +29,7 @@ export const SanityService = {
   async getCategoryWithProducts(slug: string) {
     try {
       const category = await client.fetch(
-        '*[_type == "category" && slug.current == $slug && isActive == true][0] { _id, name, "slug": slug.current, description, "image_url": image.asset->url, "image_alt": image.alt, bgColor, "subcategories": *[_type == "subcategory" && references(^._id) && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, description, minOrderQuantity, isFeatured, sortOrder } }',
+        '*[_type == "category" && slug.current == $slug && isActive == true][0] { _id, name, "slug": slug.current, description, "image_url": image.asset->url, "image_alt": image.alt, bgColor, "subcategories": *[_type == "subcategory" && references(^._id) && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, "images": images[] { "asset": asset->url, "alt": alt }, description, minOrderQuantity, isFeatured, sortOrder } }',
         { slug } as Record<string, unknown>
       )
       return { data: category, error: null }
@@ -42,7 +42,7 @@ export const SanityService = {
   async getAllCategoriesWithSubcategories() {
     try {
       const categories = await client.fetch(
-        '*[_type == "category" && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, description, "image_url": image.asset->url, "image_alt": image.alt, sortOrder, isActive, bgColor, _createdAt, _updatedAt, "subcategories": *[_type == "subcategory" && references(^._id) && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, description, minOrderQuantity, isFeatured, sortOrder } }'
+        '*[_type == "category" && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, description, "image_url": image.asset->url, "image_alt": image.alt, sortOrder, isActive, bgColor, _createdAt, _updatedAt, "subcategories": *[_type == "subcategory" && references(^._id) && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, "images": images[] { "asset": asset->url, "alt": alt }, description, minOrderQuantity, isFeatured, sortOrder } }'
       )
       return { data: categories, error: null }
     } catch (err) {
@@ -54,7 +54,7 @@ export const SanityService = {
   async getProduct(slug: string) {
     try {
       const product = await client.fetch(
-        '*[_type == "subcategory" && slug.current == $slug && isActive == true][0] { _id, name, "slug": slug.current, description, "image_url": image.asset->url, "image_alt": image.alt, deliveryOptions, productOptions, pricingTiers, specifications, minOrderQuantity, isFeatured, "category": category->{ _id, name, "slug": slug.current } }',
+        '*[_type == "subcategory" && slug.current == $slug && isActive == true][0] { _id, name, "slug": slug.current, description, "image_url": image.asset->url, "image_alt": image.alt, "images": images[] { "asset": asset->url, "alt": alt }, deliveryOptions, productOptions, pricingTiers, specifications, minOrderQuantity, isFeatured, "category": category->{ _id, name, "slug": slug.current } }',
         { slug } as Record<string, unknown>
       )
       return { data: product, error: null }
@@ -67,7 +67,7 @@ export const SanityService = {
   async getFeaturedProducts() {
     try {
       const products = await client.fetch(
-        '*[_type == "subcategory" && isFeatured == true && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, minOrderQuantity, "category": category->{ name, "slug": slug.current }, "startingPrice": pricingTiers[0].pricePerUnit }'
+        '*[_type == "subcategory" && isFeatured == true && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, "images": images[] { "asset": asset->url, "alt": alt }, minOrderQuantity, "category": category->{ name, "slug": slug.current }, "startingPrice": pricingTiers[0].pricePerUnit }'
       )
       return { data: products, error: null }
     } catch (err) {
@@ -79,7 +79,7 @@ export const SanityService = {
   async searchProducts(searchQuery: string) {
     try {
       const products = await client.fetch(
-        '*[_type == "subcategory" && (name match $query || category->name match $query) && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, "category": category->{ name, "slug": slug.current }, "startingPrice": pricingTiers[0].pricePerUnit }',
+        '*[_type == "subcategory" && (name match $query || category->name match $query) && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, "images": images[] { "asset": asset->url, "alt": alt }, "category": category->{ name, "slug": slug.current }, "startingPrice": pricingTiers[0].pricePerUnit }',
         { query: `${searchQuery}*` } as Record<string, unknown>
       )
       return { data: products, error: null }
@@ -99,6 +99,7 @@ export const SanityService = {
           "slug": slug.current,
           "image_url": image.asset->url,
           "image_alt": image.alt,
+          "images": images[] { "asset": asset->url, "alt": alt },
           "categoryName": category->name,
           "categorySlug": category->slug.current,
           minOrderQuantity,
@@ -136,6 +137,11 @@ export interface Category {
   subcategories?: Subcategory[];
 }
 
+export interface ProductImage {
+  asset: string;
+  alt?: string;
+}
+
 export interface Subcategory {
   _id: string;
   name: string;
@@ -143,6 +149,7 @@ export interface Subcategory {
   description?: unknown[];
   image_url?: string;
   image_alt?: string;
+  images?: ProductImage[];
   deliveryOptions?: DeliveryOption[];
   productOptions?: ProductOption[];
   pricingTiers?: PricingTier[];

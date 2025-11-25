@@ -20,6 +20,7 @@ export default function ProductPage() {
     const [selectedTier, setSelectedTier] = useState(0);
     const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({});
     const [quantity, setQuantity] = useState(0);
+    const [activeTab, setActiveTab] = useState<'details' | 'instructions'>('details');
 
     useEffect(() => {
         if (!slug) return;
@@ -163,6 +164,76 @@ export default function ProductPage() {
                                 </div>
                             )}
                         </div>
+
+                        {/* Tabs Section Below Image */}
+                        <div className="product-tabs">
+                            <div className="tabs-header">
+                                <button
+                                    className={`tab-button ${activeTab === 'details' ? 'active' : ''}`}
+                                    onClick={() => setActiveTab('details')}
+                                >
+                                    Details
+                                </button>
+                                <button
+                                    className={`tab-button ${activeTab === 'instructions' ? 'active' : ''}`}
+                                    onClick={() => setActiveTab('instructions')}
+                                >
+                                    Instructions
+                                </button>
+                            </div>
+
+                            <div className="tabs-content">
+                                {/* Details Tab */}
+                                {activeTab === 'details' && (
+                                    <div className="tab-pane">
+                                        {/* Description */}
+                                        {product.description && (
+                                            <div className="tab-description">
+                                                <h3>Product Description</h3>
+                                                {Array.isArray(product.description) 
+                                                    ? product.description.map((item, index) => (
+                                                        <p key={index}>{String(item)}</p>
+                                                    ))
+                                                    : <p>{String(product.description)}</p>
+                                                }
+                                            </div>
+                                        )}
+
+                                        {/* Specifications */}
+                                        {product.specifications && product.specifications.length > 0 && (
+                                            <div className="tab-specs">
+                                                <h3>Specifications</h3>
+                                                <ul className="product-specs-list">
+                                                    {product.specifications.map((spec, index) => (
+                                                        <li key={index}>
+                                                            <strong>{spec.label}:</strong> {spec.value}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Instructions Tab */}
+                                {activeTab === 'instructions' && (
+                                    <div className="tab-pane">
+                                        <div className="tab-instructions">
+                                            <h3>Instructions</h3>
+                                            {product.instructions ? (
+                                                Array.isArray(product.instructions) 
+                                                    ? product.instructions.map((item, index) => (
+                                                        <p key={index}>{String(item)}</p>
+                                                    ))
+                                                    : <p>{String(product.instructions)}</p>
+                                            ) : (
+                                                <p className="no-instructions">Instructions coming soon...</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
 
                     {/* Right: Product Info */}
@@ -177,27 +248,6 @@ export default function ProductPage() {
                                     {product.category.name}
                                 </Link>
                             </div>
-                        )}
-
-                        {/* Description */}
-                        {product.description && (
-                            <div className="product-description">
-                                {Array.isArray(product.description) 
-                                    ? product.description.map((item, index) => (
-                                        <p key={index}>{String(item)}</p>
-                                    ))
-                                    : <p>{String(product.description)}</p>
-                                }
-                            </div>
-                        )}
-
-                        {/* Specifications */}
-                        {product.specifications && product.specifications.length > 0 && (
-                            <ul className="product-specs">
-                                {product.specifications.map((spec, index) => (
-                                    <li key={index}>{spec.label}: {spec.value}</li>
-                                ))}
-                            </ul>
                         )}
 
                         {/* Price Display */}

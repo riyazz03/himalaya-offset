@@ -16,6 +16,7 @@ interface Product {
   };
   image_url?: string | null;
   description?: string;
+  instructions?: string;
   startingPrice?: number;
   minOrderQuantity?: number;
   categoryName?: string;
@@ -48,6 +49,7 @@ export async function GET(
         image,
         image_url,
         description,
+        instructions,
         startingPrice,
         minOrderQuantity,
         "categoryName": category->name,
