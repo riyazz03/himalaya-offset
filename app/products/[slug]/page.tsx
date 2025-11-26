@@ -4,7 +4,14 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Thumbs, Autoplay } from 'swiper/modules';
+import type { Swiper as SwiperType } from 'swiper';
 import { SanityService, Subcategory } from '@/lib/sanity';
+import { renderBlockContent } from '@/lib/sanity-block-renderer';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/thumbs';
 import '@/styles/single-product-page.css';
 
 interface SelectedOptions {
@@ -22,6 +29,12 @@ export default function ProductPage() {
     const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({});
     const [quantity, setQuantity] = useState(0);
     const [activeTab, setActiveTab] = useState<'details' | 'instructions'>('details');
+    const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     useEffect(() => {
         if (!slug) {
@@ -141,45 +154,84 @@ export default function ProductPage() {
     const priceBreakdown = calculateTotalPrice();
     const currentTier = product.pricingTiers?.[selectedTier];
 
+    // Build image list - use multi images if available, fallback to single image
+    const imageList = product.images && product.images.length > 0 
+        ? product.images.map(img => ({ url: img.asset, alt: img.alt || product.name }))
+        : product.image_url 
+            ? [{ url: product.image_url, alt: product.image_alt || product.name }]
+            : [];
+
     return (
         <div className="product-page">
-            {/* Breadcrumb */}
-            <div className="breadcrumb">
-                <div className="breadcrumb-container">
-                    <Link href="/" className="breadcrumb-link">Home</Link>
-                    <span className="breadcrumb-separator">/</span>
-                    {product.category && (
-                        <>
-                            <Link href={`/categories/${product.category.slug}`} className="breadcrumb-link">
-                                {product.category.name}
-                            </Link>
-                            <span className="breadcrumb-separator">/</span>
-                        </>
-                    )}
-                    <span className="breadcrumb-current">{product.name}</span>
-                </div>
-            </div>
-
             {/* Product Container */}
             <div className="product-container">
                 <div className="product-layout">
-                    {/* Left: Image */}
+                    {/* Left: Image Gallery */}
                     <div className="product-left">
-                        <div className="product-image-wrapper">
-                            {product.image_url ? (
-                                <Image
-                                    src={product.image_url}
-                                    alt={product.name}
-                                    fill
-                                    className="product-image"
-                                    priority
-                                />
-                            ) : (
-                                <div className="image-placeholder">
-                                    <div className="placeholder-text">No Image</div>
-                                </div>
-                            )}
-                        </div>
+                        {imageList.length > 0 ? (
+                            <div className="product-gallery">
+                                {/* Main Swiper */}
+                                {isMounted && (
+                                    <>
+                                        <Swiper
+                                            modules={[Navigation, Thumbs, Autoplay]}
+                                            thumbs={{ swiper: thumbsSwiper }}
+                                            navigation
+                                            autoplay={{
+                                                delay: 5000,
+                                                disableOnInteraction: false,
+                                            }}
+                                            loop
+                                            className="product-swiper-main"
+                                        >
+                                            {imageList.map((image, index) => (
+                                                <SwiperSlide key={index}>
+                                                    <div className="product-image-wrapper">
+                                                        <Image
+                                                            src={image.url}
+                                                            alt={image.alt}
+                                                            fill
+                                                            className="product-image"
+                                                            priority={index === 0}
+                                                        />
+                                                    </div>
+                                                </SwiperSlide>
+                                            ))}
+                                        </Swiper>
+
+                                        {/* Thumbnail Swiper - Only show if multiple images */}
+                                        {imageList.length > 1 && (
+                                            <Swiper
+                                                onSwiper={setThumbsSwiper}
+                                                modules={[Navigation, Thumbs]}
+                                                spaceBetween={10}
+                                                slidesPerView={4}
+                                                freeMode
+                                                watchSlidesProgress
+                                                className="product-swiper-thumbs"
+                                            >
+                                                {imageList.map((image, index) => (
+                                                    <SwiperSlide key={index}>
+                                                        <div className="thumbnail-wrapper">
+                                                            <Image
+                                                                src={image.url}
+                                                                alt={image.alt}
+                                                                fill
+                                                                className="thumbnail-image"
+                                                            />
+                                                        </div>
+                                                    </SwiperSlide>
+                                                ))}
+                                            </Swiper>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="image-placeholder">
+                                <div className="placeholder-text">No Image</div>
+                            </div>
+                        )}
 
                         {/* Tabs Section Below Image */}
                         <div className="product-tabs">
@@ -200,54 +252,41 @@ export default function ProductPage() {
 
                             <div className="tabs-content">
                                 {/* Details Tab */}
-                                {activeTab === 'details' && (
-                                    <div className="tab-pane">
-                                        {/* Description */}
-                                        {product.description && (
-                                            <div className="tab-description">
-                                                <h3>Product Description</h3>
-                                                {Array.isArray(product.description) 
-                                                    ? product.description.map((item, index) => (
-                                                        <p key={index}>{String(item)}</p>
-                                                    ))
-                                                    : <p>{String(product.description)}</p>
-                                                }
-                                            </div>
-                                        )}
+                                <div className={`tab-pane ${activeTab === 'details' ? 'active' : ''}`}>
+                                    {/* Description */}
+                                    {product.description && (
+                                        <div className="tab-description">
+                                            <h3>Product Description</h3>
+                                            {renderBlockContent(product.description)}
+                                        </div>
+                                    )}
 
-                                        {/* Specifications */}
-                                        {product.specifications && product.specifications.length > 0 && (
-                                            <div className="tab-specs">
-                                                <h3>Specifications</h3>
-                                                <ul className="product-specs-list">
-                                                    {product.specifications.map((spec, index) => (
-                                                        <li key={index}>
-                                                            <strong>{spec.label}:</strong> {spec.value}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
+                                    {/* Specifications */}
+                                    {product.specifications && product.specifications.length > 0 && (
+                                        <div className="tab-specs">
+                                            <h3>Specifications</h3>
+                                            <ul className="product-specs-list">
+                                                {product.specifications.map((spec, index) => (
+                                                    <li key={index}>
+                                                        <strong>{spec.label}:</strong> {spec.value}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+                                </div>
 
                                 {/* Instructions Tab */}
-                                {activeTab === 'instructions' && (
-                                    <div className="tab-pane">
-                                        <div className="tab-instructions">
-                                            <h3>Instructions</h3>
-                                            {product.instructions ? (
-                                                Array.isArray(product.instructions) 
-                                                    ? product.instructions.map((item, index) => (
-                                                        <p key={index}>{String(item)}</p>
-                                                    ))
-                                                    : <p>{String(product.instructions)}</p>
-                                            ) : (
-                                                <p className="no-instructions">Instructions coming soon...</p>
-                                            )}
-                                        </div>
+                                <div className={`tab-pane ${activeTab === 'instructions' ? 'active' : ''}`}>
+                                    <div className="tab-instructions">
+                                        <h3>Instructions</h3>
+                                        {product.instructions ? (
+                                            renderBlockContent(product.instructions)
+                                        ) : (
+                                            <p className="no-instructions">Instructions coming soon...</p>
+                                        )}
                                     </div>
-                                )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -256,15 +295,6 @@ export default function ProductPage() {
                     <div className="product-right">
                         {/* Title */}
                         <h2 className="product-title">{product.name}</h2>
-
-                        {/* Category */}
-                        {product.category && (
-                            <div className="product-category">
-                                <Link href={`/categories/${product.category.slug}`}>
-                                    {product.category.name}
-                                </Link>
-                            </div>
-                        )}
 
                         {/* Price Display */}
                         <div className="price-header">
