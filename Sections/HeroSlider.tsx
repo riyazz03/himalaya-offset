@@ -170,7 +170,7 @@ export default function HeroSlider(): JSX.Element {
               style={{ backgroundImage: `url(${slide.bg})` }}
             >
               <div className="fs-slide-content">
-                <h1>{slide.title}</h1>
+                <h2>{slide.title}</h2>
                 <p>{slide.subtitle}</p>
               </div>
             </div>

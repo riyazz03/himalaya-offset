@@ -63,7 +63,7 @@ function OrderConfirmationContent() {
         return (
             <div className="order-page">
                 <div className="order-error">
-                    <h1>Order Error</h1>
+                    <h2>Order Error</h2>
                     <p>{error || 'Something went wrong'}</p>
                     <Link href="/products" className="back-btn">Back to Products</Link>
                 </div>

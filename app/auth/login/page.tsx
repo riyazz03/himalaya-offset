@@ -79,7 +79,7 @@ function LoginContent(): React.ReactElement {
         </div>
 
         <div className="auth-header">
-          <h1>Sign In</h1>
+          <h2>Sign In</h2>
           <p>Welcome back to your account</p>
         </div>
 

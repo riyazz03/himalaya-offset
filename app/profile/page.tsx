@@ -158,7 +158,7 @@ export default function ProfilePage() {
       <div className="simple-profile-wrapper">
         <div className="simple-profile-container">
           <div className="simple-profile-header">
-            <h1>My Account</h1>
+            <h2>My Account</h2>
             <p>Manage your profile and settings</p>
           </div>
 

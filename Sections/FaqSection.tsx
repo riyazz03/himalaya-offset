@@ -123,9 +123,9 @@ const FaqSection: React.FC = () => {
             <div className='faq-header-title-wrapper'>
               <Title title='Need Help?' />
             </div>
-            <h1 className='section-title '>
+            <h2 className='section-title '>
               We&apos;ve got all the <span className='separate-line'>Answers you need</span>
-            </h1>
+            </h2>
           </header>
           <div className='faq-questions'>
             {faqQuestions.map((faq) => (

@@ -49,7 +49,7 @@ const Categories = () => {
           <div className='categoeries-header'>
             <Title title='Categories' />
             <div className="section-title-wrapper">
-              <h1 className='section-title'>Explore Our <span>Best Categories</span></h1>
+              <h2 className='section-title'>Explore Our <span>Best Categories</span></h2>
             </div>
           </div>
         </div>

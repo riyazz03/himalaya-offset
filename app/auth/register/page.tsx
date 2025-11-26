@@ -140,7 +140,7 @@ function RegisterContent(): React.ReactElement {
         </div>
 
         <div className="auth-header">
-          <h1>Create Account</h1>
+          <h2>Create Account</h2>
           <p>Join us today</p>
         </div>
 

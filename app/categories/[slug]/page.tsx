@@ -51,7 +51,7 @@ export default function CategoryPage() {
     return (
       <div className="category-page">
         <div className="category-error">
-          <h1>Category Not Found</h1>
+          <h2>Category Not Found</h2>
           <p>{error || 'The category you are looking for does not exist.'}</p>
           <Link href="/categories" className="back-home-btn">
             Go Back
@@ -94,7 +94,7 @@ export default function CategoryPage() {
         <div className="category-header-container">
           <div className="category-header-content">
             <div className="category-header-text">
-              <h1 className="category-title">{category.name}</h1>
+              <h2 className="category-title">{category.name}</h2>
               {category.description && (
                 <p className="category-description">{category.description}</p>
               )}

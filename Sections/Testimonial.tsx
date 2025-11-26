@@ -64,7 +64,7 @@ const Testimonial = () => {
                     <div className='title-wrapper'>
                         <Title title='Happy Clients' />
                     </div>
-                    <h1 className='section-title'>Words From <span> Our Clients</span></h1>
+                    <h2 className='section-title'>Words From <span> Our Clients</span></h2>
                 </div>
                 <div className='product-left-bottom-card testimonial-card-right-card'>
                     <p className='product-left-bottom-card-title'>See All Reviews</p>

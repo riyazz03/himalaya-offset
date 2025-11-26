@@ -66,7 +66,7 @@ export default function ProductPage() {
         return (
             <div className="product-page">
                 <div className="product-error">
-                    <h1>Product Not Found</h1>
+                    <h2>Product Not Found</h2>
                     <p>{error || 'The product you are looking for does not exist.'}</p>
                     <Link href="/products" className="back-home-btn">Go Back</Link>
                 </div>
@@ -255,7 +255,7 @@ export default function ProductPage() {
                     {/* Right: Product Info */}
                     <div className="product-right">
                         {/* Title */}
-                        <h1 className="product-title">{product.name}</h1>
+                        <h2 className="product-title">{product.name}</h2>
 
                         {/* Category */}
                         {product.category && (

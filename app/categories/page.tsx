@@ -64,7 +64,7 @@ export default function CategoriesPage() {
           />
         </div>
         <div className="header-content">
-          <h1>All Categories</h1>
+          <h2>All Categories</h2>
           <p>Browse our complete range of printing solutions and services</p>
         </div>
         <div className="header-bg-right">

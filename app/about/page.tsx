@@ -1,36 +1,14 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import "@/styles/about.css";
 import Testimonial from "@/Sections/Testimonial";
 import FaqSection from "@/Sections/FaqSection";
 import Image from "next/image";
+import GallerySlider from "@/component/GallerySlider";
+import Title from '@/component/Title-Block-Rounded';
 
 export default function AboutUs() {
-  const [currentSlide, setCurrentSlide] = useState(0);
 
-  const galleryImages = [
-    "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800",
-    "https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800",
-    "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=800",
-    "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800",
-    "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800",
-  ];
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % galleryImages.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide(
-      (prev) => (prev - 1 + galleryImages.length) % galleryImages.length
-    );
-  };
-
-  const getSlideIndex = (offset: number) => {
-    return (
-      (currentSlide + offset + galleryImages.length) % galleryImages.length
-    );
-  };
 
   return (
     <>
@@ -45,13 +23,20 @@ export default function AboutUs() {
         />  
         <div className="hero-overlay">
           <div className="hero-content">
-            <h1 className="hero-title">Welcome to Our Story</h1>
+            <h2 className="hero-title">Welcome to Our Story</h2>
             <p className="hero-subtitle">
               Building the future, one step at a time
             </p>
           </div>
         </div>
       </section>
+
+      <div className="about-title-wrapper">
+        <Title title='About Us' />
+        <h2 className="section-title about-title">
+          The Story Behind <span>Our Business</span> 
+        </h2><br />
+      </div>
 
       {/* About Section */}
       <section className="about-section">
@@ -65,84 +50,23 @@ export default function AboutUs() {
           />
         </div>
         <div className="about-content">
-          <h2 className="section-title">
-            About <span>Us</span> 
-          </h2><br />
-          <p className="section-para about-para-top">
-            We are a team of passionate individuals dedicated to creating
-            exceptional experiences. Our journey began with a simple idea: to
-            make a difference in the world through innovation and creativity.
-          </p> <br />
-          <p className="section-para">
-            Over the years, we&apos;sve grown into a diverse community of
-            talented professionals who share a common vision. We believe in the
-            power of collaboration, continuous learning, and pushing boundaries
-            to achieve excellence.
-          </p> <br />
-          <p className="section-para">
-            Our commitment to quality and customer satisfaction drives
-            everything we do. We&apos;sre not just building products;
-            we&apos;sre crafting solutions that empower people and transform
-            businesses.
+        <p className="section-para about-para-top">
+          Welcome to Himalaya Offset Printing Press — your trusted partner for premium-quality printing solutions.
+          With years of experience and a passion for excellence, we specialize in delivering sharp, vibrant, and durable prints that help businesses and individuals stand out.
+          <br /><br />
+          Using advanced offset and digital printing technology, we produce a wide range of products including visiting cards, bill books, brochures, posters, flex banners, certificates, and elegant invitation cards. Every order goes through strict quality checks to ensure perfect color accuracy, clean finishing, and long-lasting results.
+          <br /><br />
+          What makes us special?
+          We combine modern printing technology, skilled craftsmanship, fast delivery, and complete customization to turn your ideas into powerful printed materials. Whether you need business stationery, promotional prints, or personalized designs, we create each product with care, precision, and professionalism.
+          <br /><br />
+          Proudly serving local businesses, institutions, schools, and individuals, we are committed to providing reliable service, competitive pricing, and total customer satisfaction.
+          <br />  <br />
+          Your vision. Our craftsmanship. One perfect print — every time.
           </p>
         </div>
       </section>
 
-      {/* Gallery Section */}
-      <section className="gallery-section">
-        <div className="gallery-title-wrapper">
-          <h2 className="section-title">
-            <span>Our</span> Gallery
-          </h2>
-        </div>
-        <div className="slider-container">
-          <div className="slider-wrapper">
-            <div className="slide slide-left">
-              <Image
-                src={galleryImages[getSlideIndex(-1)]}
-                alt="Previous slide"
-                className="slide-image"
-                width={600}
-                height={100}
-              />
-            </div>
-            <div className="slide slide-center">
-              <Image
-                src={galleryImages[getSlideIndex(0)]}
-                alt="Current slide"
-                className="slide-image"
-                width={600}
-                height={100}
-              />
-            </div>
-            <div className="slide slide-right">
-              <Image
-                src={galleryImages[getSlideIndex(1)]}
-                alt="Next slide"
-                className="slide-image"
-                width={600}
-                height={100}
-              />
-            </div>
-          </div>
-
-          <button
-            className="slider-button slider-button-prev"
-            onClick={prevSlide}
-            aria-label="Previous slide"
-          >
-            <div className="arrow arrow-left"></div>
-          </button>
-
-          <button
-            className="slider-button slider-button-next"
-            onClick={nextSlide}
-            aria-label="Next slide"
-          >
-            <div className="arrow arrow-right"></div>
-          </button>
-        </div>
-      </section>
+      <GallerySlider />
       <Testimonial />
       <FaqSection /> 
     </>

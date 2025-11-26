@@ -131,7 +131,7 @@ export default function ContactPage() {
         <div className="contact-container">
           {/* Left Side */}
           <div className="contact-left">
-            {/* <h1 className="section-title">Contact <span>Us</span></h1> <br /> */}
+            {/* <h2 className="section-title">Contact <span>Us</span></h2> <br /> */}
             <div className='contact-header'>
               <div className='contact-header-title-wrapper'>
                 <Title title='Contact Us' />
@@ -142,7 +142,7 @@ export default function ContactPage() {
             </div>
 
             <div className="contact-address">
-              <h3 className="address-label">Email Id:</h3>
+              {/* <h3 className="address-label">Email Id:</h3> */}
               <p className="contact-item-wrapper">
                 <div className="form-icon">
                   <MdEmail />
@@ -155,7 +155,7 @@ export default function ContactPage() {
             </div>
 
             <div className="contact-address">
-              <h3 className="address-label">ADDRESS:</h3>
+              {/* <h3 className="address-label">ADDRESS:</h3> */}
               <div className="contact-item-wrapper">
                 <div className="form-icon">
                   <FaLocationDot />
@@ -168,7 +168,7 @@ export default function ContactPage() {
               </div>
             </div>
             <div className="contact-address">
-              <h3 className="address-label">PHONE NUMBER:</h3>
+              {/* <h3 className="address-label">PHONE NUMBER:</h3> */}
               <p className="address-text">
                 <div className="contact-item-wrapper">
                   <div className="form-icon">

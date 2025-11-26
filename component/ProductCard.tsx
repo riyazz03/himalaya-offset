@@ -30,7 +30,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ image, title, pricing, button
         />
       </div>
       <div className='product-card-content'>
-        <h1 className='product-card-title'>{title}</h1>
+        <h2 className='product-card-title'>{title}</h2>
         <p className='product-card-pricing'>{pricing}</p>
       </div>
       <Link className='product-card-button' href={defaultHref}>

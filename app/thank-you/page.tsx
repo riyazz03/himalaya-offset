@@ -37,7 +37,7 @@ export default function ThankYouPage() {
               </svg>
             </div>
 
-            <h1 className="thank-you-title">Thank You!</h1>
+            <h2 className="thank-you-title">Thank You!</h2>
             
             <p className="thank-you-subtitle">
               We&apos;ve received your submission

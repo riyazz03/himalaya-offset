@@ -366,12 +366,12 @@ export const AuthService = {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #2067ff; color: white; padding: 20px; text-align: center;">
-          <h1>HIMALAYA OFFSET</h1>
+          <h2>HIMALAYA OFFSET</h2>
         </div>
         <div style="padding: 30px; background: #f9f9f9;">
           <h2>Your verification code is:</h2>
           <div style="background: white; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
-            <h1 style="color: #2067ff; font-size: 36px; margin: 0; letter-spacing: 5px;">${otp}</h1>
+            <h2 style="color: #2067ff; font-size: 36px; margin: 0; letter-spacing: 5px;">${otp}</h2>
           </div>
           <p>This code will expire in 10 minutes.</p>
           <p>If you didn't request this, please ignore this email.</p>
@@ -393,7 +393,7 @@ export const AuthService = {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #2067ff; color: white; padding: 20px; text-align: center;">
-          <h1>HIMALAYA OFFSET</h1>
+          <h2>HIMALAYA OFFSET</h2>
         </div>
         <div style="padding: 30px; background: #f9f9f9;">
           <h2>Password Reset Request</h2>
