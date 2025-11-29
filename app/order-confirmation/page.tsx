@@ -198,23 +198,17 @@ function CheckoutContent() {
         return null;
     }
 
-    if (error || !orderData) {
-        return (
-<<<<<<< HEAD
-            <div className="order-page">
-                <div className="order-error">
-                    <h2>Order Error</h2>
-=======
-            <div className="checkout-page">
-                <div className="checkout-error">
-                    <h1>Order Error</h1>
->>>>>>> 62f0d84a5a1dcacac8bdda2752a1452b135f3c5f
-                    <p>{error || 'Something went wrong'}</p>
-                    <Link href="/products" className="back-btn">Back to Products</Link>
-                </div>
+if (error || !orderData) {
+    return (
+        <div className="checkout-page">
+            <div className="checkout-error">
+                <h1>Order Error</h1>
+                <p>{error || 'Something went wrong'}</p>
+                <Link href="/products" className="back-btn">Back to Products</Link>
             </div>
-        );
-    }
+        </div>
+    );
+}
 
     return (
         <div className="checkout-page">

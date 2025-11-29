@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import '../styles/header.css';
@@ -29,13 +29,22 @@ export default function Header() {
     };
 
     const getInitial = () => {
-        if (session?.user?.name) {
-            return session.user.name.charAt(0).toUpperCase();
+        const name = session?.user?.name;
+        if (name && name.trim() && name !== 'undefined') {
+            return name.charAt(0).toUpperCase();
         }
         if (session?.user?.email) {
             return session.user.email.charAt(0).toUpperCase();
         }
         return 'U';
+    };
+
+    const getUserDisplayName = () => {
+        const name = session?.user?.name;
+        if (name && name.trim() && name !== 'undefined') {
+            return name.split(' ')[0];
+        }
+        return 'User';
     };
 
     return (
@@ -64,7 +73,7 @@ export default function Header() {
                                 <div className="user-avatar">
                                     <span>{getInitial()}</span>
                                 </div>
-                                <span className="user-name">{session.user?.name?.split(' ')[0] || 'User'}</span>
+                                <span className="user-name">{getUserDisplayName()}</span>
                                 <svg
                                     className={`dropdown-arrow ${isDropdownOpen ? 'open' : ''}`}
                                     width="12"
