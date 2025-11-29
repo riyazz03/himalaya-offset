@@ -167,7 +167,7 @@ export default function ProductsPage() {
                     />
                 </div>
                 <div className="header-content">
-                    <h2>All Products</h2>
+                    <h1>All Products</h1>
                     <p>Browse our complete collection of printing solutions</p>
                 </div>
                 <div className="header-bg-right">

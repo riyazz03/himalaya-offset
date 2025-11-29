@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
+import Image from 'next/image'
 import PublicRoute from '@/component/PublicRoute'
 import '@/styles/auth.css'
 
@@ -44,7 +45,14 @@ function LoginContent(): React.ReactElement {
         setError(result.error || 'Invalid credentials')
         setLoading(false)
       } else if (result?.ok) {
-        router.replace('/')
+        // Get previous page from referrer or default to home
+        const previousPage = document.referrer || '/'
+        // Don't redirect to register/login pages
+        if (previousPage.includes('/auth/')) {
+          router.replace('/')
+        } else {
+          router.replace(previousPage)
+        }
       }
     } catch {
       setError('Login failed. Please try again.')
@@ -72,6 +80,16 @@ function LoginContent(): React.ReactElement {
 
   return (
     <div className="auth-container">
+      {/* Background Image */}
+      <Image
+        src="/mountain-bg.webp"
+        alt="Background"
+        fill
+        className="auth-bg-image"
+        priority
+        quality={80}
+      />
+
       <div className="auth-card">
         {/* Logo Icon */}
         <div className="auth-logo-icon">
@@ -84,6 +102,7 @@ function LoginContent(): React.ReactElement {
         {/* Header */}
         <div className="auth-header">
           <h2>Sign in with email</h2>
+          <p>Make a new doc to bring your words, data, and teams together. For free</p>
         </div>
 
         {/* Messages */}
@@ -176,12 +195,12 @@ function LoginContent(): React.ReactElement {
           {googleLoading ? 'Signing in...' : 'Google'}
         </button>
 
-        {/* Footer */}
+        {/* Auth Footer */}
         <div className="auth-footer">
           <p>
             Don't have an account?{' '}
             <a href="/auth/register" className="auth-link">
-              Create account
+              Create a new account
             </a>
           </p>
         </div>

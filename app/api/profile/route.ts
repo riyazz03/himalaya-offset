@@ -26,14 +26,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ 
         data: {
           _id: 'temp-id',
-          name: session.user?.name || 'User',
+          firstName: session.user?.firstName || '',
+          lastName: session.user?.lastName || '',
           email: email,
           phone: '',
-          isVerified: false,
-          phoneVerified: false,
-          role: 'customer',
-          provider: 'email',
-          _createdAt: new Date().toISOString()
+          company: '',
+          address: '',
+          city: '',
+          state: '',
+          pincode: '',
+          image: null,
+          emailVerified: false,
+          createdAt: new Date().toISOString()
         }
       })
     }
@@ -41,14 +45,18 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ 
       data: {
         _id: user.id,
-        name: `${user.firstName} ${user.lastName}`,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
         phone: user.phone,
-        isVerified: user.emailVerified,
-        phoneVerified: user.phoneVerified,
-        role: 'customer',
-        provider: 'email',
-        _createdAt: new Date().toISOString()
+        company: user.company,
+        address: user.address,
+        city: user.city,
+        state: user.state,
+        pincode: user.pincode,
+        image: user.image,
+        emailVerified: user.emailVerified,
+        createdAt: user.createdAt || new Date().toISOString()
       }
     })
   } catch (error) {
@@ -66,20 +74,23 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, phone } = body
+    const { firstName, lastName, email, phone, company, address, city, state, pincode } = body
 
-    if (!name || !phone) {
-      return NextResponse.json({ error: 'Name and phone are required' }, { status: 400 })
+    if (!firstName || !lastName || !phone) {
+      return NextResponse.json({ 
+        error: 'First name, last name, and phone are required' 
+      }, { status: 400 })
     }
-
-    const nameParts = name.split(' ')
-    const firstName = nameParts[0] || name
-    const lastName = nameParts.slice(1).join(' ') || ''
 
     await db.updateUser(session.user.email, {
       firstName,
       lastName,
-      phone
+      phone,
+      company: company || '',
+      address: address || '',
+      city: city || '',
+      state: state || '',
+      pincode: pincode || ''
     })
 
     const updatedUser = await db.getUserByEmail(session.user.email)
@@ -91,14 +102,18 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ 
       data: {
         _id: updatedUser.id,
-        name: `${updatedUser.firstName} ${updatedUser.lastName}`,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
         email: updatedUser.email,
         phone: updatedUser.phone,
-        isVerified: updatedUser.emailVerified,
-        phoneVerified: updatedUser.phoneVerified,
-        role: 'customer',
-        provider: 'email',
-        _createdAt: new Date().toISOString()
+        company: updatedUser.company,
+        address: updatedUser.address,
+        city: updatedUser.city,
+        state: updatedUser.state,
+        pincode: updatedUser.pincode,
+        image: updatedUser.image,
+        emailVerified: updatedUser.emailVerified,
+        createdAt: updatedUser.createdAt || new Date().toISOString()
       }
     })
   } catch (error) {

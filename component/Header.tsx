@@ -29,9 +29,9 @@ export default function Header() {
     };
 
     const getInitial = () => {
-        const name = session?.user?.name;
-        if (name && name.trim() && name !== 'undefined') {
-            return name.charAt(0).toUpperCase();
+        const firstName = session?.user?.firstName;
+        if (firstName && firstName.trim() && firstName !== 'undefined') {
+            return firstName.charAt(0).toUpperCase();
         }
         if (session?.user?.email) {
             return session.user.email.charAt(0).toUpperCase();
@@ -40,11 +40,27 @@ export default function Header() {
     };
 
     const getUserDisplayName = () => {
+        // Construct full name from firstName and lastName
+        const firstName = session?.user?.firstName;
+        const lastName = session?.user?.lastName;
+        
+        if (firstName && firstName.trim() && firstName !== 'undefined') {
+            if (lastName && lastName.trim() && lastName !== 'undefined') {
+                return `${firstName} ${lastName}`.split(' ')[0]; // Return just first name
+            }
+            return firstName;
+        }
+        
+        // Fallback to name from session
         const name = session?.user?.name;
         if (name && name.trim() && name !== 'undefined') {
             return name.split(' ')[0];
         }
         return 'User';
+    };
+
+    const getUserImage = () => {
+        return session?.user?.image;
     };
 
     return (
@@ -69,16 +85,25 @@ export default function Header() {
                             <button
                                 className="user-button"
                                 onClick={toggleDropdown}
+                                title={getUserDisplayName()}
                             >
                                 <div className="user-avatar">
-                                    <span>{getInitial()}</span>
+                                    {getUserImage() ? (
+                                        <img 
+                                            src={getUserImage() || ''} 
+                                            alt={getUserDisplayName()}
+                                            style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+                                        />
+                                    ) : (
+                                        <span>{getInitial()}</span>
+                                    )}
                                 </div>
-                                <span className="user-name">{getUserDisplayName()}</span>
                                 <svg
                                     className={`dropdown-arrow ${isDropdownOpen ? 'open' : ''}`}
                                     width="12"
                                     height="12"
                                     viewBox="0 0 12 12"
+                                    style={{ marginLeft: '6px' }}
                                 >
                                     <path d="M6 8L2 4h8L6 8z" fill="currentColor" />
                                 </svg>

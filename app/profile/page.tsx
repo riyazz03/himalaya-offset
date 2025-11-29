@@ -1,34 +1,46 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import '@/styles/profile.css';
 
 interface User {
   _id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
-  isVerified: boolean;
-  phoneVerified: boolean;
-  role: string;
-  provider: string;
-  _createdAt: string;
+  company: string;
+  address: string;
+  city: string;
+  state: string;
+  pincode: string;
+  image: string | null;
+  emailVerified: boolean;
+  createdAt: string;
 }
 
 export default function ProfilePage() {
   const { data: session, status, update } = useSession();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'edit' | 'details' | 'logout'>('edit');
+  const [activeTab, setActiveTab] = useState<'profile' | 'orders' | 'signout'>('profile');
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState<User | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   const [formData, setFormData] = useState({
-    name: '',
-    phone: ''
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    company: '',
+    address: '',
+    city: '',
+    state: '',
+    pincode: ''
   });
 
   const fetchProfile = useCallback(async () => {
@@ -66,8 +78,15 @@ export default function ProfilePage() {
 
       setProfileData(result.data);
       setFormData({
-        name: result.data.name || '',
-        phone: result.data.phone || ''
+        firstName: result.data.firstName || '',
+        lastName: result.data.lastName || '',
+        email: result.data.email || '',
+        phone: result.data.phone || '',
+        company: result.data.company || '',
+        address: result.data.address || '',
+        city: result.data.city || '',
+        state: result.data.state || '',
+        pincode: result.data.pincode || ''
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load profile');
@@ -107,10 +126,7 @@ export default function ProfilePage() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          name: formData.name,
-          phone: formData.phone
-        })
+        body: JSON.stringify(formData)
       });
 
       const result = await response.json();
@@ -125,7 +141,8 @@ export default function ProfilePage() {
       setProfileData(result.data);
       
       await update({
-        name: result.data.name
+        firstName: result.data.firstName,
+        lastName: result.data.lastName
       });
       
       setTimeout(() => setSuccess(''), 3000);
@@ -141,12 +158,34 @@ export default function ProfilePage() {
     router.push('/auth/login');
   };
 
+  const getInitial = () => {
+    if (profileData?.firstName && profileData?.lastName) {
+      return `${profileData.firstName.charAt(0)}${profileData.lastName.charAt(0)}`.toUpperCase();
+    }
+    if (profileData?.firstName) {
+      return profileData.firstName.charAt(0).toUpperCase();
+    }
+    if (session?.user?.email) {
+      return session.user.email.charAt(0).toUpperCase();
+    }
+    return 'U';
+  };
+
+  const getFullName = () => {
+    if (profileData?.firstName && profileData?.lastName) {
+      return `${profileData.firstName} ${profileData.lastName}`;
+    }
+    return session?.user?.email || 'User';
+  };
+
   if (status === 'loading') {
     return (
+      <div className="profile-page">
         <div className="profile-loading">
           <div className="spinner"></div>
           <p>Loading profile...</p>
         </div>
+      </div>
     );
   }
 
@@ -155,183 +194,225 @@ export default function ProfilePage() {
   }
 
   return (
-      <div className="simple-profile-wrapper">
-        <div className="simple-profile-container">
-          <div className="simple-profile-header">
-            <h2>My Account</h2>
-            <p>Manage your profile and settings</p>
-          </div>
-
-          <div className="simple-profile-nav">
-            <button 
-              className={`simple-nav-btn ${activeTab === 'edit' ? 'active' : ''}`}
-              onClick={() => setActiveTab('edit')}
-            >
-              Edit Profile
-            </button>
-            <button 
-              className={`simple-nav-btn ${activeTab === 'details' ? 'active' : ''}`}
-              onClick={() => setActiveTab('details')}
-            >
-              Account Details
-            </button>
-            <button 
-              className={`simple-nav-btn ${activeTab === 'logout' ? 'active' : ''}`}
-              onClick={() => setActiveTab('logout')}
-            >
-              Sign Out
-            </button>
-          </div>
-
-          <div className="simple-profile-content">
-            {error && (
-              <div className="simple-alert simple-alert-error">
-                <span>⚠️</span> {error}
-              </div>
-            )}
-            {success && <div className="simple-alert simple-alert-success"><span>✓</span> {success}</div>}
-
-            {loading && !profileData && (
-              <div className="profile-loading">
-                <div className="spinner"></div>
-                <p>Loading your profile...</p>
-              </div>
-            )}
-
-            {profileData && (
-              <>
-                {activeTab === 'edit' && (
-                  <div className="simple-panel">
-                    <h2>Edit Your Profile</h2>
-
-                    <form onSubmit={handleUpdateProfile} className="simple-form">
-                      <div className="simple-avatar-section">
-                        <div className="simple-avatar">
-                          <div className="simple-avatar-placeholder">
-                            {formData.name?.charAt(0)?.toUpperCase() || 'U'}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="simple-form-group">
-                        <label>Full Name</label>
-                        <input
-                          type="text"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleInputChange}
-                          placeholder="Enter your full name"
-                          required
-                        />
-                      </div>
-
-                      <div className="simple-form-group">
-                        <label>Phone Number</label>
-                        <input
-                          type="tel"
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          placeholder="Enter your phone number"
-                          required
-                        />
-                      </div>
-
-                      <button 
-                        type="submit" 
-                        className="simple-btn simple-btn-primary"
-                        disabled={loading}
-                      >
-                        {loading ? 'Updating...' : 'Save Changes'}
-                      </button>
-                    </form>
-                  </div>
-                )}
-
-                {activeTab === 'details' && (
-                  <div className="simple-panel">
-                    <h2>Account Information</h2>
-
-                    <div className="simple-detail-item">
-                      <label>Full Name</label>
-                      <p>{profileData?.name || 'Not provided'}</p>
-                    </div>
-
-                    <div className="simple-detail-item">
-                      <label>Email Address</label>
-                      <p>{profileData?.email}</p>
-                    </div>
-
-                    <div className="simple-detail-item">
-                      <label>Phone Number</label>
-                      <p>{profileData?.phone || 'Not provided'}</p>
-                    </div>
-
-                    <div className="simple-detail-item">
-                      <label>Email Verified</label>
-                      <p>
-                        {profileData?.isVerified ? (
-                          <span className="simple-badge simple-badge-success">✓ Verified</span>
-                        ) : (
-                          <span className="simple-badge simple-badge-warning">✗ Not Verified</span>
-                        )}
-                      </p>
-                    </div>
-
-                    <div className="simple-detail-item">
-                      <label>Phone Verified</label>
-                      <p>
-                        {profileData?.phoneVerified ? (
-                          <span className="simple-badge simple-badge-success">✓ Verified</span>
-                        ) : (
-                          <span className="simple-badge simple-badge-warning">✗ Not Verified</span>
-                        )}
-                      </p>
-                    </div>
-
-                    <div className="simple-detail-item">
-                      <label>Account Type</label>
-                      <p>{profileData?.provider || 'Standard'}</p>
-                    </div>
-
-                    <div className="simple-detail-item">
-                      <label>Account Role</label>
-                      <p className="capitalize">{profileData?.role || 'Customer'}</p>
-                    </div>
-
-                    <div className="simple-detail-item">
-                      <label>Member Since</label>
-                      <p>
-                        {profileData?._createdAt ? new Date(profileData._createdAt).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        }) : 'N/A'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === 'logout' && (
-                  <div className="simple-panel">
-                    <h2>Sign Out</h2>
-                    <p className="simple-subtitle">Leave your account securely</p>
-
-                    <p className="simple-info">
-                      Are you sure you want to sign out? You&apos;ll need to log in again to access your account.
-                    </p>
-                    <button 
-                      onClick={handleSignOut}
-                      className="simple-btn simple-btn-danger"
-                    >
-                      Sign Out
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
+    <div className="profile-page">
+      <Image
+        src="/mountain-bg.webp"
+        alt="Background"
+        fill
+        className="profile-bg-image"
+        priority
+        quality={80}
+      />
+      <div className="profile-container">
+        {/* Sidebar Navigation */}
+        <div className="profile-sidebar">
+          <div className="sidebar-section">
+            <h3>Account Settings</h3>
+            <nav className="sidebar-nav">
+              <button
+                className={`sidebar-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
+                onClick={() => setActiveTab('profile')}
+              >
+                My Profile
+              </button>
+              <button
+                className={`sidebar-nav-item ${activeTab === 'orders' ? 'active' : ''}`}
+                onClick={() => setActiveTab('orders')}
+              >
+                My Orders
+              </button>
+              <button
+                className={`sidebar-nav-item ${activeTab === 'signout' ? 'active' : ''}`}
+                onClick={() => setActiveTab('signout')}
+              >
+                Sign Out
+              </button>
+            </nav>
           </div>
         </div>
+
+        {/* Main Content */}
+        <div className="profile-content">
+          {error && (
+            <div className="profile-alert alert-error">
+              <span>⚠️</span>
+              <p>{error}</p>
+            </div>
+          )}
+          {success && (
+            <div className="profile-alert alert-success">
+              <span>✓</span>
+              <p>{success}</p>
+            </div>
+          )}
+
+          {/* Profile Tab */}
+          {activeTab === 'profile' && profileData && (
+            <div className="profile-panel">
+              <div className="profile-header">
+                <div className="profile-header-top">
+                  <div className="profile-avatar-large">
+                    {session?.user?.image ? (
+                      <img src={session.user.image} alt={getFullName()} />
+                    ) : (
+                      <span>{getInitial()}</span>
+                    )}
+                  </div>
+                  <div className="profile-header-info">
+                    <h1>{getFullName()}</h1>
+                    {profileData.city && profileData.state && (
+                      <p className="profile-location">
+                        {profileData.city}, {profileData.state}
+                      </p>
+                    )}
+                  </div>
+                  <button className="profile-edit-icon" type="button" title="Edit profile">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <form onSubmit={handleUpdateProfile} className="profile-form">
+                {/* Personal Information */}
+                <div className="form-section">
+                  <h2>Personal Information</h2>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>First Name</label>
+                      <input
+                        type="text"
+                        name="firstName"
+                        value={formData.firstName}
+                        onChange={handleInputChange}
+                        placeholder="First name"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Last Name</label>
+                      <input
+                        type="text"
+                        name="lastName"
+                        value={formData.lastName}
+                        onChange={handleInputChange}
+                        placeholder="Last name"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Email Address</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        disabled
+                        className="disabled"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Phone</label>
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        placeholder="(213) 555-1234"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Address */}
+                <div className="form-section">
+                  <h2>Address</h2>
+                  <div className="form-group full-width">
+                    <label>Street Address</label>
+                    <input
+                      type="text"
+                      name="address"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                      placeholder="Street address"
+                    />
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>City</label>
+                      <input
+                        type="text"
+                        name="city"
+                        value={formData.city}
+                        onChange={handleInputChange}
+                        placeholder="City"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>State</label>
+                      <input
+                        type="text"
+                        name="state"
+                        value={formData.state}
+                        onChange={handleInputChange}
+                        placeholder="State"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Postal Code</label>
+                      <input
+                        type="text"
+                        name="pincode"
+                        value={formData.pincode}
+                        onChange={handleInputChange}
+                        placeholder="Postal code"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <button 
+                  type="submit" 
+                  className="profile-save-btn"
+                  disabled={loading}
+                >
+                  {loading ? 'Saving...' : 'Save Changes'}
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* Orders Tab */}
+          {activeTab === 'orders' && (
+            <div className="profile-panel">
+              <h2>My Orders</h2>
+              <p className="empty-state">No orders yet. Start shopping!</p>
+            </div>
+          )}
+
+          {/* Sign Out Tab */}
+          {activeTab === 'signout' && (
+            <div className="profile-panel">
+              <h2>Sign Out</h2>
+              <p className="signout-text">
+                Are you sure you want to sign out? You'll need to log in again to access your account.
+              </p>
+              <button 
+                onClick={handleSignOut}
+                className="signout-btn"
+              >
+                Sign Out
+              </button>
+            </div>
+          )}
+        </div>
       </div>
+    </div>
   );
 }

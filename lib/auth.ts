@@ -1,15 +1,11 @@
-// lib/auth.ts
 import { type NextAuthOptions, type DefaultSession } from 'next-auth'
 import NextAuth from 'next-auth/next'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
-import { compare } from 'bcryptjs'
 import { db } from '@/lib/db'
 import type { SessionUser, User } from '@/lib/types'
 
-// Extend NextAuth default types
 declare module 'next-auth' {
-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface User extends SessionUser {}
   interface Session extends DefaultSession {
     user: SessionUser
@@ -17,30 +13,30 @@ declare module 'next-auth' {
 }
 
 declare module 'next-auth/jwt' {
-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface JWT extends SessionUser {}
 }
 
-/**
- * Validate required environment variables at startup
- */
 const validateAuthEnvironment = (): void => {
   const requiredEnvVars = ['NEXTAUTH_SECRET', 'NEXTAUTH_URL']
   const missing = requiredEnvVars.filter(envVar => !process.env[envVar])
 
   if (missing.length > 0) {
+    console.error(`Missing environment variables: ${missing.join(', ')}`)
     throw new Error(`Missing required environment variables: ${missing.join(', ')}`)
+  }
+
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    console.warn('Google OAuth not configured - Google sign-in will be disabled')
   }
 }
 
-/**
- * Helper to create consistent user object for session
- */
 const mapUserToSession = (user: User): SessionUser => {
+  const fullName = `${user.firstName} ${user.lastName}`.trim() || user.email?.split('@')[0] || 'User'
+  
   return {
     id: user.id,
     email: user.email,
-    name: `${user.firstName} ${user.lastName}`.trim() || undefined,
+    name: fullName,
     image: user.image || null,
     firstName: user.firstName,
     lastName: user.lastName,
@@ -55,7 +51,6 @@ const mapUserToSession = (user: User): SessionUser => {
   }
 }
 
-// Validate environment on module load
 validateAuthEnvironment()
 
 export const authOptions: NextAuthOptions = {
@@ -65,36 +60,35 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
       allowDangerousEmailAccountLinking: true
     }),
+
     CredentialsProvider({
-      name: 'Credentials',
+      name: 'Email and Password',
       credentials: {
         email: { label: 'Email', type: 'email', placeholder: 'your@email.com' },
-        password: { label: 'Password', type: 'password' }
+        password: { label: 'Password', type: 'password', placeholder: '••••••••' }
       },
       async authorize(credentials) {
         try {
-          // Validate input
           if (!credentials?.email || !credentials?.password) {
             throw new Error('Email and password are required')
           }
 
-          // Fetch user from database
           const user = await db.getUserByEmail(credentials.email)
-          if (!user || !user.password) {
+          if (!user) {
             throw new Error('Invalid email or password')
           }
 
-          // Verify password
-          const isPasswordValid = await compare(credentials.password, user.password)
+          const isPasswordValid = await db.verifyPassword(credentials.email, credentials.password)
           if (!isPasswordValid) {
             throw new Error('Invalid email or password')
           }
 
-          // Return mapped user
+          console.log(`[Auth] Credentials sign-in: ${user.email}`)
+
           return mapUserToSession(user) as SessionUser
         } catch (error) {
           console.error('[Auth] Credentials authorization error:', error)
-          throw error
+          return null
         }
       }
     })
@@ -102,40 +96,31 @@ export const authOptions: NextAuthOptions = {
 
   pages: {
     signIn: '/auth/login',
-    error: '/auth/login'
+    error: '/auth/login',
+    newUser: '/auth/register'
   },
 
   callbacks: {
     /**
-     * SignIn callback - handle Google OAuth sign-in/sign-up
+     * SignIn callback - Create Google user in Sanity
      */
-    async signIn({ user, account }) {
+    async signIn({ user, account, profile }) {
       try {
         if (account?.provider === 'google') {
-          const existingUser = await db.getUserByEmail(user.email!)
-
-          if (!existingUser) {
-            // Create new user from Google profile
-            const [firstName, ...lastNameParts] = (user.name || 'User').split(' ')
-            const lastName = lastNameParts.join(' ')
-
-            await db.createUser({
-              firstName: firstName || 'User',
-              lastName: lastName || '',
-              email: user.email!,
-              phone: '',
-              password: '',
-              image: user.image || null,
-              company: '',
-              address: '',
-              city: '',
-              state: '',
-              pincode: '',
-              phoneVerified: false,
-              emailVerified: true
-            })
-          }
+          // Create or update Google user in Sanity
+          const googleProfile = profile as any
+          await db.createOrUpdateGoogleUser({
+            email: user.email || '',
+            name: user.name || googleProfile?.name || 'User',
+            googleId: user.id,
+            image: user.image || undefined
+          })
+          
+          console.log(`[Auth] Google user created/updated in Sanity: ${user.email}`)
+          return true
         }
+
+        // Allow credentials sign-in
         return true
       } catch (error) {
         console.error('[Auth] SignIn callback error:', error)
@@ -144,25 +129,31 @@ export const authOptions: NextAuthOptions = {
     },
 
     /**
-     * JWT callback - called when JWT is created or updated
+     * JWT callback - Called when JWT is created or updated
      */
     async jwt({ token, user, trigger, session }) {
       try {
-        // On initial sign-in, populate token from user
         if (user) {
-          const mappedUser = mapUserToSession(user as User)
-          token = {
+          const sessionUser = mapUserToSession(user as User)
+          return {
             ...token,
-            ...mappedUser
+            ...sessionUser
           }
         }
 
-        // Handle session update trigger (e.g., from update callback)
         if (trigger === 'update' && session) {
-          token = {
+          return {
             ...token,
             ...session.user
           }
+        }
+
+        // Ensure name is always set
+        if (!token.name && token.firstName && token.lastName) {
+          token.name = `${token.firstName} ${token.lastName}`.trim()
+        }
+        if (!token.name && token.firstName) {
+          token.name = token.firstName
         }
 
         return token
@@ -173,15 +164,24 @@ export const authOptions: NextAuthOptions = {
     },
 
     /**
-     * Session callback - called when session is requested
+     * Session callback - Called when session is requested
      */
     async session({ session, token }) {
       try {
         if (session.user && token) {
+          // Build name from firstName/lastName if name is not set
+          let displayName = token.name as string
+          if (!displayName && (token.firstName || token.lastName)) {
+            displayName = `${token.firstName || ''} ${token.lastName || ''}`.trim()
+          }
+          if (!displayName && token.email) {
+            displayName = (token.email as string).split('@')[0]
+          }
+          
           session.user = {
             id: token.id as string,
             email: token.email as string,
-            name: token.name as string | undefined,
+            name: displayName || 'User',
             image: token.image as string | null,
             firstName: token.firstName as string,
             lastName: token.lastName as string,
@@ -205,22 +205,24 @@ export const authOptions: NextAuthOptions = {
 
   session: {
     strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-    updateAge: 24 * 60 * 60 // Refresh token every 24 hours
+    maxAge: 30 * 24 * 60 * 60,
+    updateAge: 24 * 60 * 60
   },
 
   jwt: {
-    maxAge: 30 * 24 * 60 * 60 // 30 days
+    maxAge: 30 * 24 * 60 * 60
   },
 
   secret: process.env.NEXTAUTH_SECRET,
 
   events: {
-    async signIn({ user }) {
-      console.log(`[Auth] User signed in: ${user.email}`)
+    async signIn({ user, account }) {
+      const provider = account?.provider || 'unknown'
+      console.log(`[Auth Event] User signed in via ${provider}: ${user.email}`)
     },
-    async signOut() {
-      console.log('[Auth] User signed out')
+
+    async signOut({ token }) {
+      console.log(`[Auth Event] User signed out: ${token.email}`)
     }
   },
 

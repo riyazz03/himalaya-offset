@@ -146,6 +146,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: none;
 }
 
 .dropdown-arrow {
@@ -341,7 +342,7 @@
   }
 
   .user-name {
-    display: block;
+    display: none;
   }
 
   .user-button {

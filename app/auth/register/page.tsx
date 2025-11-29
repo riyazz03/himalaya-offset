@@ -1,10 +1,11 @@
 // app/auth/register/page.tsx
 'use client'
 
-import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { signIn } from 'next-auth/react'
+import React, { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { signIn, useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
+import Image from 'next/image'
 import PublicRoute from '@/component/PublicRoute'
 import '@/styles/auth.css'
 
@@ -26,8 +27,21 @@ interface FormData {
   pincode: string
 }
 
+interface GoogleProfileData {
+  firstName: string
+  lastName: string
+  email: string
+  image?: string
+}
+
 function RegisterContent(): React.ReactElement {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const { data: session } = useSession()
+  
+  const [isGoogleFlow, setIsGoogleFlow] = useState<boolean>(false)
+  const [googleData, setGoogleData] = useState<GoogleProfileData | null>(null)
+  
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
@@ -41,11 +55,26 @@ function RegisterContent(): React.ReactElement {
     state: '',
     pincode: ''
   })
+  
   const [loading, setLoading] = useState<boolean>(false)
   const [googleLoading, setGoogleLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>('')
   const [errors, setErrors] = useState<FormErrors>({})
 
+  // Detect if returning from Google OAuth
+  useEffect(() => {
+    if (session?.user && session.user.email) {
+      setIsGoogleFlow(true)
+      setGoogleData({
+        firstName: session.user.firstName || '',
+        lastName: session.user.lastName || '',
+        email: session.user.email || '',
+        image: session.user.image || undefined
+      })
+    }
+  }, [session])
+
+  // Validation for full registration form
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {}
 
@@ -53,9 +82,7 @@ function RegisterContent(): React.ReactElement {
       newErrors.firstName = 'First name is required'
     }
 
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required'
-    }
+    // Last name is optional now
 
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required'
@@ -83,13 +110,42 @@ function RegisterContent(): React.ReactElement {
     return Object.keys(newErrors).length === 0
   }
 
+  // Validation for Google profile completion
+  const validateGoogleForm = (): boolean => {
+    const newErrors: FormErrors = {}
+
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone number is required'
+    } else if (!/^\d{10}$/.test(formData.phone.replace(/\D/g, ''))) {
+      newErrors.phone = 'Phone number must be 10 digits'
+    }
+
+    if (!formData.address.trim()) {
+      newErrors.address = 'Address is required'
+    }
+
+    if (!formData.city.trim()) {
+      newErrors.city = 'City is required'
+    }
+
+    if (!formData.state.trim()) {
+      newErrors.state = 'State is required'
+    }
+
+    if (!formData.pincode.trim()) {
+      newErrors.pincode = 'Pincode is required'
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
       [name]: value
     }))
-    // Clear error for this field when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
@@ -98,6 +154,7 @@ function RegisterContent(): React.ReactElement {
     }
   }
 
+  // Submit for regular registration
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
     setError('')
@@ -109,12 +166,18 @@ function RegisterContent(): React.ReactElement {
     setLoading(true)
 
     try {
+      // Use first name as last name if not provided
+      const lastName = formData.lastName.trim() || formData.firstName.trim()
+
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          ...formData,
+          lastName: lastName
+        })
       })
 
       const data = await response.json()
@@ -125,7 +188,61 @@ function RegisterContent(): React.ReactElement {
         return
       }
 
-      // Registration successful, redirect to login with success message
+      // Redirect to login page (not home)
+      router.push('/auth/login?registered=true')
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Registration failed. Please try again.'
+      setError(errorMessage)
+      setLoading(false)
+    }
+  }
+
+  // Submit for Google profile completion
+  const handleGoogleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault()
+    setError('')
+
+    if (!validateGoogleForm()) {
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      // Use first name as last name if no last name provided
+      const lastName = googleData?.lastName || googleData?.firstName || ''
+
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          firstName: googleData?.firstName || '',
+          lastName: lastName,
+          email: googleData?.email || '',
+          phone: formData.phone,
+          password: 'google-oauth-user',
+          company: formData.company,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          pincode: formData.pincode
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setError(data.message || data.error || 'Registration failed')
+        setLoading(false)
+        return
+      }
+
+      // Sign out and redirect to login so user can login with their details
+      await signOut({ redirect: false })
+      
+      // Redirect to login with success message
       router.push('/auth/login?registered=true')
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Registration failed. Please try again.'
@@ -137,25 +254,280 @@ function RegisterContent(): React.ReactElement {
   const handleGoogleSignIn = async (): Promise<void> => {
     setGoogleLoading(true)
     try {
-      const result = await signIn('google', {
+      await signIn('google', {
         redirect: false
       })
-      if (result?.ok) {
-        router.replace('/')
-      } else if (result?.error) {
-        setError('Google sign in failed. Please try again.')
-        setGoogleLoading(false)
-      }
     } catch {
       setError('Google sign in failed. Please try again.')
       setGoogleLoading(false)
     }
   }
 
+  // GOOGLE PROFILE COMPLETION FORM
+  if (isGoogleFlow && googleData) {
+    return (
+      <div className="auth-container">
+        {/* Background Image */}
+        <Image
+          src="/mountain-bg.webp"
+          alt="Background"
+          fill
+          className="auth-bg-image"
+          priority
+          quality={80}
+        />
+
+        <div className="auth-card">
+          <div className="auth-logo-icon">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <path d="M16 2L28 8V16C28 24.8366 16 30 16 30C16 30 4 24.8366 4 16V8L16 2Z" stroke="currentColor" strokeWidth="2" fill="none"/>
+              <path d="M11 16L14.5 19.5L21 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+
+          <div className="auth-header">
+            <h2>Complete your profile</h2>
+            <p style={{ fontSize: '14px', color: '#666', marginTop: '8px' }}>
+              Welcome {googleData.firstName}! Please fill in your details to complete registration
+            </p>
+          </div>
+
+          {error && <div className="error-message">{error}</div>}
+
+          <form onSubmit={handleGoogleSubmit} className="auth-form">
+            {/* Read-only Google info */}
+            <div className="form-grid-2">
+              <div className="form-group">
+                <label className="form-label">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  value={googleData.firstName}
+                  className="form-input"
+                  disabled
+                  style={{ opacity: 0.6 }}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  value={googleData.lastName}
+                  className="form-input"
+                  disabled
+                  style={{ opacity: 0.6 }}
+                />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                </svg>
+                Email
+              </label>
+              <input
+                type="email"
+                value={googleData.email}
+                className="form-input"
+                disabled
+                style={{ opacity: 0.6 }}
+              />
+            </div>
+
+            {/* Required fields */}
+            <div className="form-group">
+              <label htmlFor="phone" className="form-label">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                </svg>
+                Phone *
+              </label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                placeholder="1234567890"
+                className="form-input"
+                required
+              />
+              {errors.phone && <span className="error-text">{errors.phone}</span>}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="address" className="form-label">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                Address *
+              </label>
+              <input
+                type="text"
+                id="address"
+                name="address"
+                value={formData.address}
+                onChange={handleInputChange}
+                placeholder="Street address"
+                className="form-input"
+                required
+              />
+              {errors.address && <span className="error-text">{errors.address}</span>}
+            </div>
+
+            <div className="form-grid-3">
+              <div className="form-group">
+                <label htmlFor="city" className="form-label">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                  </svg>
+                  City *
+                </label>
+                <input
+                  type="text"
+                  id="city"
+                  name="city"
+                  value={formData.city}
+                  onChange={handleInputChange}
+                  placeholder="City"
+                  className="form-input"
+                  required
+                />
+                {errors.city && <span className="error-text">{errors.city}</span>}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="state" className="form-label">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                  </svg>
+                  State *
+                </label>
+                <input
+                  type="text"
+                  id="state"
+                  name="state"
+                  value={formData.state}
+                  onChange={handleInputChange}
+                  placeholder="State"
+                  className="form-input"
+                  required
+                />
+                {errors.state && <span className="error-text">{errors.state}</span>}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="pincode" className="form-label">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                  Pincode *
+                </label>
+                <input
+                  type="text"
+                  id="pincode"
+                  name="pincode"
+                  value={formData.pincode}
+                  onChange={handleInputChange}
+                  placeholder="000000"
+                  className="form-input"
+                  required
+                />
+                {errors.pincode && <span className="error-text">{errors.pincode}</span>}
+              </div>
+            </div>
+
+            {/* Optional fields */}
+            <div className="optional-section">
+              <div className="optional-header">Additional Information (Optional)</div>
+              
+              <div className="form-grid-2">
+                <div className="form-group">
+                  <label htmlFor="company" className="form-label">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                      <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    Company
+                  </label>
+                  <input
+                    type="text"
+                    id="company"
+                    name="company"
+                    value={formData.company}
+                    onChange={handleInputChange}
+                    placeholder="Your company"
+                    className="form-input"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button 
+              type="submit" 
+              className="auth-button primary" 
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <svg className="spinner" width="16" height="16" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.3"/>
+                    <path d="M12 2a10 10 0 0 1 10 10" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  Completing...
+                </>
+              ) : (
+                'Complete Profile'
+              )}
+            </button>
+          </form>
+
+          <div className="auth-footer">
+            <p>
+              <a href="#" onClick={() => signOut({ redirect: true, callbackUrl: '/auth/register' })} className="auth-link">
+                Use different account
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // REGULAR REGISTRATION FORM - Show by default
+  // Will switch to Google form after hydration if needed
   return (
     <div className="auth-container register-container">
+      {/* Background Image */}
+      <Image
+        src="/mountain-bg.webp"
+        alt="Background"
+        fill
+        className="auth-bg-image"
+        priority
+        quality={80}
+      />
+
       <div className="auth-card register-card">
-        {/* Logo Icon */}
         <div className="auth-logo-icon">
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
             <path d="M16 2L28 8V16C28 24.8366 16 30 16 30C16 30 4 24.8366 4 16V8L16 2Z" stroke="currentColor" strokeWidth="2" fill="none"/>
@@ -163,17 +535,13 @@ function RegisterContent(): React.ReactElement {
           </svg>
         </div>
 
-        {/* Header */}
         <div className="auth-header">
           <h2>Create your account</h2>
         </div>
 
-        {/* Error Message */}
         {error && <div className="error-message">{error}</div>}
 
-        {/* Registration Form */}
         <form onSubmit={handleSubmit} className="auth-form">
-          {/* 3-Column Grid */}
           <div className="form-grid-3">
             <div className="form-group">
               <label htmlFor="firstName" className="form-label">
@@ -202,7 +570,7 @@ function RegisterContent(): React.ReactElement {
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
-                Last Name
+                Last Name (optional)
               </label>
               <input
                 type="text"
@@ -212,7 +580,6 @@ function RegisterContent(): React.ReactElement {
                 onChange={handleInputChange}
                 placeholder="Doe"
                 className="form-input"
-                required
               />
               {errors.lastName && <span className="error-text">{errors.lastName}</span>}
             </div>
@@ -238,7 +605,6 @@ function RegisterContent(): React.ReactElement {
             </div>
           </div>
 
-          {/* Email - Full Width */}
           <div className="form-group">
             <label htmlFor="email" className="form-label">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -260,7 +626,6 @@ function RegisterContent(): React.ReactElement {
             {errors.email && <span className="error-text">{errors.email}</span>}
           </div>
 
-          {/* Password Fields - 2 Column */}
           <div className="form-grid-2">
             <div className="form-group">
               <label htmlFor="password" className="form-label">
@@ -305,9 +670,8 @@ function RegisterContent(): React.ReactElement {
             </div>
           </div>
 
-          {/* Optional Fields - 3 Column */}
           <div className="optional-section">
-            <div className="optional-header">Optional Information</div>
+            <div className="optional-header">Additional Information (Optional)</div>
             
             <div className="form-grid-3">
               <div className="form-group">
@@ -426,12 +790,10 @@ function RegisterContent(): React.ReactElement {
           </button>
         </form>
 
-        {/* Divider */}
         <div className="divider">
           <span>Or sign up with</span>
         </div>
 
-        {/* Google Button */}
         <button
           type="button"
           onClick={handleGoogleSignIn}
@@ -447,7 +809,6 @@ function RegisterContent(): React.ReactElement {
           {googleLoading ? 'Signing up...' : 'Google'}
         </button>
 
-        {/* Footer */}
         <div className="auth-footer">
           <p>
             Already have an account?{' '}
@@ -458,7 +819,7 @@ function RegisterContent(): React.ReactElement {
         </div>
       </div>
     </div>
-  )
+    )
 }
 
 export default function RegisterPage(): React.ReactElement {
