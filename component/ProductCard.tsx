@@ -17,23 +17,23 @@ const ProductCard: React.FC<ProductCardProps> = ({ image, title, pricing, button
   const defaultHref = href || `/products/${slug}`;
   
   return (
-    <div className='product-card'>
-      <div className='product-card-image-wrapper'>
-        <Image 
-          src={image} 
-          alt={title} 
-          className='product-card-image' 
-          width={500} 
-          height={500}
-          priority={false}
-          quality={85}
-        />
-      </div>
-      <div className='product-card-content'>
-        <h2 className='product-card-title'>{title}</h2>
-        <p className='product-card-pricing'>{pricing}</p>
-      </div>
-      <Link className='product-card-button' href={defaultHref}>
+    <Link href={defaultHref} className='product-card-link'>
+      <div className='product-card'>
+        <div className='product-card-image-wrapper'>
+          <Image 
+            src={image} 
+            alt={title} 
+            className='product-card-image' 
+            width={500} 
+            height={500}
+            priority={false}
+            quality={85}
+          />
+        </div>
+        <div className='product-card-content'>
+          <p className='product-card-title'>{title}</p>
+        </div>
+        <div className='product-card-button'>
           <p className='product-card-button-text'>{buttonText}</p>
           <Image 
             src="/icons/cards-plus.svg" 
@@ -41,8 +41,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ image, title, pricing, button
             width={24}
             height={24}
           />
-      </Link>
-    </div>
+        </div>
+      </div>
+    </Link>
   )
 }
 
