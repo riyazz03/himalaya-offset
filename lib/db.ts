@@ -1,7 +1,6 @@
-// lib/db.ts
 import { client } from './sanity'
 import { hash, compare } from 'bcryptjs'
-import type { User, SessionUser } from './types'
+import type { User } from './types'
 
 interface SanityUserDocument {
   _id?: string
@@ -34,17 +33,15 @@ interface UserWithGoogle extends User {
   googleId?: string | null
 }
 
-/**
- * Database layer - Handles all user operations with Sanity
- * Simplified version WITHOUT OTP functionality
- */
+interface GoogleUserUpdate {
+  emailVerified?: boolean
+  googleId?: string
+  image?: string
+}
+
 class SanityDatabase {
-  /**
-   * Create a new user in Sanity
-   */
   async createUser(userData: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
     try {
-      // Check if user already exists
       const existingUser = await this.getUserByEmail(userData.email)
       if (existingUser) {
         throw new Error('User already exists')
@@ -81,9 +78,6 @@ class SanityDatabase {
     }
   }
 
-  /**
-   * Get user by email
-   */
   async getUserByEmail(email: string): Promise<User | null> {
     try {
       const user = await client.fetch(
@@ -99,9 +93,6 @@ class SanityDatabase {
     }
   }
 
-  /**
-   * Get user by phone
-   */
   async getUserByPhone(phone: string): Promise<User | null> {
     try {
       const user = await client.fetch(
@@ -117,9 +108,6 @@ class SanityDatabase {
     }
   }
 
-  /**
-   * Get user by ID
-   */
   async getUserById(id: string): Promise<User | null> {
     try {
       const user = await client.fetch(
@@ -135,9 +123,6 @@ class SanityDatabase {
     }
   }
 
-  /**
-   * Update user
-   */
   async updateUser(email: string, updates: Partial<UserWithGoogle>): Promise<UserWithGoogle | null> {
     try {
       const user = await this.getUserByEmail(email)
@@ -148,7 +133,6 @@ class SanityDatabase {
         updatedAt: new Date().toISOString()
       }
 
-      // Remove id and type fields
       delete updateData.id
       delete updateData.createdAt
 
@@ -164,9 +148,6 @@ class SanityDatabase {
     }
   }
 
-  /**
-   * Verify user password
-   */
   async verifyPassword(email: string, password: string): Promise<boolean> {
     try {
       const user = await this.getUserByEmail(email)
@@ -179,9 +160,6 @@ class SanityDatabase {
     }
   }
 
-  /**
-   * Get user by Google ID
-   */
   async getUserByGoogleId(googleId: string): Promise<User | null> {
     try {
       const user = await client.fetch(
@@ -197,9 +175,6 @@ class SanityDatabase {
     }
   }
 
-  /**
-   * Create or update Google user
-   */
   async createOrUpdateGoogleUser(data: {
     email: string
     name: string
@@ -207,12 +182,10 @@ class SanityDatabase {
     image?: string
   }): Promise<UserWithGoogle> {
     try {
-      // Check if user exists by email
       let user = await this.getUserByEmail(data.email) as UserWithGoogle | null
 
       if (user) {
-        // Link Google ID and update image if not already set
-        const updateData: any = { emailVerified: true }
+        const updateData: GoogleUserUpdate = { emailVerified: true }
         if (!user.googleId) {
           updateData.googleId = data.googleId
         }
@@ -226,7 +199,6 @@ class SanityDatabase {
         return user!
       }
 
-      // Create new Google user
       const [firstName, ...lastNameParts] = data.name.split(' ')
       const lastName = lastNameParts.join(' ')
 
@@ -246,7 +218,6 @@ class SanityDatabase {
         image: data.image || null
       })
 
-      // Mark as Google provider
       const googleUser = await client
         .patch(newUser.id)
         .set({ 
@@ -262,16 +233,10 @@ class SanityDatabase {
     }
   }
 
-  /**
-   * Hash password
-   */
   async hashPassword(password: string): Promise<string> {
     return hash(password, 10)
   }
 
-  /**
-   * Format Sanity user document to User type
-   */
   private formatUserResponse(sanityUser: SanityUser): UserWithGoogle {
     return {
       id: sanityUser._id,
@@ -294,9 +259,6 @@ class SanityDatabase {
     }
   }
 
-  /**
-   * Get image URL from Sanity image reference
-   */
   private getImageUrl(image: { asset: { _ref: string } } | null): string | null {
     if (!image) return null
     try {

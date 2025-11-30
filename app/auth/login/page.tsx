@@ -45,9 +45,7 @@ function LoginContent(): React.ReactElement {
         setError(result.error || 'Invalid credentials')
         setLoading(false)
       } else if (result?.ok) {
-        // Get previous page from referrer or default to home
         const previousPage = document.referrer || '/'
-        // Don't redirect to register/login pages
         if (previousPage.includes('/auth/')) {
           router.replace('/')
         } else {
@@ -80,7 +78,6 @@ function LoginContent(): React.ReactElement {
 
   return (
     <div className="auth-container">
-      {/* Background Image */}
       <Image
         src="/mountain-bg.webp"
         alt="Background"
@@ -91,7 +88,6 @@ function LoginContent(): React.ReactElement {
       />
 
       <div className="auth-card">
-        {/* Logo Icon */}
         <div className="auth-logo-icon">
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
             <path d="M16 2L28 8V16C28 24.8366 16 30 16 30C16 30 4 24.8366 4 16V8L16 2Z" stroke="currentColor" strokeWidth="2" fill="none"/>
@@ -99,17 +95,14 @@ function LoginContent(): React.ReactElement {
           </svg>
         </div>
 
-        {/* Header */}
         <div className="auth-header">
           <h2>Sign in with email</h2>
           <p>Make a new doc to bring your words, data, and teams together. For free</p>
         </div>
 
-        {/* Messages */}
         {success && <div className="success-message">{success}</div>}
         {error && <div className="error-message">{error}</div>}
 
-        {/* Login Form */}
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <label htmlFor="email" className="form-label">
@@ -174,12 +167,10 @@ function LoginContent(): React.ReactElement {
           </button>
         </form>
 
-        {/* Divider */}
         <div className="divider">
           <span>Or sign in with</span>
         </div>
 
-        {/* Google Button */}
         <button
           type="button"
           onClick={handleGoogleSignIn}
@@ -195,10 +186,9 @@ function LoginContent(): React.ReactElement {
           {googleLoading ? 'Signing in...' : 'Google'}
         </button>
 
-        {/* Auth Footer */}
         <div className="auth-footer">
           <p>
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <a href="/auth/register" className="auth-link">
               Create a new account
             </a>

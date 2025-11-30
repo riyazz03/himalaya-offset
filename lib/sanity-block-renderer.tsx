@@ -1,15 +1,17 @@
 import React from 'react';
 
+interface Child {
+  _type: string;
+  _key?: string;
+  text?: string;
+  marks?: string[];
+}
+
 interface Block {
   _type: string;
   _key?: string;
   style?: string;
-  children?: Array<{
-    _type: string;
-    _key?: string;
-    text?: string;
-    marks?: string[];
-  }>;
+  children?: Child[];
   [key: string]: unknown;
 }
 
@@ -21,13 +23,12 @@ export function renderBlockContent(blocks: unknown[] | unknown): React.ReactNode
   return blockArray.map((block: unknown, index: number) => {
     const blockObj = block as Block;
 
-    // Handle paragraph blocks
     if (blockObj._type === 'block') {
       const style = blockObj.style || 'normal';
       const children = blockObj.children || [];
 
       const textContent = children
-        .map((child: any) => child.text || '')
+        .map((child: Child) => child.text || '')
         .join('');
 
       switch (style) {
@@ -46,7 +47,6 @@ export function renderBlockContent(blocks: unknown[] | unknown): React.ReactNode
       }
     }
 
-    // Handle other block types if needed
     return null;
   });
 }

@@ -36,6 +36,13 @@ interface UserDetails {
     address?: string;
 }
 
+interface ExtendedSessionUser {
+    name?: string | null;
+    email?: string | null;
+    phone?: string;
+    address?: string;
+}
+
 function CheckoutContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -49,14 +56,12 @@ function CheckoutContent() {
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
     const [description, setDescription] = useState('');
 
-    // Redirect to login if not authenticated
     useEffect(() => {
         if (status === 'unauthenticated') {
             router.push(`/auth/login?callbackUrl=${encodeURIComponent(window.location.href)}`);
         }
     }, [status, router]);
 
-    // Parse order data and user details
     useEffect(() => {
         try {
             const data = searchParams.get('data');
@@ -67,13 +72,13 @@ function CheckoutContent() {
                 setError('No order data found');
             }
 
-            // Fetch user details from session
             if (session?.user) {
+                const extendedUser = session.user as ExtendedSessionUser;
                 setUserDetails({
-                    name: session.user.name || '',
-                    email: session.user.email || '',
-                    phone: (session.user as any)?.phone || '',
-                    address: (session.user as any)?.address || '',
+                    name: extendedUser.name || '',
+                    email: extendedUser.email || '',
+                    phone: extendedUser.phone || '',
+                    address: extendedUser.address || '',
                 });
             }
         } catch (err) {
@@ -82,14 +87,12 @@ function CheckoutContent() {
         }
     }, [searchParams, session]);
 
-    // Handle image upload
     const handleImageUpload = (index: number, file: File) => {
         if (file && file.type.startsWith('image/')) {
             const newImages = [...uploadedImages];
             newImages[index] = file;
             setUploadedImages(newImages);
 
-            // Create preview
             const reader = new FileReader();
             reader.onload = (e) => {
                 const newPreviews = [...imagePreviews];
@@ -102,7 +105,6 @@ function CheckoutContent() {
         }
     };
 
-    // Remove image
     const removeImage = (index: number) => {
         const newImages = uploadedImages.filter((_, i) => i !== index);
         const newPreviews = imagePreviews.filter((_, i) => i !== index);
@@ -113,7 +115,6 @@ function CheckoutContent() {
     const handleCheckout = async () => {
         if (!orderData || !userDetails) return;
 
-        // Validate required fields
         if (!userDetails.name || !userDetails.email || !userDetails.phone || !userDetails.address) {
             setError('Please complete all user details');
             return;
@@ -132,7 +133,6 @@ function CheckoutContent() {
         setLoading(true);
 
         try {
-            // Create FormData for image upload
             const formData = new FormData();
             uploadedImages.forEach((image, index) => {
                 formData.append(`image_${index}`, image);
@@ -144,7 +144,6 @@ function CheckoutContent() {
             formData.append('userName', userDetails.name);
             formData.append('userPhone', userDetails.phone);
 
-            // Upload images and send email
             const emailResponse = await fetch('/api/orders/send-details', {
                 method: 'POST',
                 body: formData,
@@ -154,7 +153,6 @@ function CheckoutContent() {
                 throw new Error('Failed to send order details');
             }
 
-            // Initiate Cashfree payment
             const paymentResponse = await fetch('/api/payments/cashfree/initiate', {
                 method: 'POST',
                 headers: {
@@ -171,7 +169,6 @@ function CheckoutContent() {
             const paymentResult = await paymentResponse.json();
 
             if (paymentResult.success && paymentResult.paymentUrl) {
-                // Redirect to Cashfree payment page
                 window.location.href = paymentResult.paymentUrl;
             } else {
                 setError(paymentResult.message || 'Failed to initiate payment');
@@ -184,7 +181,6 @@ function CheckoutContent() {
         }
     };
 
-    // Show loading while checking auth
     if (status === 'loading') {
         return (
             <div className="checkout-page">
@@ -193,34 +189,31 @@ function CheckoutContent() {
         );
     }
 
-    // Redirect to login if not authenticated
     if (status === 'unauthenticated') {
         return null;
     }
 
-if (error || !orderData) {
-    return (
-        <div className="checkout-page">
-            <div className="checkout-error">
-                <h1>Order Error</h1>
-                <p>{error || 'Something went wrong'}</p>
-                <Link href="/products" className="back-btn">Back to Products</Link>
+    if (error || !orderData) {
+        return (
+            <div className="checkout-page">
+                <div className="checkout-error">
+                    <h1>Order Error</h1>
+                    <p>{error || 'Something went wrong'}</p>
+                    <Link href="/products" className="back-btn">Back to Products</Link>
+                </div>
             </div>
-        </div>
-    );
-}
+        );
+    }
 
     return (
         <div className="checkout-page">
             <div className="checkout-container">
                 <div className="checkout-card">
-                    {/* Header */}
                     <div className="checkout-header">
                         <h1>Checkout</h1>
                         <p>Review your order and complete payment</p>
                     </div>
 
-                    {/* User Details */}
                     {userDetails && (
                         <div className="user-details-section">
                             <h3>Delivery Details</h3>
@@ -234,7 +227,6 @@ if (error || !orderData) {
                         </div>
                     )}
 
-                    {/* Product Details */}
                     <div className="product-section">
                         <h3>Order Items</h3>
                         <div className="order-item">
@@ -264,7 +256,6 @@ if (error || !orderData) {
                         </div>
                     </div>
 
-                    {/* Image Uploads */}
                     <div className="images-section">
                         <h3>Product Images / Samples</h3>
                         <p className="section-description">Upload up to 4 images of your design/samples</p>
@@ -274,7 +265,13 @@ if (error || !orderData) {
                                 <div key={index} className="image-upload-box">
                                     {imagePreviews[index] ? (
                                         <div className="image-preview">
-                                            <img src={imagePreviews[index]} alt={`Preview ${index + 1}`} />
+                                            <Image
+                                                src={imagePreviews[index]}
+                                                alt={`Preview ${index + 1}`}
+                                                width={200}
+                                                height={200}
+                                                className="preview-image"
+                                            />
                                             <button
                                                 type="button"
                                                 className="remove-image-btn"
@@ -309,7 +306,6 @@ if (error || !orderData) {
                         </div>
                     </div>
 
-                    {/* Description */}
                     <div className="description-section">
                         <h3>Description / Notes</h3>
                         <p className="section-description">Describe your design, preferences, and any special requirements</p>
@@ -322,7 +318,6 @@ if (error || !orderData) {
                         />
                     </div>
 
-                    {/* Price Breakdown */}
                     <div className="price-section">
                         <div className="price-row">
                             <span>Subtotal</span>
@@ -340,10 +335,8 @@ if (error || !orderData) {
                         </div>
                     </div>
 
-                    {/* Error Message */}
                     {error && <div className="error-message">{error}</div>}
 
-                    {/* Checkout Button */}
                     <button
                         className="checkout-button"
                         onClick={handleCheckout}
@@ -352,7 +345,6 @@ if (error || !orderData) {
                         {loading ? 'Processing...' : `Proceed to Payment - ₹${orderData.pricing.totalPrice.toLocaleString()}`}
                     </button>
 
-                    {/* Trust Info */}
                     <div className="trust-info">
                         <p>🔒 Secure payment powered by Cashfree</p>
                         <p>Your images and details will be sent to us via email for processing</p>

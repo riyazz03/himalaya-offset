@@ -1,8 +1,7 @@
-// app/auth/register/page.tsx
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { signIn, useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -36,7 +35,6 @@ interface GoogleProfileData {
 
 function RegisterContent(): React.ReactElement {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const { data: session } = useSession()
   
   const [isGoogleFlow, setIsGoogleFlow] = useState<boolean>(false)
@@ -61,7 +59,6 @@ function RegisterContent(): React.ReactElement {
   const [error, setError] = useState<string>('')
   const [errors, setErrors] = useState<FormErrors>({})
 
-  // Detect if returning from Google OAuth
   useEffect(() => {
     if (session?.user && session.user.email) {
       setIsGoogleFlow(true)
@@ -74,15 +71,12 @@ function RegisterContent(): React.ReactElement {
     }
   }, [session])
 
-  // Validation for full registration form
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {}
 
     if (!formData.firstName.trim()) {
       newErrors.firstName = 'First name is required'
     }
-
-    // Last name is optional now
 
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required'
@@ -110,7 +104,6 @@ function RegisterContent(): React.ReactElement {
     return Object.keys(newErrors).length === 0
   }
 
-  // Validation for Google profile completion
   const validateGoogleForm = (): boolean => {
     const newErrors: FormErrors = {}
 
@@ -154,7 +147,6 @@ function RegisterContent(): React.ReactElement {
     }
   }
 
-  // Submit for regular registration
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
     setError('')
@@ -166,7 +158,6 @@ function RegisterContent(): React.ReactElement {
     setLoading(true)
 
     try {
-      // Use first name as last name if not provided
       const lastName = formData.lastName.trim() || formData.firstName.trim()
 
       const response = await fetch('/api/auth/register', {
@@ -188,7 +179,6 @@ function RegisterContent(): React.ReactElement {
         return
       }
 
-      // Redirect to login page (not home)
       router.push('/auth/login?registered=true')
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Registration failed. Please try again.'
@@ -197,7 +187,6 @@ function RegisterContent(): React.ReactElement {
     }
   }
 
-  // Submit for Google profile completion
   const handleGoogleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
     setError('')
@@ -209,7 +198,6 @@ function RegisterContent(): React.ReactElement {
     setLoading(true)
 
     try {
-      // Use first name as last name if no last name provided
       const lastName = googleData?.lastName || googleData?.firstName || ''
 
       const response = await fetch('/api/auth/register', {
@@ -239,10 +227,7 @@ function RegisterContent(): React.ReactElement {
         return
       }
 
-      // Sign out and redirect to login so user can login with their details
       await signOut({ redirect: false })
-      
-      // Redirect to login with success message
       router.push('/auth/login?registered=true')
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Registration failed. Please try again.'
@@ -263,11 +248,9 @@ function RegisterContent(): React.ReactElement {
     }
   }
 
-  // GOOGLE PROFILE COMPLETION FORM
   if (isGoogleFlow && googleData) {
     return (
       <div className="auth-container">
-        {/* Background Image */}
         <Image
           src="/mountain-bg.webp"
           alt="Background"
@@ -295,7 +278,6 @@ function RegisterContent(): React.ReactElement {
           {error && <div className="error-message">{error}</div>}
 
           <form onSubmit={handleGoogleSubmit} className="auth-form">
-            {/* Read-only Google info */}
             <div className="form-grid-2">
               <div className="form-group">
                 <label className="form-label">
@@ -349,7 +331,6 @@ function RegisterContent(): React.ReactElement {
               />
             </div>
 
-            {/* Required fields */}
             <div className="form-group">
               <label htmlFor="phone" className="form-label">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -456,7 +437,6 @@ function RegisterContent(): React.ReactElement {
               </div>
             </div>
 
-            {/* Optional fields */}
             <div className="optional-section">
               <div className="optional-header">Additional Information (Optional)</div>
               
@@ -513,11 +493,8 @@ function RegisterContent(): React.ReactElement {
     )
   }
 
-  // REGULAR REGISTRATION FORM - Show by default
-  // Will switch to Google form after hydration if needed
   return (
     <div className="auth-container register-container">
-      {/* Background Image */}
       <Image
         src="/mountain-bg.webp"
         alt="Background"
@@ -819,7 +796,7 @@ function RegisterContent(): React.ReactElement {
         </div>
       </div>
     </div>
-    )
+  )
 }
 
 export default function RegisterPage(): React.ReactElement {

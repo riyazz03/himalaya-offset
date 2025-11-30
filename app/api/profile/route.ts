@@ -1,5 +1,3 @@
-// app/api/profile/route.ts
-
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
@@ -74,7 +72,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { firstName, lastName, email, phone, company, address, city, state, pincode } = body
+    const { firstName, lastName, phone, company, address, city, state, pincode } = body
 
     if (!firstName || !lastName || !phone) {
       return NextResponse.json({ 

@@ -5,15 +5,18 @@ import GoogleProvider from 'next-auth/providers/google'
 import { db } from '@/lib/db'
 import type { SessionUser, User } from '@/lib/types'
 
+interface GoogleProfile {
+  id: string
+  name?: string
+  email?: string
+  image?: string
+  aud?: string
+}
+
 declare module 'next-auth' {
-  interface User extends SessionUser {}
   interface Session extends DefaultSession {
     user: SessionUser
   }
-}
-
-declare module 'next-auth/jwt' {
-  interface JWT extends SessionUser {}
 }
 
 const validateAuthEnvironment = (): void => {
@@ -101,14 +104,10 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    /**
-     * SignIn callback - Create Google user in Sanity
-     */
     async signIn({ user, account, profile }) {
       try {
         if (account?.provider === 'google') {
-          // Create or update Google user in Sanity
-          const googleProfile = profile as any
+          const googleProfile = profile as GoogleProfile
           await db.createOrUpdateGoogleUser({
             email: user.email || '',
             name: user.name || googleProfile?.name || 'User',
@@ -120,7 +119,6 @@ export const authOptions: NextAuthOptions = {
           return true
         }
 
-        // Allow credentials sign-in
         return true
       } catch (error) {
         console.error('[Auth] SignIn callback error:', error)
@@ -128,9 +126,6 @@ export const authOptions: NextAuthOptions = {
       }
     },
 
-    /**
-     * JWT callback - Called when JWT is created or updated
-     */
     async jwt({ token, user, trigger, session }) {
       try {
         if (user) {
@@ -148,7 +143,6 @@ export const authOptions: NextAuthOptions = {
           }
         }
 
-        // Ensure name is always set
         if (!token.name && token.firstName && token.lastName) {
           token.name = `${token.firstName} ${token.lastName}`.trim()
         }
@@ -163,13 +157,9 @@ export const authOptions: NextAuthOptions = {
       }
     },
 
-    /**
-     * Session callback - Called when session is requested
-     */
     async session({ session, token }) {
       try {
         if (session.user && token) {
-          // Build name from firstName/lastName if name is not set
           let displayName = token.name as string
           if (!displayName && (token.firstName || token.lastName)) {
             displayName = `${token.firstName || ''} ${token.lastName || ''}`.trim()

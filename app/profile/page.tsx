@@ -204,7 +204,6 @@ export default function ProfilePage() {
         quality={80}
       />
       <div className="profile-container">
-        {/* Sidebar Navigation */}
         <div className="profile-sidebar">
           <div className="sidebar-section">
             <h3>Account Settings</h3>
@@ -231,7 +230,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Main Content */}
         <div className="profile-content">
           {error && (
             <div className="profile-alert alert-error">
@@ -246,14 +244,19 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* Profile Tab */}
           {activeTab === 'profile' && profileData && (
             <div className="profile-panel">
               <div className="profile-header">
                 <div className="profile-header-top">
                   <div className="profile-avatar-large">
                     {session?.user?.image ? (
-                      <img src={session.user.image} alt={getFullName()} />
+                      <Image 
+                        src={session.user.image} 
+                        alt={getFullName()}
+                        width={120}
+                        height={120}
+                        className="profile-avatar-img"
+                      />
                     ) : (
                       <span>{getInitial()}</span>
                     )}
@@ -276,7 +279,6 @@ export default function ProfilePage() {
               </div>
 
               <form onSubmit={handleUpdateProfile} className="profile-form">
-                {/* Personal Information */}
                 <div className="form-section">
                   <h2>Personal Information</h2>
                   <div className="form-row">
@@ -326,7 +328,6 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Address */}
                 <div className="form-section">
                   <h2>Address</h2>
                   <div className="form-group full-width">
@@ -388,7 +389,6 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* Orders Tab */}
           {activeTab === 'orders' && (
             <div className="profile-panel">
               <h2>My Orders</h2>
@@ -396,12 +396,11 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* Sign Out Tab */}
           {activeTab === 'signout' && (
             <div className="profile-panel">
               <h2>Sign Out</h2>
               <p className="signout-text">
-                Are you sure you want to sign out? You'll need to log in again to access your account.
+                Are you sure you want to sign out? You&apos;ll need to log in again to access your account.
               </p>
               <button 
                 onClick={handleSignOut}
