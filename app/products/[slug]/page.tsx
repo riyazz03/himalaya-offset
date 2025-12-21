@@ -9,6 +9,7 @@ import { Navigation, Thumbs, Autoplay } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
 import { SanityService, Subcategory } from '@/lib/sanity';
 import { renderBlockContent } from '@/lib/sanity-block-renderer';
+import Title from '@/component/Title-Block-Rounded';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/thumbs';
@@ -16,6 +17,13 @@ import '@/styles/single-product-page.css';
 
 interface SelectedOptions {
     [key: string]: string | number;
+}
+
+interface PriceData {
+    basePrice: number;
+    optionsPrice: number;
+    totalPrice: number;
+    pricePerUnit: number;
 }
 
 export default function ProductPage() {
@@ -28,9 +36,15 @@ export default function ProductPage() {
     const [selectedTier, setSelectedTier] = useState(0);
     const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({});
     const [quantity, setQuantity] = useState(0);
-    const [activeTab, setActiveTab] = useState<'details' | 'instructions'>('details');
     const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
     const [isMounted, setIsMounted] = useState(false);
+    const [showAllQuantities, setShowAllQuantities] = useState(false);
+    const [priceBreakdown, setPriceBreakdown] = useState<PriceData>({
+        basePrice: 0,
+        optionsPrice: 0,
+        totalPrice: 0,
+        pricePerUnit: 0
+    });
 
     useEffect(() => {
         setIsMounted(true);
@@ -52,7 +66,9 @@ export default function ProductPage() {
                 if (data) {
                     setProduct(data);
                     if (data.pricingTiers && data.pricingTiers.length > 0) {
-                        setQuantity(data.pricingTiers[0].quantity);
+                        const sortedTiers = [...data.pricingTiers].sort((a, b) => a.quantity - b.quantity);
+                        setSelectedTier(0);
+                        setQuantity(sortedTiers[0].quantity);
                     }
                     setError(null);
                 } else {
@@ -71,6 +87,117 @@ export default function ProductPage() {
         fetchProductData(slug);
     }, [slug]);
 
+    useEffect(() => {
+        if (product) {
+            const newPriceBreakdown = calculateTotalPrice();
+            setPriceBreakdown(newPriceBreakdown);
+        }
+    }, [selectedTier, selectedOptions, product, quantity]);
+
+    const getOptionPriceModifier = (optionLabel: string, optionValue: string): number => {
+        if (!product?.productOptions || !product?.pricingTiers) return 0;
+
+        const option = product.productOptions.find(opt => opt.label === optionLabel);
+        if (!option?.values) return 0;
+
+        const selectedOptionValue = option.values.find(val => val.value === optionValue);
+        if (!selectedOptionValue) return 0;
+
+        const sortedTiers = [...product.pricingTiers].sort((a, b) => a.quantity - b.quantity);
+        const currentTier = sortedTiers[selectedTier];
+        const tierLabel = currentTier?.quantity?.toString();
+
+        if (selectedOptionValue.priceByTier && tierLabel) {
+            const tierPrice = selectedOptionValue.priceByTier.find(t => t.tierLabel === tierLabel);
+            if (tierPrice) {
+                return tierPrice.price || 0;
+            }
+        }
+
+        return selectedOptionValue.basePrice || 0;
+    };
+
+    const calculatePricePerUnitModifier = (): number => {
+        let modifier = 0;
+
+        if (product?.productOptions) {
+            product.productOptions.forEach(option => {
+                const selectedValue = selectedOptions[option.label];
+                if (selectedValue) {
+                    const optionModifier = getOptionPriceModifier(option.label, selectedValue as string);
+                    modifier += optionModifier;
+                }
+            });
+        }
+
+        return modifier;
+    };
+
+    const calculateTotalPrice = (): PriceData => {
+        if (!product?.pricingTiers || product.pricingTiers.length === 0) {
+            return { basePrice: 0, optionsPrice: 0, totalPrice: 0, pricePerUnit: 0 };
+        }
+
+        const sortedTiers = [...product.pricingTiers].sort((a, b) => a.quantity - b.quantity);
+        const basePriceData = sortedTiers[selectedTier];
+        const basePrice = basePriceData.price;
+        const pricePerUnitModifier = calculatePricePerUnitModifier();
+
+        const totalPrice = basePrice + (pricePerUnitModifier * quantity);
+        const adjustedPricePerUnit = basePriceData.pricePerUnit + pricePerUnitModifier;
+
+        return { 
+            basePrice, 
+            optionsPrice: pricePerUnitModifier * quantity,
+            totalPrice, 
+            pricePerUnit: adjustedPricePerUnit
+        };
+    };
+
+    const getAdjustedTierPricePerUnit = (basePricePerUnit: number): number => {
+        const pricePerUnitModifier = calculatePricePerUnitModifier();
+        return basePricePerUnit + pricePerUnitModifier;
+    };
+
+    const getAdjustedTierPrice = (baseTierPrice: number, tierQuantity: number): number => {
+        const pricePerUnitModifier = calculatePricePerUnitModifier();
+        return baseTierPrice + (pricePerUnitModifier * tierQuantity);
+    };
+
+    const handleTierSelection = (tierIndex: number, tierQuantity: number) => {
+        setSelectedTier(tierIndex);
+        setQuantity(tierQuantity);
+    };
+
+    const handleOptionChange = (optionLabel: string, value: string | number) => {
+        setSelectedOptions(prev => ({
+            ...prev,
+            [optionLabel]: value
+        }));
+    };
+
+    const handlePlaceOrder = () => {
+        if (!product?.pricingTiers) return;
+
+        const sortedTiers = [...product.pricingTiers].sort((a, b) => a.quantity - b.quantity);
+
+        const orderData = {
+            product: {
+                id: product._id,
+                name: product.name,
+                slug: product.slug,
+                image: product.image_url
+            },
+            quantity: quantity,
+            selectedTier: sortedTiers[selectedTier],
+            selectedOptions: selectedOptions,
+            pricing: priceBreakdown
+        };
+
+        const encodedData = encodeURIComponent(JSON.stringify(orderData));
+        window.location.href = `/order-confirmation?data=${encodedData}`;
+    };
+
     if (loading) {
         return <div className="product-page"></div>;
     }
@@ -87,90 +214,23 @@ export default function ProductPage() {
         );
     }
 
-    const handleTierSelection = (tierIndex: number, tierQuantity: number) => {
-        setSelectedTier(tierIndex);
-        setQuantity(tierQuantity);
-    };
-
-    const handleOptionChange = (optionLabel: string, value: string | number) => {
-        setSelectedOptions(prev => ({
-            ...prev,
-            [optionLabel]: value
-        }));
-    };
-
-    const calculateTotalPrice = () => {
-        if (!product.pricingTiers || product.pricingTiers.length === 0) {
-            return { basePrice: 0, optionsPrice: 0, totalPrice: 0 };
-        }
-
-        const basePriceData = product.pricingTiers[selectedTier];
-        const basePrice = basePriceData.price;
-
-        let optionsPrice = 0;
-
-        if (product.productOptions) {
-            product.productOptions.forEach(option => {
-                const selectedValue = selectedOptions[option.label];
-
-                if (option.optionType === 'number' && option.numberConfig) {
-                    const numValue = Number(selectedValue) || 0;
-                    optionsPrice += numValue * (option.numberConfig.pricePerUnit || 0) * quantity;
-                } else if (selectedValue && option.values) {
-                    const selectedOptionValue = option.values.find(v => v.value === selectedValue);
-                    if (selectedOptionValue && selectedOptionValue.priceModifier) {
-                        optionsPrice += selectedOptionValue.priceModifier * quantity;
-                    }
-                }
-            });
-        }
-
-        const totalPrice = basePrice + optionsPrice;
-
-        return { basePrice, optionsPrice, totalPrice, pricePerUnit: basePriceData.pricePerUnit };
-    };
-
-    const handlePlaceOrder = () => {
-        const priceData = calculateTotalPrice();
-        
-        const orderData = {
-            product: {
-                id: product._id,
-                name: product.name,
-                slug: product.slug,
-                image: product.image_url
-            },
-            quantity: quantity,
-            selectedTier: product.pricingTiers?.[selectedTier],
-            selectedOptions: selectedOptions,
-            pricing: priceData
-        };
-
-        // Encode order data and redirect to confirmation page
-        const encodedData = encodeURIComponent(JSON.stringify(orderData));
-        window.location.href = `/order-confirmation?data=${encodedData}`;
-    };
-
-    const priceBreakdown = calculateTotalPrice();
-    const currentTier = product.pricingTiers?.[selectedTier];
-
-    // Build image list - use multi images if available, fallback to single image
     const imageList = product.images && product.images.length > 0 
         ? product.images.map(img => ({ url: img.asset, alt: img.alt || product.name }))
         : product.image_url 
             ? [{ url: product.image_url, alt: product.image_alt || product.name }]
             : [];
 
+    const sortedTiers = product.pricingTiers ? [...product.pricingTiers].sort((a, b) => a.quantity - b.quantity) : [];
+    const displayedTiers = showAllQuantities ? sortedTiers : sortedTiers.slice(0, 10);
+    const hasMoreTiers = sortedTiers.length > 10;
+
     return (
         <div className="product-page">
-            {/* Product Container */}
             <div className="product-container">
                 <div className="product-layout">
-                    {/* Left: Image Gallery */}
                     <div className="product-left">
                         {imageList.length > 0 ? (
                             <div className="product-gallery">
-                                {/* Main Swiper */}
                                 {isMounted && (
                                     <>
                                         <Swiper
@@ -199,7 +259,6 @@ export default function ProductPage() {
                                             ))}
                                         </Swiper>
 
-                                        {/* Thumbnail Swiper - Only show if multiple images */}
                                         {imageList.length > 1 && (
                                             <Swiper
                                                 onSwiper={setThumbsSwiper}
@@ -233,101 +292,38 @@ export default function ProductPage() {
                             </div>
                         )}
 
-                        {/* Tabs Section Below Image */}
-                        <div className="product-tabs">
-                            <div className="tabs-header">
-                                <button
-                                    className={`tab-button ${activeTab === 'details' ? 'active' : ''}`}
-                                    onClick={() => setActiveTab('details')}
-                                >
-                                    Details
-                                </button>
-                                <button
-                                    className={`tab-button ${activeTab === 'instructions' ? 'active' : ''}`}
-                                    onClick={() => setActiveTab('instructions')}
-                                >
-                                    Instructions
-                                </button>
-                            </div>
-
-                            <div className="tabs-content">
-                                {/* Details Tab */}
-                                <div className={`tab-pane ${activeTab === 'details' ? 'active' : ''}`}>
-                                    {/* Description */}
-                                    {product.description && (
-                                        <div className="tab-description">
-                                            <h3>Product Description</h3>
-                                            {renderBlockContent(product.description)}
-                                        </div>
-                                    )}
-
-                                    {/* Specifications */}
-                                    {product.specifications && product.specifications.length > 0 && (
-                                        <div className="tab-specs">
-                                            <h3>Specifications</h3>
-                                            <ul className="product-specs-list">
-                                                {product.specifications.map((spec, index) => (
-                                                    <li key={index}>
-                                                        <strong>{spec.label}:</strong> {spec.value}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Instructions Tab */}
-                                <div className={`tab-pane ${activeTab === 'instructions' ? 'active' : ''}`}>
-                                    <div className="tab-instructions">
-                                        <h3>Instructions</h3>
-                                        {product.instructions ? (
-                                            renderBlockContent(product.instructions)
-                                        ) : (
-                                            <p className="no-instructions">Instructions coming soon...</p>
-                                        )}
-                                    </div>
+                        {product.instructions && (
+                            <div className="instructions-card">
+                                <div className="instructions-title">Instructions</div>
+                                <div className="instructions-content">
+                                    {renderBlockContent(product.instructions)}
                                 </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
-                    {/* Right: Product Info */}
                     <div className="product-right">
-                        {/* Title */}
-                        <h2 className="product-title">{product.name}</h2>
+                        <div className="category-tag-container">
+                            <Title title={product.category?.name || 'Product'} />
+                        </div>
 
-                        {/* Price Display */}
+                        <h1 className="product-title">{product.name}</h1>
+
+                        <a href="#description" className="description-link">Product Description</a>
+
+                        {product.description && (
+                            <p className="product-description">
+                                {renderBlockContent(product.description)}
+                            </p>
+                        )}
+
                         <div className="price-header">
                             <div className="price-main">₹{priceBreakdown.totalPrice.toLocaleString()}</div>
                             <div className="price-sub">
-                                ₹{currentTier?.pricePerUnit || 0} each / {quantity} units
+                                (₹{priceBreakdown.pricePerUnit.toFixed(2)} each / {quantity} units)
                             </div>
                         </div>
 
-                        {/* Quantity Selection - Dropdown */}
-                        {product.pricingTiers && product.pricingTiers.length > 0 && (
-                            <div className="option-section">
-                                <label className="option-label">Quantity</label>
-                                <select
-                                    className="option-select"
-                                    value={selectedTier}
-                                    onChange={(e) => {
-                                        const index = parseInt(e.target.value);
-                                        handleTierSelection(index, product.pricingTiers![index].quantity);
-                                    }}
-                                >
-                                    {product.pricingTiers.map((tier, index) => (
-                                        <option key={index} value={index}>
-                                            {tier.quantity} units - ₹{tier.price} (₹{tier.pricePerUnit}/unit)
-                                            {tier.isRecommended ? ' (Recommended)' : ''}
-                                            {tier.savingsPercentage ? ` - ${tier.savingsPercentage}% OFF` : ''}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
-
-                        {/* Product Options - Dropdown Only */}
                         {product.productOptions && product.productOptions.length > 0 && (
                             <>
                                 {product.productOptions.map((option, optionIndex) => (
@@ -343,42 +339,78 @@ export default function ProductPage() {
                                             onChange={(e) => handleOptionChange(option.label, e.target.value)}
                                         >
                                             <option value="">Select {option.label}...</option>
-                                            {option.values && option.values.map((value, valueIndex) => (
-                                                <option key={valueIndex} value={value.value}>
-                                                    {value.label}
-                                                    {value.priceModifier ? ` (+₹${value.priceModifier}/unit)` : ''}
-                                                </option>
-                                            ))}
+                                            {option.values && option.values.map((value, valueIndex) => {
+                                                const priceModifier = getOptionPriceModifier(option.label, value.value);
+                                                const priceDisplay = priceModifier > 0 ? ` (+₹${priceModifier}/unit)` : '';
+                                                
+                                                return (
+                                                    <option key={valueIndex} value={value.value}>
+                                                        {value.label}{priceDisplay}
+                                                    </option>
+                                                );
+                                            })}
                                         </select>
                                     </div>
                                 ))}
                             </>
                         )}
 
-                        {/* Price Breakdown */}
-                        {priceBreakdown.optionsPrice > 0 && (
-                            <div className="price-summary">
-                                <div className="summary-row">
-                                    <span>Base Price ({quantity} units)</span>
-                                    <span>₹{priceBreakdown.basePrice.toLocaleString()}</span>
+                        {displayedTiers.length > 0 && (
+                            <div className="quantity-section">
+                                <label className="quantity-label">QUANTITY</label>
+                                <div className="quantity-list">
+                                    {displayedTiers.map((tier, displayIndex) => {
+                                        const actualIndex = sortedTiers.indexOf(tier);
+                                        const adjustedPrice = getAdjustedTierPrice(tier.price, tier.quantity);
+                                        const adjustedPricePerUnit = getAdjustedTierPricePerUnit(tier.pricePerUnit);
+                                        const isSelected = selectedTier === actualIndex;
+                                        
+                                        return (
+                                            <div 
+                                                key={displayIndex} 
+                                                className={`quantity-item ${isSelected ? 'active' : ''}`}
+                                                onClick={() => handleTierSelection(actualIndex, tier.quantity)}
+                                            >
+                                                <div className="qty-left">
+                                                    <span className="qty-number">{tier.quantity}</span>
+                                                </div>
+                                                <div className="qty-right">
+                                                    <span className="qty-price">₹{adjustedPrice.toLocaleString()}</span>
+                                                    <span className="qty-per-unit">₹{adjustedPricePerUnit.toFixed(2)}/unit</span>
+                                                    {tier.savingsPercentage && (
+                                                        <span className="qty-savings">{tier.savingsPercentage}% savings</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
-                                <div className="summary-row">
-                                    <span>Customizations</span>
-                                    <span>+₹{priceBreakdown.optionsPrice.toLocaleString()}</span>
-                                </div>
-                                <div className="summary-total">
-                                    <span>Total</span>
-                                    <span>₹{priceBreakdown.totalPrice.toLocaleString()}</span>
-                                </div>
+
+                                {hasMoreTiers && !showAllQuantities && (
+                                    <button 
+                                        className="show-more-button"
+                                        onClick={() => setShowAllQuantities(true)}
+                                    >
+                                        Show More Options
+                                    </button>
+                                )}
+
+                                {showAllQuantities && hasMoreTiers && (
+                                    <button 
+                                        className="show-more-button show-less"
+                                        onClick={() => setShowAllQuantities(false)}
+                                    >
+                                        Show Less Options
+                                    </button>
+                                )}
                             </div>
                         )}
 
-                        {/* Place Order Button */}
                         <button 
                             className="order-button"
                             onClick={handlePlaceOrder}
                         >
-                            Continue to Order - ₹{priceBreakdown.totalPrice.toLocaleString()}
+                            CONTINUE
                         </button>
                     </div>
                 </div>

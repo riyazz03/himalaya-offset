@@ -29,7 +29,7 @@ export const SanityService = {
   async getCategoryWithProducts(slug: string) {
     try {
       const category = await client.fetch(
-        '*[_type == "category" && slug.current == $slug && isActive == true][0] { _id, name, "slug": slug.current, description, "image_url": image.asset->url, "image_alt": image.alt, bgColor, "subcategories": *[_type == "subcategory" && references(^._id) && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, "images": images[] { "asset": asset->url, "alt": alt }, description, minOrderQuantity, isFeatured, sortOrder } }',
+        '*[_type == "category" && slug.current == $slug && isActive == true][0] { _id, name, "slug": slug.current, description, "image_url": image.asset->url, "image_alt": image.alt, bgColor, "subcategories": *[_type == "subcategory" && references(^._id) && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, "images": images[] { "asset": asset->url, "alt": alt }, description, minOrderQuantity, isFeatured, sortOrder, pricingTiers[] { quantity, price, pricePerUnit, savingsPercentage, badge, isRecommended } } }',
         { slug } as Record<string, unknown>
       )
       return { data: category, error: null }
@@ -42,7 +42,7 @@ export const SanityService = {
   async getAllCategoriesWithSubcategories() {
     try {
       const categories = await client.fetch(
-        '*[_type == "category" && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, description, "image_url": image.asset->url, "image_alt": image.alt, sortOrder, isActive, bgColor, _createdAt, _updatedAt, "subcategories": *[_type == "subcategory" && references(^._id) && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, "images": images[] { "asset": asset->url, "alt": alt }, description, minOrderQuantity, isFeatured, sortOrder } }'
+        '*[_type == "category" && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, description, "image_url": image.asset->url, "image_alt": image.alt, sortOrder, isActive, bgColor, _createdAt, _updatedAt, "subcategories": *[_type == "subcategory" && references(^._id) && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, "images": images[] { "asset": asset->url, "alt": alt }, description, minOrderQuantity, isFeatured, sortOrder, pricingTiers[] { quantity, price, pricePerUnit, savingsPercentage, badge, isRecommended } } }'
       )
       return { data: categories, error: null }
     } catch (err) {
@@ -54,7 +54,67 @@ export const SanityService = {
   async getProduct(slug: string) {
     try {
       const product = await client.fetch(
-        '*[_type == "subcategory" && slug.current == $slug && isActive == true][0] { _id, name, "slug": slug.current, description, instructions, "image_url": image.asset->url, "image_alt": image.alt, "images": images[] { "asset": asset->url, "alt": alt }, deliveryOptions, productOptions, pricingTiers, specifications, minOrderQuantity, isFeatured, "category": category->{ _id, name, "slug": slug.current } }',
+        `*[_type == "subcategory" && slug.current == $slug && isActive == true][0] {
+          _id,
+          name,
+          "slug": slug.current,
+          description,
+          instructions,
+          "image_url": image.asset->url,
+          "image_alt": image.alt,
+          "images": images[] {
+            "asset": asset->url,
+            "alt": alt
+          },
+          deliveryOptions[] {
+            type,
+            description,
+            locations
+          },
+          productOptions[] {
+            label,
+            optionType,
+            isRequired,
+            values[] {
+              label,
+              value,
+              basePrice,
+              priceByTier[] {
+                tierLabel,
+                price
+              }
+            },
+            numberConfig {
+              min,
+              max,
+              step,
+              basePricePerUnit,
+              priceByTier[] {
+                tierLabel,
+                pricePerUnit
+              }
+            }
+          },
+          pricingTiers[] {
+            quantity,
+            price,
+            pricePerUnit,
+            savingsPercentage,
+            badge,
+            isRecommended
+          },
+          specifications[] {
+            label,
+            value
+          },
+          minOrderQuantity,
+          isFeatured,
+          "category": category-> {
+            _id,
+            name,
+            "slug": slug.current
+          }
+        }`,
         { slug } as Record<string, unknown>
       )
       return { data: product, error: null }
@@ -67,7 +127,7 @@ export const SanityService = {
   async getFeaturedProducts() {
     try {
       const products = await client.fetch(
-        '*[_type == "subcategory" && isFeatured == true && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, "images": images[] { "asset": asset->url, "alt": alt }, minOrderQuantity, "category": category->{ name, "slug": slug.current }, "startingPrice": pricingTiers[0].pricePerUnit }'
+        '*[_type == "subcategory" && isFeatured == true && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, "images": images[] { "asset": asset->url, "alt": alt }, minOrderQuantity, "category": category->{ name, "slug": slug.current }, pricingTiers[] { quantity, price, pricePerUnit, savingsPercentage, badge, isRecommended }, "startingPrice": pricingTiers[0].pricePerUnit }'
       )
       return { data: products, error: null }
     } catch (err) {
@@ -79,7 +139,7 @@ export const SanityService = {
   async searchProducts(searchQuery: string) {
     try {
       const products = await client.fetch(
-        '*[_type == "subcategory" && (name match $query || category->name match $query) && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, "images": images[] { "asset": asset->url, "alt": alt }, "category": category->{ name, "slug": slug.current }, "startingPrice": pricingTiers[0].pricePerUnit }',
+        '*[_type == "subcategory" && (name match $query || category->name match $query) && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, "images": images[] { "asset": asset->url, "alt": alt }, "category": category->{ name, "slug": slug.current }, pricingTiers[] { quantity, price, pricePerUnit, savingsPercentage, badge, isRecommended }, "startingPrice": pricingTiers[0].pricePerUnit }',
         { query: `${searchQuery}*` } as Record<string, unknown>
       )
       return { data: products, error: null }
@@ -89,7 +149,6 @@ export const SanityService = {
     }
   },
 
-  // ✅ FIXED: Now properly fetches images and builds URLs
   async getAllProducts() {
     try {
       const products = await client.fetch(
@@ -103,103 +162,119 @@ export const SanityService = {
           "categoryName": category->name,
           "categorySlug": category->slug.current,
           minOrderQuantity,
-          pricingTiers,
+          pricingTiers[] {
+            quantity,
+            price,
+            pricePerUnit,
+            savingsPercentage,
+            badge,
+            isRecommended
+          },
           _createdAt
         }`
-      );
+      )
 
-      // Add starting price from first pricing tier
       const productsWithPrice = products.map((product: Subcategory) => ({
         ...product,
         startingPrice: product.pricingTiers?.[0]?.pricePerUnit || null
-      }));
+      }))
 
-      return { data: productsWithPrice, error: null };
+      return { data: productsWithPrice, error: null }
     } catch (err) {
-      console.error('Error fetching all products:', err);
-      return { data: null, error: 'Failed to fetch products' };
+      console.error('Error fetching all products:', err)
+      return { data: null, error: 'Failed to fetch products' }
     }
   }
 }
 
 export interface Category {
-  _id: string;
-  name: string;
-  slug: string;
-  description?: string;
-  image_url?: string;
-  image_alt?: string;
-  sortOrder: number;
-  isActive: boolean;
-  bgColor?: string;
-  _createdAt: string;
-  _updatedAt: string;
-  subcategories?: Subcategory[];
+  _id: string
+  name: string
+  slug: string
+  description?: unknown[]
+  image_url?: string
+  image_alt?: string
+  sortOrder: number
+  isActive: boolean
+  bgColor?: string
+  _createdAt: string
+  _updatedAt: string
+  subcategories?: Subcategory[]
 }
 
 export interface ProductImage {
-  asset: string;
-  alt?: string;
-}
-
-export interface Subcategory {
-  _id: string;
-  name: string;
-  slug: string;
-  description?: unknown[];
-  instructions?: unknown[];
-  image_url?: string;
-  image_alt?: string;
-  images?: ProductImage[];
-  deliveryOptions?: DeliveryOption[];
-  productOptions?: ProductOption[];
-  pricingTiers?: PricingTier[];
-  specifications?: Specification[];
-  minOrderQuantity: number;
-  sortOrder: number;
-  isActive: boolean;
-  isFeatured: boolean;
-  category?: Category;
-  startingPrice?: number;
+  asset: string
+  alt?: string
 }
 
 export interface DeliveryOption {
-  type: 'standard' | 'same_day' | 'express';
-  description: string;
-  locations?: string;
+  type: 'standard' | 'same_day' | 'express'
+  description: string
+  locations?: string
 }
 
 export interface ProductOption {
-  optionType: 'dropdown' | 'radio' | 'checkbox' | 'number';
-  label: string;
-  isRequired: boolean;
-  values?: OptionValue[];
-  numberConfig?: NumberConfig;
+  label: string
+  optionType: 'dropdown' | 'radio' | 'checkbox' | 'number'
+  isRequired: boolean
+  values?: OptionValue[]
+  numberConfig?: NumberConfig
 }
 
 export interface OptionValue {
-  label: string;
-  value: string;
-  priceModifier?: number;
+  label: string
+  value: string
+  basePrice?: number
+  priceByTier?: Array<{
+    tierLabel: string
+    price?: number
+  }>
 }
 
 export interface NumberConfig {
-  min?: number;
-  max?: number;
-  step?: number;
-  pricePerUnit?: number;
+  min?: number
+  max?: number
+  step?: number
+  basePricePerUnit?: number
+  priceByTier?: Array<{
+    tierLabel: string
+    pricePerUnit?: number
+  }>
 }
 
 export interface PricingTier {
-  quantity: number;
-  price: number;
-  pricePerUnit: number;
-  savingsPercentage?: number;
-  isRecommended: boolean;
-  badge?: string;
+  quantity: number
+  price: number
+  pricePerUnit: number
+  savingsPercentage?: number
+  badge?: string
+  isRecommended: boolean
 }
 
 export interface Specification {
-  label: string;
-  value: string;
+  label: string
+  value: string
+}
+
+export interface Subcategory {
+  _id: string
+  name: string
+  slug: string
+  description?: unknown[]
+  instructions?: unknown[]
+  image_url?: string
+  image_alt?: string
+  images?: ProductImage[]
+  deliveryOptions?: DeliveryOption[]
+  productOptions?: ProductOption[]
+  pricingTiers?: PricingTier[]
+  specifications?: Specification[]
+  minOrderQuantity: number
+  sortOrder: number
+  isActive: boolean
+  isFeatured: boolean
+  category?: Category
+  startingPrice?: number
+  categoryName?: string
+  categorySlug?: string
 }
