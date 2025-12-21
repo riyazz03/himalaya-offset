@@ -87,13 +87,6 @@ export default function ProductPage() {
         fetchProductData(slug);
     }, [slug]);
 
-    useEffect(() => {
-        if (product) {
-            const newPriceBreakdown = calculateTotalPrice();
-            setPriceBreakdown(newPriceBreakdown);
-        }
-    }, [selectedTier, selectedOptions, product, quantity]);
-
     const getOptionPriceModifier = (optionLabel: string, optionValue: string): number => {
         if (!product?.productOptions || !product?.pricingTiers) return 0;
 
@@ -153,6 +146,12 @@ export default function ProductPage() {
             pricePerUnit: adjustedPricePerUnit
         };
     };
+
+    useEffect(() => {
+        if (product) {
+            setPriceBreakdown(calculateTotalPrice());
+        }
+    }, [selectedTier, selectedOptions, product, quantity]);
 
     const getAdjustedTierPricePerUnit = (basePricePerUnit: number): number => {
         const pricePerUnitModifier = calculatePricePerUnitModifier();

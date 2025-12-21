@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import ProductCard from '@/component/ProductCard';
 import { SanityService, Category, Subcategory } from '@/lib/sanity';
+import { renderBlockContent } from '@/lib/sanity-block-renderer';
 import '@/styles/CategoryPageStyles/category-page.css';
 
 export default function CategoryPage() {
@@ -96,7 +97,9 @@ export default function CategoryPage() {
             <div className="category-header-text">
               <h2 className="category-title">{category.name}</h2>
               {category.description && (
-                <p className="category-description">{category.description}</p>
+                <div className="category-description">
+                  {renderBlockContent(category.description)}
+                </div>
               )}
               <div className="category-stats">
                 <span className="products-count">
