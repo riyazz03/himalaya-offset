@@ -5,6 +5,7 @@ import '@/styles/categories-page.css';
 import ProductCard from '@/component/ProductCard';
 import Image from 'next/image';
 import { SanityService, Category } from '@/lib/sanity';
+import { renderBlockContent } from '@/lib/sanity-block-renderer';
 
 interface CategoryWithCount extends Category {
   productCount?: number;
@@ -37,15 +38,27 @@ export default function CategoriesPage() {
     }
   };
 
-  const filteredCategories = categories.filter(category =>
-    category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (category.description && category.description.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const getDescriptionText = (description: unknown): string => {
+    if (!description) return '';
+    if (typeof description === 'string') return description;
+    if (Array.isArray(description)) {
+      const rendered = renderBlockContent(description);
+      return rendered ? rendered.toString() : '';
+    }
+    return '';
+  };
+
+  const filteredCategories = categories.filter(category => {
+    const nameMatch = category.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const descriptionText = getDescriptionText(category.description);
+    const descMatch = descriptionText.toLowerCase().includes(searchQuery.toLowerCase());
+    return nameMatch || descMatch;
+  });
 
   const formatCategoryForCard = (category: Category) => ({
     image: category.image_url || '/placeholder.png',
     title: category.name,
-    pricing: category.description || 'Click to explore',
+    pricing: getDescriptionText(category.description) || 'Click to explore',
     buttonText: 'Explore Category',
     href: `/categories/${category.slug}`
   });
@@ -99,7 +112,7 @@ export default function CategoriesPage() {
           </div>
         ) : filteredCategories.length === 0 ? (
           <div className="categories-empty">
-            <p></p>
+            <p>No categories found</p>
           </div>
         ) : (
           <div className="categories-grid">
