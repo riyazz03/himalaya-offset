@@ -332,6 +332,7 @@
     min-width: auto;
     max-width: none;
   }
+
 }
 
 .form-label span{
@@ -380,4 +381,10 @@
 }
 .contact-header-title-wrapper {
   display: flex;
+}
+
+@media (max-width: 768px) {
+  .contact-header-title-wrapper{
+    justify-content: center;
+  }
 }

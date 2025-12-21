@@ -248,6 +248,10 @@ body, html{
 
   .about-image-container {
     min-width: 100%;
+    min-height: 200px;
+  }
+  .about-image{
+    height: 200px;
   }
 
   .slide-center {
