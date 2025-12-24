@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Thumbs, Autoplay } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
-import { SanityService, Subcategory } from '@/lib/sanity';
+import { SanityService, Subcategory, ProductOption, OptionValue } from '@/lib/sanity';
 import { renderBlockContent } from '@/lib/sanity-block-renderer';
 import Title from '@/component/Title-Block-Rounded';
 import 'swiper/css';
@@ -33,7 +33,7 @@ export default function ProductPage() {
     const [product, setProduct] = useState<Subcategory | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
-    const [selectedTier, setSelectedTier] = useState(0);
+    const [selectedTier, setSelectedTier] = useState<number | null>(null);
     const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({});
     const [quantity, setQuantity] = useState(0);
     const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
@@ -58,25 +58,41 @@ export default function ProductPage() {
 
         setLoading(true);
         setError(null);
+        setSelectedTier(null);
+        setQuantity(0);
+        setSelectedOptions({});
 
         const fetchProductData = async (productSlug: string) => {
             try {
                 const { data } = await SanityService.getProduct(productSlug);
 
                 if (data) {
-                    setProduct(data);
                     if (data.pricingTiers && data.pricingTiers.length > 0) {
                         const sortedTiers = [...data.pricingTiers].sort((a, b) => a.quantity - b.quantity);
+                        const firstTier = sortedTiers[0];
+                        
+                        setProduct(data);
                         setSelectedTier(0);
-                        setQuantity(sortedTiers[0].quantity);
+                        setQuantity(firstTier.quantity);
+                        
+                        if (data.productOptions && data.productOptions.length > 0) {
+                            const initialOptions: SelectedOptions = {};
+                            data.productOptions.forEach((option: ProductOption) => {
+                                if (option.values && option.values.length > 0 && option.isRequired) {
+                                    initialOptions[option.label] = option.values[0].value;
+                                }
+                            });
+                            setSelectedOptions(initialOptions);
+                        }
+                    } else {
+                        setError('Product has no pricing tiers');
+                        setProduct(null);
                     }
-                    setError(null);
                 } else {
                     setError('Product not found');
                     setProduct(null);
                 }
             } catch (err) {
-                console.error('Error fetching product:', err);
                 setError('Failed to load product');
                 setProduct(null);
             } finally {
@@ -87,7 +103,7 @@ export default function ProductPage() {
         fetchProductData(slug);
     }, [slug]);
 
-    const getOptionPriceModifier = (optionLabel: string, optionValue: string): number => {
+    const getOptionPriceModifier = (optionLabel: string, optionValue: string, tierIndex: number): number => {
         if (!product?.productOptions || !product?.pricingTiers) return 0;
 
         const option = product.productOptions.find(opt => opt.label === optionLabel);
@@ -97,7 +113,12 @@ export default function ProductPage() {
         if (!selectedOptionValue) return 0;
 
         const sortedTiers = [...product.pricingTiers].sort((a, b) => a.quantity - b.quantity);
-        const currentTier = sortedTiers[selectedTier];
+        
+        if (tierIndex < 0 || tierIndex >= sortedTiers.length) {
+            return selectedOptionValue.basePrice || 0;
+        }
+
+        const currentTier = sortedTiers[tierIndex];
         const tierLabel = currentTier?.quantity?.toString();
 
         if (selectedOptionValue.priceByTier && tierLabel) {
@@ -110,14 +131,14 @@ export default function ProductPage() {
         return selectedOptionValue.basePrice || 0;
     };
 
-    const calculatePricePerUnitModifier = (): number => {
+    const calculatePricePerUnitModifier = (tierIndex: number): number => {
         let modifier = 0;
 
         if (product?.productOptions) {
-            product.productOptions.forEach(option => {
+            product.productOptions.forEach((option: ProductOption) => {
                 const selectedValue = selectedOptions[option.label];
                 if (selectedValue) {
-                    const optionModifier = getOptionPriceModifier(option.label, selectedValue as string);
+                    const optionModifier = getOptionPriceModifier(option.label, selectedValue as string, tierIndex);
                     modifier += optionModifier;
                 }
             });
@@ -126,40 +147,44 @@ export default function ProductPage() {
         return modifier;
     };
 
-    const calculateTotalPrice = (): PriceData => {
+    const calculateTotalPrice = (tierIndex: number, qty: number): PriceData => {
         if (!product?.pricingTiers || product.pricingTiers.length === 0) {
             return { basePrice: 0, optionsPrice: 0, totalPrice: 0, pricePerUnit: 0 };
         }
 
-        const sortedTiers = [...product.pricingTiers].sort((a, b) => a.quantity - b.quantity);
-        const basePriceData = sortedTiers[selectedTier];
-        const basePrice = basePriceData.price;
-        const pricePerUnitModifier = calculatePricePerUnitModifier();
+        if (tierIndex < 0 || tierIndex >= product.pricingTiers.length) {
+            return { basePrice: 0, optionsPrice: 0, totalPrice: 0, pricePerUnit: 0 };
+        }
 
-        const totalPrice = basePrice + (pricePerUnitModifier * quantity);
+        const sortedTiers = [...product.pricingTiers].sort((a, b) => a.quantity - b.quantity);
+        const basePriceData = sortedTiers[tierIndex];
+        const basePrice = basePriceData.price;
+        const pricePerUnitModifier = calculatePricePerUnitModifier(tierIndex);
+
+        const totalPrice = basePrice + (pricePerUnitModifier * qty);
         const adjustedPricePerUnit = basePriceData.pricePerUnit + pricePerUnitModifier;
 
         return { 
             basePrice, 
-            optionsPrice: pricePerUnitModifier * quantity,
+            optionsPrice: pricePerUnitModifier * qty,
             totalPrice, 
             pricePerUnit: adjustedPricePerUnit
         };
     };
 
     useEffect(() => {
-        if (product) {
-            setPriceBreakdown(calculateTotalPrice());
+        if (product && selectedTier !== null && selectedTier >= 0) {
+            setPriceBreakdown(calculateTotalPrice(selectedTier, quantity));
         }
     }, [selectedTier, selectedOptions, product, quantity]);
 
-    const getAdjustedTierPricePerUnit = (basePricePerUnit: number): number => {
-        const pricePerUnitModifier = calculatePricePerUnitModifier();
+    const getAdjustedTierPricePerUnit = (tierIndex: number, basePricePerUnit: number): number => {
+        const pricePerUnitModifier = calculatePricePerUnitModifier(tierIndex);
         return basePricePerUnit + pricePerUnitModifier;
     };
 
-    const getAdjustedTierPrice = (baseTierPrice: number, tierQuantity: number): number => {
-        const pricePerUnitModifier = calculatePricePerUnitModifier();
+    const getAdjustedTierPrice = (tierIndex: number, baseTierPrice: number, tierQuantity: number): number => {
+        const pricePerUnitModifier = calculatePricePerUnitModifier(tierIndex);
         return baseTierPrice + (pricePerUnitModifier * tierQuantity);
     };
 
@@ -176,7 +201,7 @@ export default function ProductPage() {
     };
 
     const handlePlaceOrder = () => {
-        if (!product?.pricingTiers) return;
+        if (!product?.pricingTiers || selectedTier === null) return;
 
         const sortedTiers = [...product.pricingTiers].sort((a, b) => a.quantity - b.quantity);
 
@@ -311,21 +336,23 @@ export default function ProductPage() {
                         <a href="#description" className="description-link">Product Description</a>
 
                         {product.description && (
-                            <p className="product-description">
+                            <div className="product-description">
                                 {renderBlockContent(product.description)}
-                            </p>
+                            </div>
                         )}
 
-                        <div className="price-header">
-                            <div className="price-main">₹{priceBreakdown.totalPrice.toLocaleString()}</div>
-                            <div className="price-sub">
-                                (₹{priceBreakdown.pricePerUnit.toFixed(2)} each / {quantity} units)
+                        {selectedTier !== null && (
+                            <div className="price-header">
+                                <div className="price-main">₹{priceBreakdown.totalPrice.toLocaleString()}</div>
+                                <div className="price-sub">
+                                    (₹{priceBreakdown.pricePerUnit.toFixed(2)} each / {quantity} units)
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {product.productOptions && product.productOptions.length > 0 && (
                             <>
-                                {product.productOptions.map((option, optionIndex) => (
+                                {product.productOptions.map((option: ProductOption, optionIndex: number) => (
                                     <div key={optionIndex} className="option-section">
                                         <label className="option-label">
                                             {option.label}
@@ -338,8 +365,10 @@ export default function ProductPage() {
                                             onChange={(e) => handleOptionChange(option.label, e.target.value)}
                                         >
                                             <option value="">Select {option.label}...</option>
-                                            {option.values && option.values.map((value, valueIndex) => {
-                                                const priceModifier = getOptionPriceModifier(option.label, value.value);
+                                            {option.values && option.values.map((value: OptionValue, valueIndex: number) => {
+                                                const priceModifier = selectedTier !== null 
+                                                    ? getOptionPriceModifier(option.label, value.value as string, selectedTier)
+                                                    : 0;
                                                 const priceDisplay = priceModifier > 0 ? ` (+₹${priceModifier}/unit)` : '';
                                                 
                                                 return (
@@ -354,14 +383,14 @@ export default function ProductPage() {
                             </>
                         )}
 
-                        {displayedTiers.length > 0 && (
+                        {sortedTiers.length > 0 && (
                             <div className="quantity-section">
                                 <label className="quantity-label">QUANTITY</label>
                                 <div className="quantity-list">
                                     {displayedTiers.map((tier, displayIndex) => {
                                         const actualIndex = sortedTiers.indexOf(tier);
-                                        const adjustedPrice = getAdjustedTierPrice(tier.price, tier.quantity);
-                                        const adjustedPricePerUnit = getAdjustedTierPricePerUnit(tier.pricePerUnit);
+                                        const adjustedPrice = getAdjustedTierPrice(actualIndex, tier.price, tier.quantity);
+                                        const adjustedPricePerUnit = getAdjustedTierPricePerUnit(actualIndex, tier.pricePerUnit);
                                         const isSelected = selectedTier === actualIndex;
                                         
                                         return (
@@ -408,6 +437,7 @@ export default function ProductPage() {
                         <button 
                             className="order-button"
                             onClick={handlePlaceOrder}
+                            disabled={selectedTier === null}
                         >
                             CONTINUE
                         </button>

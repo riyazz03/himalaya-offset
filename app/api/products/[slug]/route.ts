@@ -20,6 +20,14 @@ interface Product {
   startingPrice?: number;
   minOrderQuantity?: number;
   categoryName?: string;
+  pricingTiers?: Array<{
+    quantity: number;
+    price: number;
+    pricePerUnit: number;
+    savingsPercentage?: number;
+    badge?: string;
+    isRecommended?: boolean;
+  }>;
   _createdAt?: string;
 }
 
@@ -41,6 +49,7 @@ export async function GET(
   try {
     const { slug } = await params;
 
+    // ✅ FIXED: Now includes pricingTiers
     const product = await client.fetch(
       `*[_type == "subcategory" && slug.current == $slug][0] {
         _id,
@@ -50,9 +59,17 @@ export async function GET(
         image_url,
         description,
         instructions,
-        startingPrice,
         minOrderQuantity,
         "categoryName": category->name,
+        pricingTiers[] {
+          quantity,
+          price,
+          pricePerUnit,
+          savingsPercentage,
+          badge,
+          isRecommended
+        },
+        "startingPrice": pricingTiers[0].pricePerUnit,
         _createdAt
       }`,
       { slug }

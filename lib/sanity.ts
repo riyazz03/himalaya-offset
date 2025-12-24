@@ -29,7 +29,7 @@ export const SanityService = {
   async getCategoryWithProducts(slug: string) {
     try {
       const category = await client.fetch(
-        '*[_type == "category" && slug.current == $slug && isActive == true][0] { _id, name, "slug": slug.current, description, "image_url": image.asset->url, "image_alt": image.alt, bgColor, "subcategories": *[_type == "subcategory" && references(^._id) && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, "images": images[] { "asset": asset->url, "alt": alt }, description, minOrderQuantity, isFeatured, sortOrder, pricingTiers[] { quantity, price, pricePerUnit, savingsPercentage, badge, isRecommended } } }',
+        '*[_type == "category" && slug.current == $slug && isActive == true][0] { _id, name, "slug": slug.current, description, "image_url": image.asset->url, "image_alt": image.alt, bgColor, "subcategories": *[_type == "subcategory" && references(^._id) && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, "images": images[] { "asset": asset->url, "alt": alt }, description, minOrderQuantity, isFeatured, sortOrder, "pricingTiers": quantityTiers[] { "quantity": label, "price": basePrice, "pricePerUnit": basePrice, savingsPercentage, badge, isRecommended } } }',
         { slug } as Record<string, unknown>
       )
       return { data: category, error: null }
@@ -42,7 +42,7 @@ export const SanityService = {
   async getAllCategoriesWithSubcategories() {
     try {
       const categories = await client.fetch(
-        '*[_type == "category" && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, description, "image_url": image.asset->url, "image_alt": image.alt, sortOrder, isActive, bgColor, _createdAt, _updatedAt, "subcategories": *[_type == "subcategory" && references(^._id) && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, "images": images[] { "asset": asset->url, "alt": alt }, description, minOrderQuantity, isFeatured, sortOrder, pricingTiers[] { quantity, price, pricePerUnit, savingsPercentage, badge, isRecommended } } }'
+        '*[_type == "category" && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, description, "image_url": image.asset->url, "image_alt": image.alt, sortOrder, isActive, bgColor, _createdAt, _updatedAt, "subcategories": *[_type == "subcategory" && references(^._id) && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, "images": images[] { "asset": asset->url, "alt": alt }, description, minOrderQuantity, isFeatured, sortOrder, "pricingTiers": quantityTiers[] { "quantity": label, "price": basePrice, "pricePerUnit": basePrice, savingsPercentage, badge, isRecommended } } }'
       )
       return { data: categories, error: null }
     } catch (err) {
@@ -95,10 +95,10 @@ export const SanityService = {
               }
             }
           },
-          pricingTiers[] {
-            quantity,
-            price,
-            pricePerUnit,
+          "pricingTiers": quantityTiers[] {
+            "quantity": label,
+            "price": basePrice,
+            "pricePerUnit": basePrice,
             savingsPercentage,
             badge,
             isRecommended
@@ -127,7 +127,7 @@ export const SanityService = {
   async getFeaturedProducts() {
     try {
       const products = await client.fetch(
-        '*[_type == "subcategory" && isFeatured == true && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, "images": images[] { "asset": asset->url, "alt": alt }, minOrderQuantity, "category": category->{ name, "slug": slug.current }, pricingTiers[] { quantity, price, pricePerUnit, savingsPercentage, badge, isRecommended }, "startingPrice": pricingTiers[0].pricePerUnit }'
+        '*[_type == "subcategory" && isFeatured == true && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, "images": images[] { "asset": asset->url, "alt": alt }, minOrderQuantity, "category": category->{ name, "slug": slug.current }, "pricingTiers": quantityTiers[] { "quantity": label, "price": basePrice, "pricePerUnit": basePrice, savingsPercentage, badge, isRecommended }, "startingPrice": quantityTiers[0].basePrice }'
       )
       return { data: products, error: null }
     } catch (err) {
@@ -139,7 +139,7 @@ export const SanityService = {
   async searchProducts(searchQuery: string) {
     try {
       const products = await client.fetch(
-        '*[_type == "subcategory" && (name match $query || category->name match $query) && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, "images": images[] { "asset": asset->url, "alt": alt }, "category": category->{ name, "slug": slug.current }, pricingTiers[] { quantity, price, pricePerUnit, savingsPercentage, badge, isRecommended }, "startingPrice": pricingTiers[0].pricePerUnit }',
+        '*[_type == "subcategory" && (name match $query || category->name match $query) && isActive == true] | order(sortOrder asc) { _id, name, "slug": slug.current, "image_url": image.asset->url, "image_alt": image.alt, "images": images[] { "asset": asset->url, "alt": alt }, "category": category->{ name, "slug": slug.current }, "pricingTiers": quantityTiers[] { "quantity": label, "price": basePrice, "pricePerUnit": basePrice, savingsPercentage, badge, isRecommended }, "startingPrice": quantityTiers[0].basePrice }',
         { query: `${searchQuery}*` } as Record<string, unknown>
       )
       return { data: products, error: null }
@@ -162,10 +162,10 @@ export const SanityService = {
           "categoryName": category->name,
           "categorySlug": category->slug.current,
           minOrderQuantity,
-          pricingTiers[] {
-            quantity,
-            price,
-            pricePerUnit,
+          "pricingTiers": quantityTiers[] {
+            "quantity": label,
+            "price": basePrice,
+            "pricePerUnit": basePrice,
             savingsPercentage,
             badge,
             isRecommended
