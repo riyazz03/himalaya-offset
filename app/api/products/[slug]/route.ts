@@ -49,7 +49,6 @@ export async function GET(
   try {
     const { slug } = await params;
 
-    // ✅ FIXED: Now includes pricingTiers
     const product = await client.fetch(
       `*[_type == "subcategory" && slug.current == $slug][0] {
         _id,
@@ -94,7 +93,15 @@ export async function GET(
       image_url: finalImageUrl || null
     };
 
-    return NextResponse.json({ data: productWithImage });
+    return NextResponse.json(
+      { data: productWithImage },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate'
+        }
+      }
+    );
   } catch (error) {
     console.error('Error fetching product:', error);
     return NextResponse.json(

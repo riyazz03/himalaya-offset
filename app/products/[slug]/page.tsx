@@ -67,26 +67,30 @@ export default function ProductPage() {
                 const { data } = await SanityService.getProduct(productSlug);
 
                 if (data) {
+                    setProduct(data);
+                    
+                    // Check if product has pricing tiers
                     if (data.pricingTiers && data.pricingTiers.length > 0) {
                         const sortedTiers = [...data.pricingTiers].sort((a, b) => a.quantity - b.quantity);
                         const firstTier = sortedTiers[0];
                         
-                        setProduct(data);
                         setSelectedTier(0);
                         setQuantity(firstTier.quantity);
-                        
-                        if (data.productOptions && data.productOptions.length > 0) {
-                            const initialOptions: SelectedOptions = {};
-                            data.productOptions.forEach((option: ProductOption) => {
-                                if (option.values && option.values.length > 0 && option.isRequired) {
-                                    initialOptions[option.label] = option.values[0].value;
-                                }
-                            });
-                            setSelectedOptions(initialOptions);
-                        }
                     } else {
-                        setError('Product has no pricing tiers');
-                        setProduct(null);
+                        // Product exists but has no pricing tiers - still allow viewing
+                        setSelectedTier(null);
+                        setQuantity(0);
+                    }
+                    
+                    // Initialize options
+                    if (data.productOptions && data.productOptions.length > 0) {
+                        const initialOptions: SelectedOptions = {};
+                        data.productOptions.forEach((option: ProductOption) => {
+                            if (option.values && option.values.length > 0 && option.isRequired) {
+                                initialOptions[option.label] = option.values[0].value;
+                            }
+                        });
+                        setSelectedOptions(initialOptions);
                     }
                 } else {
                     setError('Product not found');
@@ -247,6 +251,7 @@ export default function ProductPage() {
     const sortedTiers = product.pricingTiers ? [...product.pricingTiers].sort((a, b) => a.quantity - b.quantity) : [];
     const displayedTiers = showAllQuantities ? sortedTiers : sortedTiers.slice(0, 10);
     const hasMoreTiers = sortedTiers.length > 10;
+    const hasPricingTiers = sortedTiers.length > 0;
 
     return (
         <div className="product-page">
@@ -265,7 +270,7 @@ export default function ProductPage() {
                                                 delay: 5000,
                                                 disableOnInteraction: false,
                                             }}
-                                            loop
+                                            loop={imageList.length > 1}
                                             className="product-swiper-main"
                                         >
                                             {imageList.map((image, index) => (
@@ -341,106 +346,117 @@ export default function ProductPage() {
                             </div>
                         )}
 
-                        {selectedTier !== null && (
-                            <div className="price-header">
-                                <div className="price-main">₹{priceBreakdown.totalPrice.toLocaleString()}</div>
-                                <div className="price-sub">
-                                    (₹{priceBreakdown.pricePerUnit.toFixed(2)} each / {quantity} units)
-                                </div>
+                        {!hasPricingTiers ? (
+                            <div className="no-pricing-message">
+                                <p>Pricing information not available. Please contact us for a quote.</p>
+                                <Link href="/contact-us" className="contact-button">
+                                    Contact Us
+                                </Link>
                             </div>
-                        )}
-
-                        {product.productOptions && product.productOptions.length > 0 && (
+                        ) : (
                             <>
-                                {product.productOptions.map((option: ProductOption, optionIndex: number) => (
-                                    <div key={optionIndex} className="option-section">
-                                        <label className="option-label">
-                                            {option.label}
-                                            {option.isRequired && <span className="required">*</span>}
-                                        </label>
+                                {selectedTier !== null && (
+                                    <div className="price-header">
+                                        <div className="price-main">₹{priceBreakdown.totalPrice.toLocaleString()}</div>
+                                        <div className="price-sub">
+                                            (₹{priceBreakdown.pricePerUnit.toFixed(2)} each / {quantity} units)
+                                        </div>
+                                    </div>
+                                )}
 
-                                        <select
-                                            className="option-select"
-                                            value={selectedOptions[option.label] || ''}
-                                            onChange={(e) => handleOptionChange(option.label, e.target.value)}
-                                        >
-                                            <option value="">Select {option.label}...</option>
-                                            {option.values && option.values.map((value: OptionValue, valueIndex: number) => {
-                                                const priceModifier = selectedTier !== null 
-                                                    ? getOptionPriceModifier(option.label, value.value as string, selectedTier)
-                                                    : 0;
-                                                const priceDisplay = priceModifier > 0 ? ` (+₹${priceModifier}/unit)` : '';
+                                {product.productOptions && product.productOptions.length > 0 && (
+                                    <>
+                                        {product.productOptions.map((option: ProductOption, optionIndex: number) => (
+                                            <div key={optionIndex} className="option-section">
+                                                <label className="option-label">
+                                                    {option.label}
+                                                    {option.isRequired && <span className="required">*</span>}
+                                                </label>
+
+                                                <select
+                                                    className="option-select"
+                                                    value={selectedOptions[option.label] || ''}
+                                                    onChange={(e) => handleOptionChange(option.label, e.target.value)}
+                                                >
+                                                    <option value="">Select {option.label}...</option>
+                                                    {option.values && option.values.map((value: OptionValue, valueIndex: number) => {
+                                                        const priceModifier = selectedTier !== null 
+                                                            ? getOptionPriceModifier(option.label, value.value as string, selectedTier)
+                                                            : 0;
+                                                        const priceDisplay = priceModifier > 0 ? ` (+₹${priceModifier}/unit)` : '';
+                                                        
+                                                        return (
+                                                            <option key={valueIndex} value={value.value}>
+                                                                {value.label}{priceDisplay}
+                                                            </option>
+                                                        );
+                                                    })}
+                                                </select>
+                                            </div>
+                                        ))}
+                                    </>
+                                )}
+
+                                {sortedTiers.length > 0 && (
+                                    <div className="quantity-section">
+                                        <label className="quantity-label">QUANTITY</label>
+                                        <div className="quantity-list">
+                                            {displayedTiers.map((tier, displayIndex) => {
+                                                const actualIndex = sortedTiers.indexOf(tier);
+                                                const adjustedPrice = getAdjustedTierPrice(actualIndex, tier.price, tier.quantity);
+                                                const adjustedPricePerUnit = getAdjustedTierPricePerUnit(actualIndex, tier.pricePerUnit);
+                                                const isSelected = selectedTier === actualIndex;
                                                 
                                                 return (
-                                                    <option key={valueIndex} value={value.value}>
-                                                        {value.label}{priceDisplay}
-                                                    </option>
+                                                    <div 
+                                                        key={displayIndex} 
+                                                        className={`quantity-item ${isSelected ? 'active' : ''}`}
+                                                        onClick={() => handleTierSelection(actualIndex, tier.quantity)}
+                                                    >
+                                                        <div className="qty-left">
+                                                            <span className="qty-number">{tier.quantity}</span>
+                                                        </div>
+                                                        <div className="qty-right">
+                                                            <span className="qty-price">₹{adjustedPrice.toLocaleString()}</span>
+                                                            <span className="qty-per-unit">₹{adjustedPricePerUnit.toFixed(2)}/unit</span>
+                                                            {tier.savingsPercentage && (
+                                                                <span className="qty-savings">{tier.savingsPercentage}% savings</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                 );
                                             })}
-                                        </select>
+                                        </div>
+
+                                        {hasMoreTiers && !showAllQuantities && (
+                                            <button 
+                                                className="show-more-button"
+                                                onClick={() => setShowAllQuantities(true)}
+                                            >
+                                                Show More Options
+                                            </button>
+                                        )}
+
+                                        {showAllQuantities && hasMoreTiers && (
+                                            <button 
+                                                className="show-more-button show-less"
+                                                onClick={() => setShowAllQuantities(false)}
+                                            >
+                                                Show Less Options
+                                            </button>
+                                        )}
                                     </div>
-                                ))}
+                                )}
+
+                                <button 
+                                    className="order-button"
+                                    onClick={handlePlaceOrder}
+                                    disabled={selectedTier === null}
+                                >
+                                    CONTINUE
+                                </button>
                             </>
                         )}
-
-                        {sortedTiers.length > 0 && (
-                            <div className="quantity-section">
-                                <label className="quantity-label">QUANTITY</label>
-                                <div className="quantity-list">
-                                    {displayedTiers.map((tier, displayIndex) => {
-                                        const actualIndex = sortedTiers.indexOf(tier);
-                                        const adjustedPrice = getAdjustedTierPrice(actualIndex, tier.price, tier.quantity);
-                                        const adjustedPricePerUnit = getAdjustedTierPricePerUnit(actualIndex, tier.pricePerUnit);
-                                        const isSelected = selectedTier === actualIndex;
-                                        
-                                        return (
-                                            <div 
-                                                key={displayIndex} 
-                                                className={`quantity-item ${isSelected ? 'active' : ''}`}
-                                                onClick={() => handleTierSelection(actualIndex, tier.quantity)}
-                                            >
-                                                <div className="qty-left">
-                                                    <span className="qty-number">{tier.quantity}</span>
-                                                </div>
-                                                <div className="qty-right">
-                                                    <span className="qty-price">₹{adjustedPrice.toLocaleString()}</span>
-                                                    <span className="qty-per-unit">₹{adjustedPricePerUnit.toFixed(2)}/unit</span>
-                                                    {tier.savingsPercentage && (
-                                                        <span className="qty-savings">{tier.savingsPercentage}% savings</span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-
-                                {hasMoreTiers && !showAllQuantities && (
-                                    <button 
-                                        className="show-more-button"
-                                        onClick={() => setShowAllQuantities(true)}
-                                    >
-                                        Show More Options
-                                    </button>
-                                )}
-
-                                {showAllQuantities && hasMoreTiers && (
-                                    <button 
-                                        className="show-more-button show-less"
-                                        onClick={() => setShowAllQuantities(false)}
-                                    >
-                                        Show Less Options
-                                    </button>
-                                )}
-                            </div>
-                        )}
-
-                        <button 
-                            className="order-button"
-                            onClick={handlePlaceOrder}
-                            disabled={selectedTier === null}
-                        >
-                            CONTINUE
-                        </button>
                     </div>
                 </div>
             </div>
