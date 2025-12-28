@@ -184,8 +184,235 @@ export const SanityService = {
       console.error('Error fetching all products:', err)
       return { data: null, error: 'Failed to fetch products' }
     }
+  },
+
+  // ===== ORDER FUNCTIONS =====
+
+  async getOrderById(orderId: string) {
+    try {
+      const order = await client.fetch(
+        `*[_type == "order" && orderId == $orderId][0] {
+          _id,
+          orderId,
+          status,
+          "customer": customer->{
+            _id,
+            firstName,
+            lastName,
+            email
+          },
+          customerDetails,
+          deliveryAddress,
+          "product": product->{
+            _id,
+            name,
+            "slug": slug.current
+          },
+          productSnapshot,
+          quantity,
+          selectedTier,
+          selectedOptions,
+          pricing,
+          payment,
+          customerNotes,
+          "designFiles": designFiles[]{
+            fileName,
+            fileUrl,
+            fileType,
+            fileSize,
+            uploadedAt
+          },
+          deliveryInfo,
+          adminNotes,
+          internalTags,
+          createdAt,
+          updatedAt,
+          completedAt
+        }`,
+        { orderId } as Record<string, unknown>
+      )
+      return { data: order, error: null }
+    } catch (err) {
+      console.error('Error fetching order:', err)
+      return { data: null, error: err }
+    }
+  },
+
+  async getOrdersByCustomerId(customerId: string) {
+    try {
+      const orders = await client.fetch(
+        `*[_type == "order" && customer._ref == $customerId] | order(createdAt desc) {
+          _id,
+          orderId,
+          status,
+          productSnapshot {
+            name,
+            "image": productImage
+          },
+          pricing {
+            totalPrice
+          },
+          payment {
+            paymentStatus
+          },
+          createdAt,
+          updatedAt
+        }`,
+        { customerId } as Record<string, unknown>
+      )
+      return { data: orders, error: null }
+    } catch (err) {
+      console.error('Error fetching customer orders:', err)
+      return { data: null, error: err }
+    }
+  },
+
+  async getAllOrders(limit: number = 100, offset: number = 0) {
+    try {
+      const orders = await client.fetch(
+        `*[_type == "order"] | order(createdAt desc)[${offset}...${offset + limit}] {
+          _id,
+          orderId,
+          status,
+          "customerName": customerDetails.firstName,
+          "productName": productSnapshot.name,
+          pricing {
+            totalPrice
+          },
+          payment {
+            paymentStatus
+          },
+          createdAt,
+          updatedAt
+        }`
+      )
+      return { data: orders, error: null }
+    } catch (err) {
+      console.error('Error fetching all orders:', err)
+      return { data: null, error: err }
+    }
+  },
+
+  async getOrdersByStatus(status: string) {
+    try {
+      const orders = await client.fetch(
+        `*[_type == "order" && status == $status] | order(createdAt desc) {
+          _id,
+          orderId,
+          status,
+          "customerName": customerDetails.firstName,
+          "productName": productSnapshot.name,
+          pricing {
+            totalPrice
+          },
+          createdAt
+        }`,
+        { status } as Record<string, unknown>
+      )
+      return { data: orders, error: null }
+    } catch (err) {
+      console.error('Error fetching orders by status:', err)
+      return { data: null, error: err }
+    }
+  },
+
+  async createOrder(orderData: OrderInput) {
+    try {
+      const order = await client.create({
+        _type: 'order',
+        orderId: orderData.orderId,
+        status: orderData.status || 'pending',
+        customer: {
+          _type: 'reference',
+          _ref: orderData.customerId
+        },
+        customerDetails: orderData.customerDetails,
+        deliveryAddress: orderData.deliveryAddress,
+        product: {
+          _type: 'reference',
+          _ref: orderData.productId
+        },
+        productSnapshot: orderData.productSnapshot,
+        quantity: orderData.quantity,
+        selectedTier: orderData.selectedTier,
+        selectedOptions: orderData.selectedOptions,
+        pricing: orderData.pricing,
+        payment: orderData.payment,
+        customerNotes: orderData.customerNotes,
+        designFiles: orderData.designFiles,
+        deliveryInfo: orderData.deliveryInfo,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      })
+      return { data: order, error: null }
+    } catch (err) {
+      console.error('Error creating order:', err)
+      return { data: null, error: err }
+    }
+  },
+
+  async updateOrderStatus(orderId: string, status: string) {
+    try {
+      const order = await client.patch(orderId).set({ status, updatedAt: new Date().toISOString() }).commit()
+      return { data: order, error: null }
+    } catch (err) {
+      console.error('Error updating order status:', err)
+      return { data: null, error: err }
+    }
+  },
+
+  async updateOrderPaymentStatus(orderId: string, paymentStatus: string) {
+    try {
+      const order = await client.patch(orderId).set({ 'payment.paymentStatus': paymentStatus, updatedAt: new Date().toISOString() }).commit()
+      return { data: order, error: null }
+    } catch (err) {
+      console.error('Error updating payment status:', err)
+      return { data: null, error: err }
+    }
+  },
+
+  async addAdminNotes(orderId: string, notes: string) {
+    try {
+      const order = await client.patch(orderId).set({ adminNotes: notes, updatedAt: new Date().toISOString() }).commit()
+      return { data: order, error: null }
+    } catch (err) {
+      console.error('Error adding admin notes:', err)
+      return { data: null, error: err }
+    }
+  },
+
+  async addInternalTag(orderId: string, tag: string) {
+    try {
+      const order = await client.patch(orderId).insert('after', 'internalTags[-1]', [tag]).commit()
+      return { data: order, error: null }
+    } catch (err) {
+      console.error('Error adding tag:', err)
+      return { data: null, error: err }
+    }
+  },
+
+  async updateDeliveryInfo(orderId: string, deliveryInfo: Partial<DeliveryInfo>) {
+    try {
+      const order = await client.patch(orderId).set({ deliveryInfo, updatedAt: new Date().toISOString() }).commit()
+      return { data: order, error: null }
+    } catch (err) {
+      console.error('Error updating delivery info:', err)
+      return { data: null, error: err }
+    }
+  },
+
+  async completeOrder(orderId: string) {
+    try {
+      const order = await client.patch(orderId).set({ status: 'delivered', completedAt: new Date().toISOString(), updatedAt: new Date().toISOString() }).commit()
+      return { data: order, error: null }
+    } catch (err) {
+      console.error('Error completing order:', err)
+      return { data: null, error: err }
+    }
   }
 }
+
+// ===== INTERFACES =====
 
 export interface Category {
   _id: string
@@ -277,4 +504,104 @@ export interface Subcategory {
   startingPrice?: number
   categoryName?: string
   categorySlug?: string
+}
+
+// ===== ORDER INTERFACES =====
+
+export interface CustomerDetails {
+  firstName: string
+  lastName?: string
+  email: string
+  phone: string
+}
+
+export interface DeliveryAddress {
+  address: string
+  city: string
+  state: string
+  pincode: string
+}
+
+export interface SelectedOption {
+  optionLabel: string
+  selectedValue: string
+  priceAdded: number
+}
+
+export interface Pricing {
+  basePrice: number
+  optionsPrice: number
+  totalPrice: number
+  pricePerUnit: number
+  discount?: number
+  discountPercentage?: number
+}
+
+export interface Payment {
+  paymentMethod: 'razorpay' | 'credit_card' | 'debit_card' | 'upi' | 'net_banking' | 'other'
+  razorpayOrderId?: string
+  razorpayPaymentId?: string
+  razorpaySignature?: string
+  paymentStatus: 'pending' | 'processing' | 'completed' | 'failed' | 'refunded'
+  amountPaid: number
+  paymentDate: string
+}
+
+export interface DesignFile {
+  fileName: string
+  fileUrl: string
+  fileType: string
+  fileSize: number
+  uploadedAt: string
+}
+
+export interface DeliveryInfo {
+  deliveryType?: 'standard' | 'express' | 'same_day'
+  expectedDeliveryDate?: string
+  actualDeliveryDate?: string
+  trackingNumber?: string
+  shippingProvider?: string
+}
+
+export interface SelectedTier {
+  tierLabel: string
+  quantity: number
+  price: number
+  basePrice: number
+  savingsPercentage?: number
+  badge?: string
+}
+
+export interface ProductSnapshot {
+  name: string
+  slug: string
+  description?: string
+  productImage?: {
+    asset?: string
+  }
+}
+
+export interface OrderInput {
+  orderId: string
+  customerId: string
+  productId: string
+  customerDetails: CustomerDetails
+  deliveryAddress: DeliveryAddress
+  productSnapshot: ProductSnapshot
+  quantity: number
+  selectedTier: SelectedTier
+  selectedOptions?: SelectedOption[]
+  pricing: Pricing
+  payment: Payment
+  customerNotes?: string
+  designFiles?: DesignFile[]
+  deliveryInfo?: DeliveryInfo
+  status?: string
+}
+
+export interface Order extends OrderInput {
+  _id: string
+  createdAt: string
+  updatedAt: string
+  completedAt?: string
 }
