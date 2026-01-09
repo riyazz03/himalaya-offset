@@ -22,7 +22,7 @@
 }
 
 .logo img {
-  width: 130px;
+  width: 100px;
 }
 
 .logo a {
@@ -329,7 +329,7 @@
 /* Desktop */
 @media (min-width: 1025px) {
   .logo img {
-    width: 130px;
+    width: 100px;
   }
 
   .nav-components {
@@ -379,7 +379,7 @@
   }
 
   .logo img {
-    width: 120px;
+    width: 70px;
   }
 
   .navbar-search {
@@ -429,7 +429,7 @@
   }
 
   .logo img {
-    width: 100px;
+    width: 50px;
   }
 
   .logo div {
@@ -516,7 +516,7 @@
   }
 
   .logo img {
-    width: 100px;
+    width: 50px;
   }
 
   .hamburger-button span {

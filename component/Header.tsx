@@ -68,7 +68,7 @@ export default function Header() {
             <header className="header">
                 <div className="logo">
                     <Link href="/" onClick={closeMobileMenu}>
-                        <img src="/logo.webp" alt="Himalaya Offset" />
+                        <img src="/logo.png" alt="Himalaya Offset" />
                     </Link>
                 </div>
 
