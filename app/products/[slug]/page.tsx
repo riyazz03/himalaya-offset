@@ -357,9 +357,9 @@ export default function ProductPage() {
                             <>
                                 {selectedTier !== null && (
                                     <div className="price-header">
-                                        <div className="price-main">₹{priceBreakdown.totalPrice.toLocaleString()}</div>
+                                        <div className="price-main">₹{Math.round(priceBreakdown.totalPrice).toLocaleString()}</div>
                                         <div className="price-sub">
-                                            (₹{priceBreakdown.pricePerUnit.toFixed(2)} each / {quantity} units)
+                                            ({quantity} units)
                                         </div>
                                     </div>
                                 )}
@@ -383,7 +383,7 @@ export default function ProductPage() {
                                                         const priceModifier = selectedTier !== null 
                                                             ? getOptionPriceModifier(option.label, value.value as string, selectedTier)
                                                             : 0;
-                                                        const priceDisplay = priceModifier > 0 ? ` (+₹${priceModifier}/unit)` : '';
+                                                        const priceDisplay = priceModifier > 0 ? ` (+₹${Math.round(priceModifier)})` : '';
                                                         
                                                         return (
                                                             <option key={valueIndex} value={value.value}>
@@ -404,7 +404,6 @@ export default function ProductPage() {
                                             {displayedTiers.map((tier, displayIndex) => {
                                                 const actualIndex = sortedTiers.indexOf(tier);
                                                 const adjustedPrice = getAdjustedTierPrice(actualIndex, tier.price, tier.quantity);
-                                                const adjustedPricePerUnit = getAdjustedTierPricePerUnit(actualIndex, tier.pricePerUnit);
                                                 const isSelected = selectedTier === actualIndex;
                                                 
                                                 return (
@@ -417,8 +416,7 @@ export default function ProductPage() {
                                                             <span className="qty-number">{tier.quantity}</span>
                                                         </div>
                                                         <div className="qty-right">
-                                                            <span className="qty-price">₹{adjustedPrice.toLocaleString()}</span>
-                                                            <span className="qty-per-unit">₹{adjustedPricePerUnit.toFixed(2)}/unit</span>
+                                                            <span className="qty-price">₹{Math.round(adjustedPrice).toLocaleString()}</span>
                                                             {tier.savingsPercentage && (
                                                                 <span className="qty-savings">{tier.savingsPercentage}% savings</span>
                                                             )}
