@@ -380,14 +380,9 @@ export default function ProductPage() {
                                                 >
                                                     <option value="">Select {option.label}...</option>
                                                     {option.values && option.values.map((value: OptionValue, valueIndex: number) => {
-                                                        const priceModifier = selectedTier !== null 
-                                                            ? getOptionPriceModifier(option.label, value.value as string, selectedTier)
-                                                            : 0;
-                                                        const priceDisplay = priceModifier > 0 ? ` (+₹${Math.round(priceModifier)})` : '';
-                                                        
                                                         return (
                                                             <option key={valueIndex} value={value.value}>
-                                                                {value.label}{priceDisplay}
+                                                                {value.label}
                                                             </option>
                                                         );
                                                     })}
