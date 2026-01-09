@@ -1,11 +1,6 @@
 import { NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
 
-const razorpay = new Razorpay({
-    key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '',
-    key_secret: process.env.RAZORPAY_KEY_SECRET || '',
-});
-
 interface CreateOrderRequest {
     amount: number;
     productName: string;
@@ -15,6 +10,24 @@ interface CreateOrderRequest {
 
 export async function POST(request: Request) {
     try {
+        // Validate environment variables
+        const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+        const keySecret = process.env.RAZORPAY_KEY_SECRET;
+
+        if (!keyId || !keySecret) {
+            console.error('Missing Razorpay credentials');
+            return NextResponse.json(
+                { error: 'Payment service not configured' },
+                { status: 500 }
+            );
+        }
+
+        // Initialize Razorpay inside the handler
+        const razorpay = new Razorpay({
+            key_id: keyId,
+            key_secret: keySecret,
+        });
+
         const body: CreateOrderRequest = await request.json();
 
         // Validate input
