@@ -4,6 +4,7 @@ body, html{
 
 .hero-section {
   width: 100%;
+  height: auto;
   height: calc(55vh - 74px);
   position: relative;
   overflow: hidden;
