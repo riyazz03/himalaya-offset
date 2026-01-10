@@ -24,6 +24,9 @@ interface PriceData {
     optionsPrice: number;
     totalPrice: number;
     pricePerUnit: number;
+    gstAmount: number;
+    gstPercentage: number;
+    finalTotal: number;
 }
 
 export default function ProductPage() {
@@ -43,7 +46,10 @@ export default function ProductPage() {
         basePrice: 0,
         optionsPrice: 0,
         totalPrice: 0,
-        pricePerUnit: 0
+        pricePerUnit: 0,
+        gstAmount: 0,
+        gstPercentage: 18,
+        finalTotal: 0
     });
 
     useEffect(() => {
@@ -69,7 +75,6 @@ export default function ProductPage() {
                 if (data) {
                     setProduct(data);
                     
-                    // Check if product has pricing tiers
                     if (data.pricingTiers && data.pricingTiers.length > 0) {
                         const sortedTiers = [...data.pricingTiers].sort((a, b) => a.quantity - b.quantity);
                         const firstTier = sortedTiers[0];
@@ -77,12 +82,10 @@ export default function ProductPage() {
                         setSelectedTier(0);
                         setQuantity(firstTier.quantity);
                     } else {
-                        // Product exists but has no pricing tiers - still allow viewing
                         setSelectedTier(null);
                         setQuantity(0);
                     }
                     
-                    // Initialize options
                     if (data.productOptions && data.productOptions.length > 0) {
                         const initialOptions: SelectedOptions = {};
                         data.productOptions.forEach((option: ProductOption) => {
@@ -153,26 +156,63 @@ export default function ProductPage() {
 
     const calculateTotalPrice = (tierIndex: number, qty: number): PriceData => {
         if (!product?.pricingTiers || product.pricingTiers.length === 0) {
-            return { basePrice: 0, optionsPrice: 0, totalPrice: 0, pricePerUnit: 0 };
+            return { 
+                basePrice: 0, 
+                optionsPrice: 0, 
+                totalPrice: 0, 
+                pricePerUnit: 0,
+                gstAmount: 0,
+                gstPercentage: 18,
+                finalTotal: 0
+            };
         }
 
         if (tierIndex < 0 || tierIndex >= product.pricingTiers.length) {
-            return { basePrice: 0, optionsPrice: 0, totalPrice: 0, pricePerUnit: 0 };
+            return { 
+                basePrice: 0, 
+                optionsPrice: 0, 
+                totalPrice: 0, 
+                pricePerUnit: 0,
+                gstAmount: 0,
+                gstPercentage: 18,
+                finalTotal: 0
+            };
         }
 
         const sortedTiers = [...product.pricingTiers].sort((a, b) => a.quantity - b.quantity);
-        const basePriceData = sortedTiers[tierIndex];
-        const basePrice = basePriceData.price;
-        const pricePerUnitModifier = calculatePricePerUnitModifier(tierIndex);
-
-        const totalPrice = basePrice + (pricePerUnitModifier * qty);
-        const adjustedPricePerUnit = basePriceData.pricePerUnit + pricePerUnitModifier;
+        const selectedTierData = sortedTiers[tierIndex];
+        
+        // Get bundle price and quantity from tier
+        const tierBundlePrice = selectedTierData.price || 0;
+        const tierQuantity = selectedTierData.quantity || 1;
+        
+        // Calculate actual price per unit: tierPrice / tierQuantity
+        const basePricePerUnit = tierBundlePrice / tierQuantity;
+        
+        // Get option modifiers
+        const optionModifier = calculatePricePerUnitModifier(tierIndex);
+        
+        // Final price per unit (base + options)
+        const finalPricePerUnit = basePricePerUnit + optionModifier;
+        
+        // Calculate subtotal: quantity × final price per unit
+        const subtotal = finalPricePerUnit * qty;
+        
+        // Calculate GST (18%)
+        const gstPercentage = 18;
+        const gstAmount = Math.round(subtotal * (gstPercentage / 100) * 100) / 100;
+        
+        // Final total with GST
+        const finalTotal = Math.round((subtotal + gstAmount) * 100) / 100;
 
         return { 
-            basePrice, 
-            optionsPrice: pricePerUnitModifier * qty,
-            totalPrice, 
-            pricePerUnit: adjustedPricePerUnit
+            basePrice: subtotal,
+            optionsPrice: optionModifier * qty,
+            totalPrice: subtotal, 
+            pricePerUnit: finalPricePerUnit,
+            gstAmount,
+            gstPercentage,
+            finalTotal
         };
     };
 
@@ -181,11 +221,6 @@ export default function ProductPage() {
             setPriceBreakdown(calculateTotalPrice(selectedTier, quantity));
         }
     }, [selectedTier, selectedOptions, product, quantity]);
-
-    const getAdjustedTierPricePerUnit = (tierIndex: number, basePricePerUnit: number): number => {
-        const pricePerUnitModifier = calculatePricePerUnitModifier(tierIndex);
-        return basePricePerUnit + pricePerUnitModifier;
-    };
 
     const getAdjustedTierPrice = (tierIndex: number, baseTierPrice: number, tierQuantity: number): number => {
         const pricePerUnitModifier = calculatePricePerUnitModifier(tierIndex);
@@ -249,8 +284,8 @@ export default function ProductPage() {
             : [];
 
     const sortedTiers = product.pricingTiers ? [...product.pricingTiers].sort((a, b) => a.quantity - b.quantity) : [];
-    const displayedTiers = showAllQuantities ? sortedTiers : sortedTiers.slice(0, 10);
-    const hasMoreTiers = sortedTiers.length > 10;
+    const displayedTiers = showAllQuantities ? sortedTiers : sortedTiers.slice(0, 3);
+    const hasMoreTiers = sortedTiers.length > 3;
     const hasPricingTiers = sortedTiers.length > 0;
 
     return (
@@ -338,11 +373,12 @@ export default function ProductPage() {
 
                         <h1 className="product-title">{product.name}</h1>
 
-                        <a href="#description" className="description-link">Product Description</a>
-
                         {product.description && (
-                            <div className="product-description">
-                                {renderBlockContent(product.description)}
+                            <div className="product-description-card">
+                                <div className="description-label">Description</div>
+                                <div className="product-description">
+                                    {renderBlockContent(product.description)}
+                                </div>
                             </div>
                         )}
 
@@ -357,7 +393,7 @@ export default function ProductPage() {
                             <>
                                 {selectedTier !== null && (
                                     <div className="price-header">
-                                        <div className="price-main">₹{Math.round(priceBreakdown.totalPrice).toLocaleString()}</div>
+                                        <div className="price-main">₹{priceBreakdown.finalTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</div>
                                         <div className="price-sub">
                                             ({quantity} units)
                                         </div>
@@ -394,7 +430,7 @@ export default function ProductPage() {
 
                                 {sortedTiers.length > 0 && (
                                     <div className="quantity-section">
-                                        <label className="quantity-label">QUANTITY</label>
+                                        <label className="quantity-label">SELECT QUANTITY</label>
                                         <div className="quantity-list">
                                             {displayedTiers.map((tier, displayIndex) => {
                                                 const actualIndex = sortedTiers.indexOf(tier);
@@ -411,7 +447,7 @@ export default function ProductPage() {
                                                             <span className="qty-number">{tier.quantity}</span>
                                                         </div>
                                                         <div className="qty-right">
-                                                            <span className="qty-price">₹{Math.round(adjustedPrice).toLocaleString()}</span>
+                                                            <span className="qty-price">₹{adjustedPrice.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
                                                             {tier.savingsPercentage && (
                                                                 <span className="qty-savings">{tier.savingsPercentage}% savings</span>
                                                             )}
@@ -441,12 +477,30 @@ export default function ProductPage() {
                                     </div>
                                 )}
 
+                                {/* Price Calculation Section */}
+                                <div className="price-calculation">
+                                    <div className="calc-row">
+                                        <span className="calc-label">
+                                            {quantity} units × ₹{priceBreakdown.pricePerUnit.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                                        </span>
+                                        <span className="calc-value">₹{priceBreakdown.totalPrice.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+                                    </div>
+                                    <div className="calc-row gst">
+                                        <span className="calc-label">GST (18%)</span>
+                                        <span className="calc-value">₹{priceBreakdown.gstAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+                                    </div>
+                                    <div className="calc-row total">
+                                        <span className="calc-label">Total Amount</span>
+                                        <span className="calc-value">₹{priceBreakdown.finalTotal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+                                    </div>
+                                </div>
+
                                 <button 
                                     className="order-button"
                                     onClick={handlePlaceOrder}
                                     disabled={selectedTier === null}
                                 >
-                                    CONTINUE
+                                    CONTINUE TO CHECKOUT
                                 </button>
                             </>
                         )}

@@ -34,6 +34,9 @@ interface OrderData {
         optionsPrice: number;
         totalPrice: number;
         pricePerUnit: number;
+        gstAmount?: number;
+        gstPercentage?: number;
+        finalTotal?: number;
     };
 }
 
@@ -367,6 +370,9 @@ function CheckoutContent() {
             console.log('Step 1: Syncing user details to profile...');
             await syncUserDetailsToProfile();
 
+            // Use finalTotal if available (with GST), otherwise use totalPrice
+            const amountToPay = orderData.pricing.finalTotal || orderData.pricing.totalPrice;
+
             // Step 2: Create Razorpay Order
             console.log('Step 2: Creating Razorpay order...');
             const orderResponse = await fetch('/api/payments/razorpay/create-order', {
@@ -375,7 +381,7 @@ function CheckoutContent() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    amount: orderData.pricing.totalPrice,
+                    amount: amountToPay,
                     productName: orderData.product.name,
                     userEmail: userDetails.email,
                     userName: `${userDetails.firstName} ${userDetails.lastName}`,
@@ -407,7 +413,7 @@ function CheckoutContent() {
             formData.append('userCity', userDetails.city);
             formData.append('userState', userDetails.state);
             formData.append('userPincode', userDetails.pincode);
-            formData.append('totalAmount', orderData.pricing.totalPrice.toString());
+            formData.append('totalAmount', amountToPay.toString());
 
             console.log('Sending upload request to /api/orders/send-details');
             const uploadResponse = await fetch('/api/orders/send-details', {
@@ -460,7 +466,7 @@ function CheckoutContent() {
                                 razorpay_payment_id: response.razorpay_payment_id,
                                 razorpay_signature: response.razorpay_signature,
                                 orderId: orderId,
-                                amount: orderData.pricing.totalPrice,
+                                amount: amountToPay,
                             }),
                         });
 
@@ -535,6 +541,9 @@ function CheckoutContent() {
             </div>
         );
     }
+
+    const finalPrice = orderData?.pricing.finalTotal || orderData?.pricing.totalPrice || 0;
+    const gstAmount = orderData?.pricing.gstAmount || 0;
 
     return (
         <>
@@ -775,8 +784,14 @@ function CheckoutContent() {
                         <div className="price-section">
                             <div className="price-row">
                                 <span>Subtotal</span>
-                                <span>₹{orderData?.pricing.basePrice.toLocaleString()}</span>
+                                <span>₹{Math.round(orderData?.pricing.totalPrice || 0).toLocaleString()}</span>
                             </div>
+                            {gstAmount > 0 && (
+                                <div className="price-row">
+                                    <span>GST (18%)</span>
+                                    <span>₹{Math.round(gstAmount).toLocaleString()}</span>
+                                </div>
+                            )}
                             {orderData && orderData.pricing.optionsPrice > 0 && (
                                 <div className="price-row">
                                     <span>Customizations</span>
@@ -785,7 +800,7 @@ function CheckoutContent() {
                             )}
                             <div className="price-row total">
                                 <span>Total Amount</span>
-                                <span>₹{orderData?.pricing.totalPrice.toLocaleString()}</span>
+                                <span>₹{Math.round(finalPrice).toLocaleString()}</span>
                             </div>
                         </div>
 
@@ -798,7 +813,7 @@ function CheckoutContent() {
                             onClick={handleCheckout}
                             disabled={loading || !razorpayLoaded}
                         >
-                            {loading ? 'Processing...' : `Proceed to Payment - ₹${orderData?.pricing.totalPrice.toLocaleString()}`}
+                            {loading ? 'Processing...' : `Proceed to Payment - ₹${Math.round(finalPrice).toLocaleString()}`}
                         </button>
 
                         {/* Trust Info */}
