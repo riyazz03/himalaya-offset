@@ -385,6 +385,11 @@ function CheckoutContent() {
                     productName: orderData.product.name,
                     userEmail: userDetails.email,
                     userName: `${userDetails.firstName} ${userDetails.lastName}`,
+                    // Include all order details for backend
+                    orderData: orderData,
+                    userDetails: userDetails,
+                    uploadedFilesCount: uploadedFiles.length,
+                    description: description,
                 }),
             });
 
@@ -467,6 +472,17 @@ function CheckoutContent() {
                                 razorpay_signature: response.razorpay_signature,
                                 orderId: orderId,
                                 amount: amountToPay,
+                                productName: orderData.product.name,
+                                userName: `${userDetails.firstName} ${userDetails.lastName}`,
+                                userEmail: userDetails.email,
+                                userPhone: userDetails.phone,
+                                userAddress: userDetails.address,
+                                userCity: userDetails.city,
+                                userState: userDetails.state,
+                                userPincode: userDetails.pincode,
+                                description: description,
+                                uploadedFiles: uploadedFiles.length,
+                                orderData: orderData,
                             }),
                         });
 
@@ -477,8 +493,9 @@ function CheckoutContent() {
                         const verifyResult = await verifyResponse.json();
 
                         if (verifyResult.verified) {
-                            console.log('✅ Payment verified, redirecting to success page');
-                            router.push(`/order-success?orderId=${orderId}`);
+                            console.log('✅ Payment verified, redirecting to thank you page');
+                            // FIXED: Redirect to /thank-you instead of /order-success
+                            router.push(`/thank-you?orderId=${orderId}`);
                         } else {
                             setError('Payment verification failed. Please contact support.');
                             setLoading(false);

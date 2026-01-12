@@ -35,13 +35,23 @@ interface VerifyPaymentRequest {
   userPincode?: string;
   description?: string;
   uploadedFiles?: number;
+  orderData?: any;
 }
 
 export async function POST(request: Request) {
   try {
     const body: VerifyPaymentRequest = await request.json();
 
+    console.log('=== PAYMENT VERIFICATION STARTED ===');
+    console.log('Received data:', {
+      orderId: body.orderId,
+      amount: body.amount,
+      productName: body.productName,
+      userEmail: body.userEmail,
+    });
+
     if (!body.razorpay_order_id || !body.razorpay_payment_id || !body.razorpay_signature) {
+      console.error('Missing payment details');
       return NextResponse.json(
         { error: 'Missing payment details', verified: false },
         { status: 400 }
@@ -49,6 +59,7 @@ export async function POST(request: Request) {
     }
 
     // Verify Razorpay signature
+    console.log('Verifying Razorpay signature...');
     const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || '');
     hmac.update(`${body.razorpay_order_id}|${body.razorpay_payment_id}`);
     const generated_signature = hmac.digest('hex');
@@ -56,7 +67,7 @@ export async function POST(request: Request) {
     const isSignatureValid = generated_signature === body.razorpay_signature;
 
     if (!isSignatureValid) {
-      console.error('Signature Verification Failed');
+      console.error('❌ Signature Verification Failed');
       return NextResponse.json(
         { 
           error: 'Invalid payment signature',
@@ -66,45 +77,65 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log('✅ Payment Signature Verified Successfully');
+    console.log('✅ Signature Verified Successfully');
 
-    // Update order with payment details in Sanity
-    console.log('Updating order in Sanity with payment details...');
+    // Create order in Sanity
+    console.log('\n=== CREATING ORDER IN SANITY ===');
     let sanityOrderId: string = '';
     
     try {
-      // Find the order by orderId and update it with payment info
-      const query = `*[_type == "order" && orderId == $orderId][0]._id`;
-      const existingOrderId = await sanityClient.fetch(query, { orderId: body.orderId });
+      const orderDoc = {
+        _type: 'order',
+        orderId: body.orderId,
+        product: {
+          name: body.productName || '',
+          id: body.orderData?.product?.id || '',
+          slug: body.orderData?.product?.slug || '',
+        },
+        quantity: body.orderData?.quantity || 0,
+        selectedTier: body.orderData?.selectedTier || {},
+        selectedOptions: body.orderData?.selectedOptions || {},
+        customer: {
+          name: body.userName || '',
+          email: body.userEmail || '',
+          phone: body.userPhone || '',
+          address: body.userAddress || '',
+          city: body.userCity || '',
+          state: body.userState || '',
+          pincode: body.userPincode || '',
+        },
+        description: body.description || '',
+        uploadedFilesCount: body.uploadedFiles || 0,
+        pricing: {
+          amount: body.amount,
+          currency: 'INR',
+        },
+        payment: {
+          razorpayOrderId: body.razorpay_order_id,
+          razorpayPaymentId: body.razorpay_payment_id,
+          razorpaySignature: body.razorpay_signature,
+          paymentStatus: 'completed',
+          amountPaid: body.amount,
+          paymentDate: new Date().toISOString(),
+        },
+        status: 'processing',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
 
-      if (existingOrderId) {
-        // Update existing order with payment details
-        const updatedOrder = await sanityClient
-          .patch(existingOrderId)
-          .set({
-            'payment.razorpayOrderId': body.razorpay_order_id,
-            'payment.razorpayPaymentId': body.razorpay_payment_id,
-            'payment.razorpaySignature': body.razorpay_signature,
-            'payment.paymentStatus': 'completed',
-            'payment.amountPaid': body.amount,
-            'payment.paymentDate': new Date().toISOString(),
-            'status': 'processing', // Change order status to processing
-            'updatedAt': new Date().toISOString(),
-          })
-          .commit();
-
-        sanityOrderId = updatedOrder._id;
-        console.log('✅ Order updated in Sanity:', sanityOrderId);
-      } else {
-        console.warn('⚠️ Order not found in Sanity with orderId:', body.orderId);
-      }
+      const createdOrder = await sanityClient.create(orderDoc);
+      sanityOrderId = createdOrder._id;
+      console.log('✅ Order created in Sanity:', sanityOrderId);
+      console.log('Full order document:', JSON.stringify(createdOrder, null, 2));
     } catch (sanityError) {
-      console.error('⚠️ Failed to update order in Sanity:', sanityError);
+      console.error('❌ Failed to create order in Sanity:', sanityError);
+      // Continue anyway, we'll still send emails
     }
 
     // Send admin email
-    console.log('Sending admin email...');
+    console.log('\n=== SENDING ADMIN EMAIL ===');
     const adminEmail = process.env.ADMIN_EMAIL || 'himalayaoffsetvlr1@gmail.com';
+    console.log('Admin email recipient:', adminEmail);
 
     const adminEmailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto;">
@@ -172,6 +203,13 @@ export async function POST(request: Request) {
               </td>
             </tr>
           </table>
+
+          <div style="background: #fff; padding: 15px; border-radius: 6px; border-left: 4px solid #2067ff; margin-top: 20px;">
+            <p style="margin: 0; color: #6b7280; font-size: 12px;">
+              <strong>Sanity Order ID:</strong> ${sanityOrderId || 'Pending'}<br />
+              <strong>Payment Date:</strong> ${new Date().toLocaleString()}
+            </p>
+          </div>
         </div>
       </div>
     `;
@@ -183,13 +221,15 @@ export async function POST(request: Request) {
         subject: `✅ Payment Received - Order #${body.orderId}`,
         html: adminEmailHtml,
       });
-      console.log('✅ Admin email sent successfully');
+      console.log('✅ Admin email sent successfully to:', adminEmail);
     } catch (emailError) {
-      console.warn('⚠️ Failed to send admin email:', emailError);
+      console.error('❌ Failed to send admin email:', emailError);
     }
 
     // Send customer confirmation email
-    console.log('Sending customer confirmation email...');
+    console.log('\n=== SENDING CUSTOMER EMAIL ===');
+    console.log('Customer email recipient:', body.userEmail);
+
     const customerEmailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: linear-gradient(135deg, #2067ff 0%, #1a52cc 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0;">
@@ -243,10 +283,12 @@ export async function POST(request: Request) {
         subject: `✅ Payment Confirmation - Order #${body.orderId}`,
         html: customerEmailHtml,
       });
-      console.log('✅ Customer confirmation email sent');
+      console.log('✅ Customer confirmation email sent to:', body.userEmail);
     } catch (emailError) {
-      console.warn('⚠️ Failed to send customer confirmation email:', emailError);
+      console.error('❌ Failed to send customer confirmation email:', emailError);
     }
+
+    console.log('\n=== PAYMENT VERIFICATION COMPLETED ===\n');
 
     return NextResponse.json(
       {
