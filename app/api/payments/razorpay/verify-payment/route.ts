@@ -58,26 +58,33 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verify Razorpay signature
-    console.log('Verifying Razorpay signature...');
-    const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || '');
-    hmac.update(`${body.razorpay_order_id}|${body.razorpay_payment_id}`);
-    const generated_signature = hmac.digest('hex');
+    // Check if this is a test order (starts with test_order_)
+    const isTestMode = body.razorpay_order_id.startsWith('test_order_');
 
-    const isSignatureValid = generated_signature === body.razorpay_signature;
+    if (isTestMode) {
+      console.log('✅ TEST MODE DETECTED - Skipping signature verification');
+    } else {
+      // Verify Razorpay signature only for real orders
+      console.log('Verifying Razorpay signature...');
+      const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || '');
+      hmac.update(`${body.razorpay_order_id}|${body.razorpay_payment_id}`);
+      const generated_signature = hmac.digest('hex');
 
-    if (!isSignatureValid) {
-      console.error('❌ Signature Verification Failed');
-      return NextResponse.json(
-        { 
-          error: 'Invalid payment signature',
-          verified: false 
-        },
-        { status: 400 }
-      );
+      const isSignatureValid = generated_signature === body.razorpay_signature;
+
+      if (!isSignatureValid) {
+        console.error('❌ Signature Verification Failed');
+        return NextResponse.json(
+          { 
+            error: 'Invalid payment signature',
+            verified: false 
+          },
+          { status: 400 }
+        );
+      }
+
+      console.log('✅ Signature Verified Successfully');
     }
-
-    console.log('✅ Signature Verified Successfully');
 
     // Create order in Sanity
     console.log('\n=== CREATING ORDER IN SANITY ===');
@@ -117,6 +124,7 @@ export async function POST(request: Request) {
           paymentStatus: 'completed',
           amountPaid: body.amount,
           paymentDate: new Date().toISOString(),
+          isTestMode: isTestMode,
         },
         status: 'processing',
         createdAt: new Date().toISOString(),
@@ -142,6 +150,7 @@ export async function POST(request: Request) {
         <div style="background: linear-gradient(135deg, #2067ff 0%, #1a52cc 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0;">
           <h1 style="margin: 0; font-size: 28px;">💰 Payment Received!</h1>
           <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Order #${body.orderId}</p>
+          ${isTestMode ? '<p style="margin: 5px 0 0 0; font-size: 14px; background: rgba(255,255,255,0.2); padding: 5px; border-radius: 3px;">🧪 TEST MODE ORDER</p>' : ''}
         </div>
         
         <div style="background: #f8fafc; padding: 30px; border-radius: 0 0 8px 8px; border: 1px solid #e2e8f0;">
@@ -207,7 +216,8 @@ export async function POST(request: Request) {
           <div style="background: #fff; padding: 15px; border-radius: 6px; border-left: 4px solid #2067ff; margin-top: 20px;">
             <p style="margin: 0; color: #6b7280; font-size: 12px;">
               <strong>Sanity Order ID:</strong> ${sanityOrderId || 'Pending'}<br />
-              <strong>Payment Date:</strong> ${new Date().toLocaleString()}
+              <strong>Payment Date:</strong> ${new Date().toLocaleString()}<br />
+              ${isTestMode ? '<strong style="color: #f59e0b;">🧪 TEST MODE - This is a test order</strong><br />' : ''}
             </p>
           </div>
         </div>
@@ -218,7 +228,7 @@ export async function POST(request: Request) {
       await transporter.sendMail({
         from: process.env.EMAIL_USER,
         to: adminEmail,
-        subject: `✅ Payment Received - Order #${body.orderId}`,
+        subject: `✅ Payment Received - Order #${body.orderId}${isTestMode ? ' [TEST]' : ''}`,
         html: adminEmailHtml,
       });
       console.log('✅ Admin email sent successfully to:', adminEmail);
@@ -298,6 +308,7 @@ export async function POST(request: Request) {
         orderId: body.orderId,
         paymentId: body.razorpay_payment_id,
         sanityOrderId: sanityOrderId,
+        isTestMode: isTestMode,
       },
       { status: 200 }
     );

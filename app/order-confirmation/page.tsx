@@ -51,17 +51,6 @@ interface UserDetails {
     pincode: string;
 }
 
-interface ExtendedSessionUser {
-    firstName?: string | null;
-    lastName?: string | null;
-    email?: string | null;
-    phone?: string;
-    address?: string;
-    city?: string;
-    state?: string;
-    pincode?: string;
-}
-
 interface UploadedFile {
     file: File;
     preview?: string;
@@ -370,7 +359,7 @@ function CheckoutContent() {
             console.log('Step 1: Syncing user details to profile...');
             await syncUserDetailsToProfile();
 
-            // Use finalTotal if available (with GST), otherwise use totalPrice
+            // Calculate final amount (with GST if available)
             const amountToPay = orderData.pricing.finalTotal || orderData.pricing.totalPrice;
 
             // Step 2: Create Razorpay Order
@@ -385,11 +374,6 @@ function CheckoutContent() {
                     productName: orderData.product.name,
                     userEmail: userDetails.email,
                     userName: `${userDetails.firstName} ${userDetails.lastName}`,
-                    // Include all order details for backend
-                    orderData: orderData,
-                    userDetails: userDetails,
-                    uploadedFilesCount: uploadedFiles.length,
-                    description: description,
                 }),
             });
 
@@ -461,29 +445,33 @@ function CheckoutContent() {
                 handler: async (response: RazorpayResponse) => {
                     try {
                         console.log('Payment successful, verifying...');
+                        
+                        // Prepare complete order data for verification
+                        const verificationData = {
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                            orderId: orderId,
+                            amount: amountToPay,
+                            productName: orderData.product.name,
+                            userName: `${userDetails.firstName} ${userDetails.lastName}`,
+                            userEmail: userDetails.email,
+                            userPhone: userDetails.phone,
+                            userAddress: userDetails.address,
+                            userCity: userDetails.city,
+                            userState: userDetails.state,
+                            userPincode: userDetails.pincode,
+                            description: description,
+                            uploadedFiles: uploadedFiles.length,
+                            orderData: orderData,
+                        };
+
                         const verifyResponse = await fetch('/api/payments/razorpay/verify-payment', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                             },
-                            body: JSON.stringify({
-                                razorpay_order_id: response.razorpay_order_id,
-                                razorpay_payment_id: response.razorpay_payment_id,
-                                razorpay_signature: response.razorpay_signature,
-                                orderId: orderId,
-                                amount: amountToPay,
-                                productName: orderData.product.name,
-                                userName: `${userDetails.firstName} ${userDetails.lastName}`,
-                                userEmail: userDetails.email,
-                                userPhone: userDetails.phone,
-                                userAddress: userDetails.address,
-                                userCity: userDetails.city,
-                                userState: userDetails.state,
-                                userPincode: userDetails.pincode,
-                                description: description,
-                                uploadedFiles: uploadedFiles.length,
-                                orderData: orderData,
-                            }),
+                            body: JSON.stringify(verificationData),
                         });
 
                         if (!verifyResponse.ok) {
@@ -494,8 +482,19 @@ function CheckoutContent() {
 
                         if (verifyResult.verified) {
                             console.log('✅ Payment verified, redirecting to thank you page');
-                            // FIXED: Redirect to /thank-you instead of /order-success
-                            router.push(`/thank-you?orderId=${orderId}`);
+                            
+                            // Store order data before redirect
+                            const orderDataToStore = {
+                              orderId: orderId,
+                              productName: orderData.product.name,
+                              amount: amountToPay,
+                              userEmail: userDetails.email,
+                              userName: `${userDetails.firstName} ${userDetails.lastName}`,
+                            };
+                            localStorage.setItem('lastOrder', JSON.stringify(orderDataToStore));
+                            sessionStorage.setItem('orderData', JSON.stringify(orderDataToStore));
+                            
+                            router.push('/thank-you');
                         } else {
                             setError('Payment verification failed. Please contact support.');
                             setLoading(false);
@@ -559,6 +558,7 @@ function CheckoutContent() {
         );
     }
 
+    // Calculate final price (with GST if available)
     const finalPrice = orderData?.pricing.finalTotal || orderData?.pricing.totalPrice || 0;
     const gstAmount = orderData?.pricing.gstAmount || 0;
 
@@ -591,6 +591,7 @@ function CheckoutContent() {
                                         onChange={(e) => handleUserDetailChange('firstName', e.target.value)}
                                         placeholder="Enter your first name"
                                         className={validationErrors.firstName ? 'input-error' : ''}
+                                        disabled={loading}
                                     />
                                     {validationErrors.firstName && (
                                         <span className="field-error">{validationErrors.firstName}</span>
@@ -605,6 +606,7 @@ function CheckoutContent() {
                                         onChange={(e) => handleUserDetailChange('lastName', e.target.value)}
                                         placeholder="Enter your last name"
                                         className={validationErrors.lastName ? 'input-error' : ''}
+                                        disabled={loading}
                                     />
                                     {validationErrors.lastName && (
                                         <span className="field-error">{validationErrors.lastName}</span>
@@ -619,6 +621,7 @@ function CheckoutContent() {
                                         onChange={(e) => handleUserDetailChange('email', e.target.value)}
                                         placeholder="Enter your email"
                                         className={validationErrors.email ? 'input-error' : ''}
+                                        disabled={loading}
                                     />
                                     {validationErrors.email && (
                                         <span className="field-error">{validationErrors.email}</span>
@@ -633,6 +636,7 @@ function CheckoutContent() {
                                         onChange={(e) => handleUserDetailChange('phone', e.target.value)}
                                         placeholder="Enter 10-digit phone number"
                                         className={validationErrors.phone ? 'input-error' : ''}
+                                        disabled={loading}
                                     />
                                     {validationErrors.phone && (
                                         <span className="field-error">{validationErrors.phone}</span>
@@ -647,6 +651,7 @@ function CheckoutContent() {
                                         onChange={(e) => handleUserDetailChange('address', e.target.value)}
                                         placeholder="Enter your street address"
                                         className={validationErrors.address ? 'input-error' : ''}
+                                        disabled={loading}
                                     />
                                     {validationErrors.address && (
                                         <span className="field-error">{validationErrors.address}</span>
@@ -661,6 +666,7 @@ function CheckoutContent() {
                                         onChange={(e) => handleUserDetailChange('city', e.target.value)}
                                         placeholder="Enter your city"
                                         className={validationErrors.city ? 'input-error' : ''}
+                                        disabled={loading}
                                     />
                                     {validationErrors.city && (
                                         <span className="field-error">{validationErrors.city}</span>
@@ -675,6 +681,7 @@ function CheckoutContent() {
                                         onChange={(e) => handleUserDetailChange('state', e.target.value)}
                                         placeholder="Enter your state"
                                         className={validationErrors.state ? 'input-error' : ''}
+                                        disabled={loading}
                                     />
                                     {validationErrors.state && (
                                         <span className="field-error">{validationErrors.state}</span>
@@ -689,6 +696,7 @@ function CheckoutContent() {
                                         onChange={(e) => handleUserDetailChange('pincode', e.target.value)}
                                         placeholder="Enter your pincode"
                                         className={validationErrors.pincode ? 'input-error' : ''}
+                                        disabled={loading}
                                     />
                                     {validationErrors.pincode && (
                                         <span className="field-error">{validationErrors.pincode}</span>
@@ -740,6 +748,7 @@ function CheckoutContent() {
                                         accept="*"
                                         onChange={(e) => handleFileUpload(e.target.files)}
                                         style={{ display: 'none' }}
+                                        disabled={loading}
                                     />
                                     <div className="upload-placeholder">
                                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -775,6 +784,7 @@ function CheckoutContent() {
                                                 className="remove-file-btn"
                                                 onClick={() => removeFile(index)}
                                                 title="Remove file"
+                                                disabled={loading}
                                             >
                                                 ✕
                                             </button>
@@ -794,6 +804,7 @@ function CheckoutContent() {
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 rows={4}
+                                disabled={loading}
                             />
                         </div>
 
