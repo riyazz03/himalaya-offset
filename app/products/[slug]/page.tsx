@@ -72,6 +72,10 @@ export default function ProductPage() {
             try {
                 const { data } = await SanityService.getProduct(productSlug);
 
+                console.log('=== PRODUCT LOADED ===');
+                console.log('Product:', data);
+                console.log('Pricing Tiers:', data?.pricingTiers);
+
                 if (data) {
                     setProduct(data);
                     
@@ -155,6 +159,9 @@ export default function ProductPage() {
     };
 
     const calculateTotalPrice = (tierIndex: number, qty: number): PriceData => {
+        console.log('\n=== CALCULATING TOTAL PRICE ===');
+        console.log(`tierIndex: ${tierIndex}, quantity: ${qty}`);
+
         if (!product?.pricingTiers || product.pricingTiers.length === 0) {
             return { 
                 basePrice: 0, 
@@ -182,32 +189,46 @@ export default function ProductPage() {
         const sortedTiers = [...product.pricingTiers].sort((a, b) => a.quantity - b.quantity);
         const selectedTierData = sortedTiers[tierIndex];
         
-        // Get bundle price and quantity from tier
-        const tierBundlePrice = selectedTierData.price || 0;
+        console.log('Selected Tier Data:', selectedTierData);
+        
+        // FIX: Use pricePerUnit directly instead of dividing price by quantity
+        // The pricePerUnit field already contains the per-unit price
+        const basePricePerUnit = selectedTierData.pricePerUnit || selectedTierData.price || 0;
         const tierQuantity = selectedTierData.quantity || 1;
         
-        // Calculate actual price per unit: tierPrice / tierQuantity
-        const basePricePerUnit = tierBundlePrice / tierQuantity;
+        console.log(`Base Price Per Unit: ${basePricePerUnit} (from pricePerUnit field)`);
+        console.log(`Tier Quantity: ${tierQuantity}`);
         
-        // Get option modifiers
-        const optionModifier = calculatePricePerUnitModifier(tierIndex);
+        // Get option modifiers (this is per unit cost)
+        const optionPricePerUnit = calculatePricePerUnitModifier(tierIndex);
+        
+        console.log(`Option Price Per Unit: ${optionPricePerUnit}`);
         
         // Final price per unit (base + options)
-        const finalPricePerUnit = basePricePerUnit + optionModifier;
+        const finalPricePerUnit = basePricePerUnit + optionPricePerUnit;
+        
+        console.log(`Final Price Per Unit: ${basePricePerUnit} + ${optionPricePerUnit} = ${finalPricePerUnit}`);
         
         // Calculate subtotal: quantity × final price per unit
         const subtotal = finalPricePerUnit * qty;
+        
+        console.log(`Subtotal: ${finalPricePerUnit} × ${qty} = ${subtotal}`);
         
         // Calculate GST (18%)
         const gstPercentage = 18;
         const gstAmount = Math.round(subtotal * (gstPercentage / 100) * 100) / 100;
         
+        console.log(`GST (18%): ${subtotal} × 0.18 = ${gstAmount}`);
+        
         // Final total with GST
         const finalTotal = Math.round((subtotal + gstAmount) * 100) / 100;
 
+        console.log(`Final Total: ${subtotal} + ${gstAmount} = ${finalTotal}`);
+        console.log('=== END PRICE CALCULATION ===\n');
+
         return { 
             basePrice: subtotal,
-            optionsPrice: optionModifier * qty,
+            optionsPrice: optionPricePerUnit * qty,
             totalPrice: subtotal, 
             pricePerUnit: finalPricePerUnit,
             gstAmount,
@@ -222,17 +243,30 @@ export default function ProductPage() {
         }
     }, [selectedTier, selectedOptions, product, quantity]);
 
-    const getAdjustedTierPrice = (tierIndex: number, baseTierPrice: number, tierQuantity: number): number => {
-        const pricePerUnitModifier = calculatePricePerUnitModifier(tierIndex);
-        return baseTierPrice + (pricePerUnitModifier * tierQuantity);
+    const getAdjustedTierPrice = (tierIndex: number, tierData: any): number => {
+        // FIX: Use pricePerUnit directly from the tier data
+        const pricePerUnit = tierData.pricePerUnit || tierData.price || 0;
+        const tierQuantity = tierData.quantity || 1;
+        
+        // Get the per-unit option cost for this tier
+        const optionPricePerUnit = calculatePricePerUnitModifier(tierIndex);
+        
+        // Total tier price = (base price per unit + option price per unit) × tier quantity
+        const adjustedPrice = (pricePerUnit + optionPricePerUnit) * tierQuantity;
+        
+        console.log(`getAdjustedTierPrice - tierIndex: ${tierIndex}, pricePerUnit: ${pricePerUnit}, tierQuantity: ${tierQuantity}, optionPricePerUnit: ${optionPricePerUnit}, adjustedPrice: ${adjustedPrice}`);
+        
+        return adjustedPrice;
     };
 
     const handleTierSelection = (tierIndex: number, tierQuantity: number) => {
+        console.log(`\n>>> TIER SELECTED: tierIndex=${tierIndex}, tierQuantity=${tierQuantity}`);
         setSelectedTier(tierIndex);
         setQuantity(tierQuantity);
     };
 
     const handleOptionChange = (optionLabel: string, value: string | number) => {
+        console.log(`\n>>> OPTION CHANGED: ${optionLabel} = ${value}`);
         setSelectedOptions(prev => ({
             ...prev,
             [optionLabel]: value
@@ -434,7 +468,7 @@ export default function ProductPage() {
                                         <div className="quantity-list">
                                             {displayedTiers.map((tier, displayIndex) => {
                                                 const actualIndex = sortedTiers.indexOf(tier);
-                                                const adjustedPrice = getAdjustedTierPrice(actualIndex, tier.price, tier.quantity);
+                                                const adjustedPrice = getAdjustedTierPrice(actualIndex, tier);
                                                 const isSelected = selectedTier === actualIndex;
                                                 
                                                 return (
