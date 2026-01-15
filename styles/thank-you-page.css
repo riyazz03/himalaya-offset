@@ -1,164 +1,247 @@
-.thank-you-page {
-  min-height: 80vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f8f9fa;
-  padding: 2rem;
+.thank-you-simple {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 150px;
+    background-color: #f5f5f5;
 }
 
-.thank-you-wrapper {
-  width: 100%;
-  max-width: 500px;
+.thank-you-block {
+    width: 100%;
+    max-width: 600px;
+    background: #ffffff;
+    padding: 40px;
 }
 
-.thank-you-content {
-  background: white;
-  border-radius: 12px;
-  padding: 3rem 2rem;
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
-  text-align: center;
+/* Header */
+.order-header {
+    text-align: center;
+    margin-bottom: 30px;
 }
 
-.thank-you-icon-wrapper {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1.5rem;
+.order-header h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #1a1a1a;
 }
 
-.thank-you-icon {
-  width: 80px;
-  height: 80px;
-  color: #2067ff;
-  stroke-width: 1.5;
+.subtitle {
+    font-size: 16px;
+    color: #666;
 }
 
-.thank-you-title {
-  font-size: 2.25rem;
-  font-weight: 700;
-  color: #1a202c;
-  margin: 0 0 0.5rem 0;
-  letter-spacing: -0.5px;
+/* Invoice Section */
+.invoice-section {
+    margin-bottom: 30px;
 }
 
-.thank-you-subtitle {
-  font-size: 1.125rem;
-  color: #4a5568;
-  margin: 0 0 1rem 0;
-  font-weight: 500;
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
 }
 
-.thank-you-description {
-  font-size: 0.95rem;
-  color: #718096;
-  line-height: 1.6;
-  margin: 0 0 2rem 0;
+.info-row:last-of-type {
+    border-bottom: none;
 }
 
-.countdown-container {
-  background: #f7fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 1.25rem;
-  margin-bottom: 2rem;
+.label {
+    font-weight: 500;
+    color: #666;
 }
 
-.countdown-label {
-  font-size: 0.85rem;
-  color: #718096;
-  margin: 0 0 0.5rem 0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 500;
+.value {
+    color: #333;
+    font-weight: 500;
+    text-align: right;
+    word-break: break-word;
+    max-width: 50%;
 }
 
-.countdown-display {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #2067ff;
-  margin: 0;
+.value.amount {
+    color: #2067ff;
+    font-weight: 600;
+    font-size: 16px;
 }
 
-.redirect-button {
-  display: inline-block;
-  padding: 0.875rem 2rem;
-  background: #2067ff;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(32, 103, 255, 0.2);
+.value.status {
+    color: #10b981;
+    font-weight: 600;
 }
 
-.redirect-button:hover {
-  background: #1a52cc;
-  box-shadow: 0 4px 12px rgba(32, 103, 255, 0.3);
-  transform: translateY(-1px);
+.value.small {
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
 }
 
-.redirect-button:active {
-  transform: translateY(0);
+.divider {
+    height: 1px;
+    background-color: #ddd;
+    margin: 15px 0;
 }
 
+/* Message */
+.message {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-left: 3px solid #2067ff;
+    margin-bottom: 25px;
+    font-size: 14px;
+    color: #666;
+}
+
+.message p {
+    margin-bottom: 8px;
+}
+
+.message p:last-child {
+    margin-bottom: 0;
+}
+
+.message strong {
+    color: #333;
+}
+
+/* Buttons */
+.button-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.btn-primary {
+    background-color: #2067ff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #1a52cc;
+}
+
+.btn-primary:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.btn-secondary:hover {
+    background-color: #e0e0e0;
+}
+
+.link-btn {
+    display: inline-block;
+    color: #2067ff;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.link-btn:hover {
+    text-decoration: underline;
+}
+
+.loading-text {
+    text-align: center;
+    color: #666;
+    font-size: 16px;
+}
+
+/* Responsive Design */
 @media (max-width: 640px) {
-  .thank-you-content {
-    padding: 2rem 1.5rem;
-    border-radius: 10px;
-  }
+    .thank-you-block {
+        padding: 25px;
+    }
 
-  .thank-you-title {
-    font-size: 1.75rem;
-  }
+    .order-header h1 {
+        font-size: 24px;
+    }
 
-  .thank-you-subtitle {
-    font-size: 1rem;
-  }
+    .button-group {
+        grid-template-columns: 1fr;
+    }
 
-  .thank-you-description {
-    font-size: 0.9rem;
-  }
+    .info-row {
+        flex-direction: column;
+        gap: 5px;
+    }
 
-  .thank-you-icon {
-    width: 70px;
-    height: 70px;
-  }
+    .label {
+        font-weight: 600;
+    }
 
-  .countdown-display {
-    font-size: 1.75rem;
-  }
-
-  .redirect-button {
-    padding: 0.75rem 1.5rem;
-    font-size: 0.9rem;
-  }
+    .value {
+        text-align: left;
+        max-width: 100%;
+    }
 }
 
 @media (max-width: 480px) {
-  .thank-you-page {
-    padding: 1rem;
-  }
+    .thank-you-simple {
+        padding: 15px;
+    }
 
-  .thank-you-content {
-    padding: 1.5rem 1rem;
-  }
+    .thank-you-block {
+        padding: 20px;
+    }
 
-  .thank-you-title {
-    font-size: 1.5rem;
-  }
+    .order-header h1 {
+        font-size: 20px;
+    }
 
-  .thank-you-subtitle {
-    font-size: 0.95rem;
-  }
+    .info-row {
+        font-size: 13px;
+    }
 
-  .thank-you-icon {
-    width: 60px;
-    height: 60px;
-  }
+    .message {
+        font-size: 13px;
+        padding: 12px;
+    }
 
-  .redirect-button {
-    width: 100%;
-  }
+    .btn {
+        font-size: 13px;
+        padding: 10px 15px;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .thank-you-simple {
+        background: white;
+        padding: 0;
+    }
+
+    .thank-you-block {
+        max-width: 100%;
+        padding: 0;
+    }
+
+    .button-group {
+        display: none;
+    }
+
+    .message {
+        display: none;
+    }
 }

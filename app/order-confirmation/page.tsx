@@ -464,6 +464,8 @@ function CheckoutContent() {
                             description: description,
                             uploadedFiles: uploadedFiles.length,
                             orderData: orderData,
+                            quantity: orderData.quantity,
+                            gstAmount: orderData.pricing.gstAmount || 0,
                         };
 
                         const verifyResponse = await fetch('/api/payments/razorpay/verify-payment', {
@@ -481,19 +483,33 @@ function CheckoutContent() {
                         const verifyResult = await verifyResponse.json();
 
                         if (verifyResult.verified) {
-                            console.log('✅ Payment verified, redirecting to thank you page');
+                            console.log('✅ Payment verified, preparing order data...');
                             
-                            // Store order data before redirect
+                            // Store complete order data for thank-you page
                             const orderDataToStore = {
-                              orderId: orderId,
-                              productName: orderData.product.name,
-                              amount: amountToPay,
-                              userEmail: userDetails.email,
-                              userName: `${userDetails.firstName} ${userDetails.lastName}`,
+                                orderId: orderId,
+                                productName: orderData.product.name,
+                                amount: amountToPay,
+                                userEmail: userDetails.email,
+                                userName: `${userDetails.firstName} ${userDetails.lastName}`,
+                                userPhone: userDetails.phone,
+                                userAddress: userDetails.address,
+                                userCity: userDetails.city,
+                                userState: userDetails.state,
+                                userPincode: userDetails.pincode,
+                                description: description,
+                                uploadedFiles: uploadedFiles.length,
+                                quantity: orderData.quantity,
+                                gstAmount: orderData.pricing.gstAmount || 0,
+                                paymentId: response.razorpay_payment_id,
+                                paymentDate: new Date().toISOString(),
                             };
-                            localStorage.setItem('lastOrder', JSON.stringify(orderDataToStore));
-                            sessionStorage.setItem('orderData', JSON.stringify(orderDataToStore));
                             
+                            // Store in both sessionStorage (primary) and localStorage (backup)
+                            sessionStorage.setItem('orderData', JSON.stringify(orderDataToStore));
+                            localStorage.setItem('lastOrder', JSON.stringify(orderDataToStore));
+                            
+                            console.log('✅ Order data saved, redirecting to thank you page');
                             router.push('/thank-you');
                         } else {
                             setError('Payment verification failed. Please contact support.');
