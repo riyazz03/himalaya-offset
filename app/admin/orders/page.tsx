@@ -59,7 +59,174 @@ export default function AdminOrdersPage() {
   const [activeTab, setActiveTab] = useState<'processing' | 'success' | 'cancel'>('processing');
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<{ [key: string]: string }>({});
+  const [downloadingPDF, setDownloadingPDF] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+
+  const formatCurrency = (value: number): string => {
+    return (value || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+  };
+
+  const handleDownloadBill = async (order: OrderItem) => {
+    setDownloadingPDF(order._id);
+    try {
+      const html2pdf = (await import('html2pdf.js')).default;
+      const invoiceHTML = createInvoiceHTML(order);
+      const element = document.createElement('div');
+      element.innerHTML = invoiceHTML;
+      const options: any = {
+        margin: 10,
+        filename: `Invoice_${order.orderId}.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' },
+      };
+      html2pdf().set(options).from(element).save();
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      alert('Failed to generate PDF. Please try again.');
+    } finally {
+      setDownloadingPDF(null);
+    }
+  };
+
+  const createInvoiceHTML = (order: OrderItem): string => {
+    const basePrice = order.pricing?.basePrice || 0;
+    const quantity = order.quantity || 1;
+    const gstAmount = order.pricing?.gstAmount || 0;
+    const finalTotal = order.pricing?.finalTotal || 0;
+    const companyName = 'Himalaya Offset Printing';
+    const companyGST = '33AAFCT5055K1Z0';
+    const companyAddress = '123, Main Street, Vellore, Tamil Nadu 632001';
+    const companyPhone = '+91-9876543210';
+    const companyEmail = 'info@himalayaoffset.com';
+    const companyWebsite = 'www.himalayaoffset.com';
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; line-height: 1.6; }
+          .invoice-container { max-width: 900px; margin: 0 auto; padding: 40px; background: white; }
+          .header { display: flex; justify-content: space-between; margin-bottom: 40px; border-bottom: 3px solid #10b981; padding-bottom: 20px; }
+          .company-info h1 { color: #10b981; font-size: 28px; margin-bottom: 8px; }
+          .company-details { font-size: 13px; color: #666; line-height: 1.8; }
+          .invoice-title { text-align: right; }
+          .invoice-title h2 { color: #10b981; font-size: 24px; margin-bottom: 10px; }
+          .invoice-meta { font-size: 13px; color: #666; text-align: right; }
+          .invoice-meta p { margin-bottom: 5px; }
+          .billing-shipping { display: flex; justify-content: space-between; margin-bottom: 30px; }
+          .billing-info, .shipping-info { width: 48%; }
+          .billing-info h3, .shipping-info h3 { color: #10b981; font-size: 14px; font-weight: 700; margin-bottom: 10px; text-transform: uppercase; }
+          .billing-info p, .shipping-info p { font-size: 13px; margin-bottom: 5px; line-height: 1.8; }
+          .items-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+          .items-table thead { background: #f0fdf4; border-top: 2px solid #10b981; border-bottom: 2px solid #10b981; }
+          .items-table th { padding: 15px; text-align: left; font-weight: 700; color: #059669; font-size: 13px; text-transform: uppercase; }
+          .items-table td { padding: 15px; border-bottom: 1px solid #e5e7eb; font-size: 13px; }
+          .amount-right { text-align: right; }
+          .totals-section { display: flex; justify-content: flex-end; margin-bottom: 30px; }
+          .totals-box { width: 400px; }
+          .total-row { display: flex; justify-content: space-between; padding: 12px 0; font-size: 13px; border-bottom: 1px solid #e5e7eb; }
+          .total-row.final { border-bottom: 2px solid #10b981; padding-top: 15px; padding-bottom: 15px; font-weight: 700; font-size: 16px; color: #10b981; }
+          .total-row.header { font-weight: 700; color: #333; border-bottom: 2px solid #e5e7eb; }
+          .payment-info { background: #f0fdf4; padding: 15px; border-radius: 6px; margin-bottom: 30px; border-left: 4px solid #10b981; }
+          .payment-info h4 { color: #059669; font-size: 13px; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; }
+          .payment-info p { font-size: 13px; margin-bottom: 4px; color: #374151; }
+          .footer { margin-top: 40px; padding-top: 20px; border-top: 2px solid #e5e7eb; text-align: center; font-size: 12px; color: #6b7280; }
+        </style>
+      </head>
+      <body>
+        <div class="invoice-container">
+          <div class="header">
+            <div class="company-info">
+              <h1>${companyName}</h1>
+              <div class="company-details">
+                <p>${companyAddress}</p>
+                <p>Phone: ${companyPhone}</p>
+                <p>Email: ${companyEmail}</p>
+                <p>GST: ${companyGST}</p>
+              </div>
+            </div>
+            <div class="invoice-title">
+              <h2>INVOICE</h2>
+              <div class="invoice-meta">
+                <p><strong>Invoice #:</strong> ${order.orderId}</p>
+                <p><strong>Invoice Date:</strong> ${order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-IN') : 'N/A'}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="billing-shipping">
+            <div class="billing-info">
+              <h3>Bill To</h3>
+              <p><strong>${order.customerDetails?.firstName || 'N/A'} ${order.customerDetails?.lastName || ''}</strong></p>
+              <p>${order.deliveryAddress?.address || 'N/A'}</p>
+              <p>${order.deliveryAddress?.city || ''}, ${order.deliveryAddress?.state || ''} ${order.deliveryAddress?.pincode || ''}</p>
+              <p>Email: ${order.customerDetails?.email || 'N/A'}</p>
+              <p>Phone: ${order.customerDetails?.phone || 'N/A'}</p>
+            </div>
+            <div class="shipping-info">
+              <h3>Ship To</h3>
+              <p><strong>${order.customerDetails?.firstName || 'N/A'} ${order.customerDetails?.lastName || ''}</strong></p>
+              <p>${order.deliveryAddress?.address || 'N/A'}</p>
+              <p>${order.deliveryAddress?.city || ''}, ${order.deliveryAddress?.state || ''} ${order.deliveryAddress?.pincode || ''}</p>
+            </div>
+          </div>
+
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th style="text-align: center; width: 80px;">Qty</th>
+                <th style="text-align: right; width: 100px;">Unit Price</th>
+                <th style="text-align: right; width: 100px;">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>${order.productSnapshot?.name || 'N/A'}</strong></td>
+                <td style="text-align: center;">${quantity}</td>
+                <td class="amount-right">₹${formatCurrency(basePrice / quantity)}</td>
+                <td class="amount-right">₹${formatCurrency(basePrice)}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="totals-section">
+            <div class="totals-box">
+              <div class="total-row header">
+                <span>Subtotal</span>
+                <span>₹${formatCurrency(basePrice)}</span>
+              </div>
+              <div class="total-row">
+                <span>GST (18%)</span>
+                <span>₹${formatCurrency(gstAmount)}</span>
+              </div>
+              <div class="total-row final">
+                <span>Total Amount</span>
+                <span>₹${formatCurrency(finalTotal)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="payment-info">
+            <h4>Payment Information</h4>
+            <p><strong>Payment ID:</strong> ${order.payment?.razorpayPaymentId || 'N/A'}</p>
+            <p><strong>Status:</strong> Completed</p>
+          </div>
+
+          <div class="footer">
+            <p><strong>${companyName}</strong></p>
+            <p>${companyWebsite}</p>
+            <p>Thank you for your business!</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  };
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -212,21 +379,21 @@ export default function AdminOrdersPage() {
             onClick={() => setActiveTab('processing')}
           >
             <span className="tab-icon">⏳</span>
-            Processing ({orders.filter(o => (o.status || 'processing') === 'processing').length})
+            Processing ({orders.filter((o: OrderItem) => (o.status || 'processing') === 'processing').length})
           </button>
           <button
             className={`admin-tab ${activeTab === 'success' ? 'active' : ''}`}
             onClick={() => setActiveTab('success')}
           >
             <span className="tab-icon">✅</span>
-            Success ({orders.filter(o => o.status === 'success').length})
+            Success ({orders.filter((o: OrderItem) => o.status === 'success').length})
           </button>
           <button
             className={`admin-tab ${activeTab === 'cancel' ? 'active' : ''}`}
             onClick={() => setActiveTab('cancel')}
           >
             <span className="tab-icon">❌</span>
-            Cancelled ({orders.filter(o => o.status === 'cancel').length})
+            Cancelled ({orders.filter((o: OrderItem) => o.status === 'cancel').length})
           </button>
         </div>
 
@@ -377,6 +544,16 @@ export default function AdminOrdersPage() {
                           </div>
                         )}
                       </div>
+                    </div>
+
+                    <div className="bill-download-section">
+                      <button
+                        onClick={() => handleDownloadBill(order)}
+                        disabled={downloadingPDF === order._id}
+                        className="btn-download-bill"
+                      >
+                        {downloadingPDF === order._id ? '⏳ Generating PDF...' : '📄 Download Bill as PDF'}
+                      </button>
                     </div>
                   </div>
                 )}
