@@ -25,7 +25,7 @@ interface User {
 export default function ProfilePage() {
   const { data: session, status, update } = useSession();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'profile' | 'orders' | 'signout'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'signout'>('profile');
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState<User | null>(null);
   const [error, setError] = useState('');
@@ -215,12 +215,6 @@ export default function ProfilePage() {
                 My Profile
               </button>
               <button
-                className={`sidebar-nav-item ${activeTab === 'orders' ? 'active' : ''}`}
-                onClick={() => setActiveTab('orders')}
-              >
-                My Orders
-              </button>
-              <button
                 className={`sidebar-nav-item ${activeTab === 'signout' ? 'active' : ''}`}
                 onClick={() => setActiveTab('signout')}
               >
@@ -386,13 +380,6 @@ export default function ProfilePage() {
                   {loading ? 'Saving...' : 'Save Changes'}
                 </button>
               </form>
-            </div>
-          )}
-
-          {activeTab === 'orders' && (
-            <div className="profile-panel">
-              <h2>My Orders</h2>
-              <p className="empty-state">No orders yet. Start shopping!</p>
             </div>
           )}
 
