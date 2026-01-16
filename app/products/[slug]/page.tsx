@@ -15,6 +15,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/thumbs';
 import '@/styles/single-product-page.css';
 
+
 interface SelectedOptions {
     [key: string]: string | number;
 }
@@ -51,6 +52,7 @@ export default function ProductPage() {
         gstPercentage: 18,
         finalTotal: 0
     });
+    const [showOptionTooltip, setShowOptionTooltip] = useState(false);
 
     useEffect(() => {
         setIsMounted(true);
@@ -72,10 +74,6 @@ export default function ProductPage() {
             try {
                 const { data } = await SanityService.getProduct(productSlug);
 
-                console.log('=== PRODUCT LOADED ===');
-                console.log('Product:', data);
-                console.log('Pricing Tiers:', data?.pricingTiers);
-
                 if (data) {
                     setProduct(data);
                     
@@ -93,7 +91,7 @@ export default function ProductPage() {
                     if (data.productOptions && data.productOptions.length > 0) {
                         const initialOptions: SelectedOptions = {};
                         data.productOptions.forEach((option: ProductOption) => {
-                            if (option.values && option.values.length > 0 && option.isRequired) {
+                            if (option.values && option.values.length > 0) {
                                 initialOptions[option.label] = option.values[0].value;
                             }
                         });
@@ -159,9 +157,6 @@ export default function ProductPage() {
     };
 
     const calculateTotalPrice = (tierIndex: number, qty: number): PriceData => {
-        console.log('\n=== CALCULATING TOTAL PRICE ===');
-        console.log(`tierIndex: ${tierIndex}, quantity: ${qty}`);
-
         if (!product?.pricingTiers || product.pricingTiers.length === 0) {
             return { 
                 basePrice: 0, 
@@ -189,42 +184,19 @@ export default function ProductPage() {
         const sortedTiers = [...product.pricingTiers].sort((a, b) => a.quantity - b.quantity);
         const selectedTierData = sortedTiers[tierIndex];
         
-        console.log('Selected Tier Data:', selectedTierData);
-        
-        // FIX: Use pricePerUnit directly instead of dividing price by quantity
-        // The pricePerUnit field already contains the per-unit price
         const basePricePerUnit = selectedTierData.pricePerUnit || selectedTierData.price || 0;
         const tierQuantity = selectedTierData.quantity || 1;
         
-        console.log(`Base Price Per Unit: ${basePricePerUnit} (from pricePerUnit field)`);
-        console.log(`Tier Quantity: ${tierQuantity}`);
-        
-        // Get option modifiers (this is per unit cost)
         const optionPricePerUnit = calculatePricePerUnitModifier(tierIndex);
         
-        console.log(`Option Price Per Unit: ${optionPricePerUnit}`);
-        
-        // Final price per unit (base + options)
         const finalPricePerUnit = basePricePerUnit + optionPricePerUnit;
         
-        console.log(`Final Price Per Unit: ${basePricePerUnit} + ${optionPricePerUnit} = ${finalPricePerUnit}`);
-        
-        // Calculate subtotal: quantity × final price per unit
         const subtotal = finalPricePerUnit * qty;
         
-        console.log(`Subtotal: ${finalPricePerUnit} × ${qty} = ${subtotal}`);
-        
-        // Calculate GST (18%)
         const gstPercentage = 18;
         const gstAmount = Math.round(subtotal * (gstPercentage / 100) * 100) / 100;
         
-        console.log(`GST (18%): ${subtotal} × 0.18 = ${gstAmount}`);
-        
-        // Final total with GST
         const finalTotal = Math.round((subtotal + gstAmount) * 100) / 100;
-
-        console.log(`Final Total: ${subtotal} + ${gstAmount} = ${finalTotal}`);
-        console.log('=== END PRICE CALCULATION ===\n');
 
         return { 
             basePrice: subtotal,
@@ -244,37 +216,46 @@ export default function ProductPage() {
     }, [selectedTier, selectedOptions, product, quantity]);
 
     const getAdjustedTierPrice = (tierIndex: number, tierData: any): number => {
-        // FIX: Use pricePerUnit directly from the tier data
         const pricePerUnit = tierData.pricePerUnit || tierData.price || 0;
         const tierQuantity = tierData.quantity || 1;
         
-        // Get the per-unit option cost for this tier
         const optionPricePerUnit = calculatePricePerUnitModifier(tierIndex);
         
-        // Total tier price = (base price per unit + option price per unit) × tier quantity
         const adjustedPrice = (pricePerUnit + optionPricePerUnit) * tierQuantity;
-        
-        console.log(`getAdjustedTierPrice - tierIndex: ${tierIndex}, pricePerUnit: ${pricePerUnit}, tierQuantity: ${tierQuantity}, optionPricePerUnit: ${optionPricePerUnit}, adjustedPrice: ${adjustedPrice}`);
         
         return adjustedPrice;
     };
 
     const handleTierSelection = (tierIndex: number, tierQuantity: number) => {
-        console.log(`\n>>> TIER SELECTED: tierIndex=${tierIndex}, tierQuantity=${tierQuantity}`);
         setSelectedTier(tierIndex);
         setQuantity(tierQuantity);
     };
 
     const handleOptionChange = (optionLabel: string, value: string | number) => {
-        console.log(`\n>>> OPTION CHANGED: ${optionLabel} = ${value}`);
         setSelectedOptions(prev => ({
             ...prev,
             [optionLabel]: value
         }));
     };
 
+    const areAllOptionsSelected = (): boolean => {
+        if (!product?.productOptions || product.productOptions.length === 0) {
+            return true;
+        }
+
+        return product.productOptions.every((option: ProductOption) => {
+            return selectedOptions[option.label] && selectedOptions[option.label] !== '';
+        });
+    };
+
     const handlePlaceOrder = () => {
         if (!product?.pricingTiers || selectedTier === null) return;
+        
+        if (!areAllOptionsSelected()) {
+            setShowOptionTooltip(true);
+            setTimeout(() => setShowOptionTooltip(false), 3000);
+            return;
+        }
 
         const sortedTiers = [...product.pricingTiers].sort((a, b) => a.quantity - b.quantity);
 
@@ -440,13 +421,14 @@ export default function ProductPage() {
                                             <div key={optionIndex} className="option-section">
                                                 <label className="option-label">
                                                     {option.label}
-                                                    {option.isRequired && <span className="required">*</span>}
+                                                    <span className="required">*</span>
                                                 </label>
 
                                                 <select
                                                     className="option-select"
                                                     value={selectedOptions[option.label] || ''}
                                                     onChange={(e) => handleOptionChange(option.label, e.target.value)}
+                                                    required
                                                 >
                                                     <option value="">Select {option.label}...</option>
                                                     {option.values && option.values.map((value: OptionValue, valueIndex: number) => {
@@ -511,7 +493,6 @@ export default function ProductPage() {
                                     </div>
                                 )}
 
-                                {/* Price Calculation Section */}
                                 <div className="price-calculation">
                                     <div className="calc-row">
                                         <span className="calc-label">
@@ -529,10 +510,23 @@ export default function ProductPage() {
                                     </div>
                                 </div>
 
+                                {showOptionTooltip && (
+                                    <div style={{
+                                        backgroundColor: '#ff6b6b',
+                                        color: 'white',
+                                        padding: '12px 16px',
+                                        borderRadius: '4px',
+                                        fontSize: '14px',
+                                        textAlign: 'center',
+                                        marginBottom: '16px',
+                                        width: '100%'
+                                    }}>
+                                        ⚠️ Please select all options before continuing
+                                    </div>
+                                )}
                                 <button 
                                     className="order-button"
                                     onClick={handlePlaceOrder}
-                                    disabled={selectedTier === null}
                                 >
                                     CONTINUE TO CHECKOUT
                                 </button>

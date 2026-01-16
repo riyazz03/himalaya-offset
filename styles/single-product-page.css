@@ -775,3 +775,56 @@
         padding: 0.2rem 0.5rem;
     }
 }
+
+.checkout-button-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.option-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #ff6b6b;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    animation: slideDown 0.3s ease-out;
+    z-index: 1000;
+}
+
+.option-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #ff6b6b;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+@media (max-width: 480px) {
+    .option-tooltip {
+        white-space: normal;
+        width: 200px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}

@@ -158,7 +158,7 @@ function ThankYouContent() {
             <div className="thank-you-block">
                 {/* Header */}
                 <div className="order-header">
-                    <h1>✓ Order Confirmed</h1>
+                    <h1>Order Confirmed</h1>
                     <p className="subtitle">Thank you for your order!</p>
                 </div>
 

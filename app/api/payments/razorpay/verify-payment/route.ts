@@ -3,7 +3,6 @@ import crypto from 'crypto';
 import { createClient } from '@sanity/client';
 import nodemailer from 'nodemailer';
 
-// Initialize Sanity Client with your actual credentials
 const sanityClient = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'k0dxt5dl',
   dataset: 'production',
@@ -12,8 +11,6 @@ const sanityClient = createClient({
   useCdn: false,
 });
 
-// Initialize Email Transporter
-// Configure based on your email provider
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_SERVER_HOST || 'smtp.gmail.com',
   port: parseInt(process.env.EMAIL_SERVER_PORT || '587'),
@@ -31,6 +28,7 @@ interface VerifyPaymentRequest {
   orderId: string;
   amount: number;
   productName?: string;
+  productSlug?: string;
   userName?: string;
   userEmail?: string;
   userPhone?: string;
@@ -40,7 +38,7 @@ interface VerifyPaymentRequest {
   userPincode?: string;
   description?: string;
   uploadedFiles?: number;
-  quantity?: number;
+  quantity?: number | string;
   gstAmount?: number;
   orderData?: any;
 }
@@ -55,6 +53,7 @@ export async function POST(request: Request) {
       amount: body.amount,
       productName: body.productName,
       userEmail: body.userEmail,
+      quantity: body.quantity,
     });
 
     if (!body.razorpay_order_id || !body.razorpay_payment_id || !body.razorpay_signature) {
@@ -65,11 +64,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if this is a test order
     const isTestMode = body.razorpay_order_id.startsWith('test_order_');
 
     if (!isTestMode) {
-      // Verify Razorpay signature for real orders
       console.log('Verifying Razorpay signature...');
       const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || '');
       hmac.update(`${body.razorpay_order_id}|${body.razorpay_payment_id}`);
@@ -93,24 +90,25 @@ export async function POST(request: Request) {
       console.log('✅ TEST MODE - Signature verification skipped');
     }
 
-    // ===== CREATE ORDER IN SANITY =====
     console.log('\n=== CREATING ORDER IN SANITY ===');
     let sanityOrderId: string = '';
     
     try {
+      const quantityNumber = typeof body.quantity === 'string' ? parseInt(body.quantity, 10) : (body.quantity || 1);
+      const gstAmountNumber = body.orderData?.pricing?.gstAmount || body.gstAmount || 0;
+      const finalTotalNumber = body.orderData?.pricing?.finalTotal || body.amount || 0;
+
       const orderDoc = {
         _type: 'order',
         orderId: body.orderId,
         
-        // Customer Details
         customerDetails: {
-          firstName: body.userName?.split(' ')[0] || '',
+          firstName: body.userName?.split(' ')[0] || 'Customer',
           lastName: body.userName?.split(' ').slice(1).join(' ') || '',
           email: body.userEmail || '',
           phone: body.userPhone || '',
         },
 
-        // Delivery Address
         deliveryAddress: {
           address: body.userAddress || '',
           city: body.userCity || '',
@@ -118,22 +116,23 @@ export async function POST(request: Request) {
           pincode: body.userPincode || '',
         },
 
-        // Product Snapshot
         productSnapshot: {
           name: body.productName || '',
-          slug: body.orderData?.product?.slug || '',
+          slug: body.productSlug || body.orderData?.product?.slug || '',
           description: body.description || '',
         },
 
-        // Order Details
-        quantity: body.quantity || body.orderData?.quantity || 1,
+        quantity: quantityNumber,
         
         selectedTier: body.orderData?.selectedTier ? {
           tierLabel: body.orderData.selectedTier.quantity?.toString() || '',
-          quantity: body.orderData.selectedTier.quantity || 0,
-          price: body.orderData.selectedTier.pricePerUnit || 0,
+          quantity: typeof body.orderData.selectedTier.quantity === 'string' 
+            ? parseInt(body.orderData.selectedTier.quantity, 10) 
+            : (body.orderData.selectedTier.quantity || 0),
+          price: body.orderData.selectedTier.pricePerUnit || body.orderData.selectedTier.price || 0,
           basePrice: body.orderData.selectedTier.price || 0,
-        } : undefined,
+          savingsPercentage: body.orderData.selectedTier.savingsPercentage || 0,
+        } : null,
 
         selectedOptions: body.orderData?.selectedOptions 
           ? Object.entries(body.orderData.selectedOptions).map(([key, value]) => ({
@@ -143,17 +142,18 @@ export async function POST(request: Request) {
             }))
           : [],
 
-        // Pricing Information
         pricing: {
           basePrice: body.orderData?.pricing?.basePrice || body.amount || 0,
           optionsPrice: body.orderData?.pricing?.optionsPrice || 0,
-          totalPrice: body.amount || 0,
+          totalPrice: body.orderData?.pricing?.totalPrice || body.amount || 0,
           pricePerUnit: body.orderData?.pricing?.pricePerUnit || 0,
+          gstAmount: gstAmountNumber,
+          gstPercentage: 18,
+          finalTotal: finalTotalNumber,
           discount: 0,
           discountPercentage: 0,
         },
 
-        // Payment Information
         payment: {
           paymentMethod: 'razorpay',
           razorpayOrderId: body.razorpay_order_id,
@@ -164,13 +164,10 @@ export async function POST(request: Request) {
           paymentDate: new Date().toISOString(),
         },
 
-        // Customer Notes
         customerNotes: body.description || '',
-
-        // Status
+        
         status: 'processing',
         
-        // Timestamps
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -182,14 +179,13 @@ export async function POST(request: Request) {
         sanityId: createdOrder._id,
         orderId: createdOrder.orderId,
         customer: createdOrder.customerDetails?.email,
-        amount: createdOrder.pricing?.totalPrice,
+        amount: createdOrder.pricing?.finalTotal,
+        quantity: createdOrder.quantity,
       });
     } catch (sanityError) {
       console.error('❌ Failed to create order in Sanity:', sanityError);
-      // Continue with email sending even if Sanity fails
     }
 
-    // ===== SEND CUSTOMER CONFIRMATION EMAIL =====
     console.log('\n=== SENDING CUSTOMER EMAIL ===');
     if (body.userEmail) {
       const customerEmailHtml = generateCustomerEmail({
@@ -218,19 +214,13 @@ export async function POST(request: Request) {
         console.log('Email response:', result.messageId);
       } catch (emailError) {
         console.error('❌ Failed to send customer email:', emailError);
-        console.error('Email configuration:', {
-          host: process.env.EMAIL_SERVER_HOST,
-          port: process.env.EMAIL_SERVER_PORT,
-          user: process.env.EMAIL_SERVER_USER ? 'configured' : 'missing',
-        });
       }
     } else {
       console.log('⚠️ No customer email provided, skipping email');
     }
 
-    // ===== SEND ADMIN NOTIFICATION EMAIL =====
     console.log('\n=== SENDING ADMIN EMAIL ===');
-    const adminEmail = 'himalayaoffsetvlr1@gmail.com'; // Your admin email
+    const adminEmail = 'himalayaoffsetvlr1@gmail.com';
     
     if (adminEmail && process.env.EMAIL_SERVER_USER) {
       const adminEmailHtml = generateAdminEmail({
@@ -239,7 +229,7 @@ export async function POST(request: Request) {
         email: body.userEmail || '',
         productName: body.productName || '',
         amount: body.amount || 0,
-        quantity: body.quantity || 1,
+        quantity: typeof body.quantity === 'string' ? parseInt(body.quantity, 10) : (body.quantity || 1),
         paymentId: body.razorpay_payment_id,
         address: body.userAddress || '',
         city: body.userCity || '',
@@ -297,8 +287,6 @@ export async function POST(request: Request) {
     );
   }
 }
-
-// ===== EMAIL TEMPLATE FUNCTIONS =====
 
 function generateCustomerEmail({
   orderId,
