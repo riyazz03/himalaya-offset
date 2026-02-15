@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
+import { createClient } from '@sanity/client';
 
 interface CreateOrderRequest {
     amount: number;
@@ -8,9 +9,16 @@ interface CreateOrderRequest {
     userName: string;
 }
 
+const sanityClient = createClient({
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'k0dxt5dl',
+  dataset: 'production',
+  apiVersion: '2024-01-01',
+  token: process.env.SANITY_API_TOKEN,
+  useCdn: false,
+});
+
 export async function POST(request: Request) {
     try {
-        // Validate environment variables
         const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
         const keySecret = process.env.RAZORPAY_KEY_SECRET;
 
@@ -22,7 +30,6 @@ export async function POST(request: Request) {
             );
         }
 
-        // Initialize Razorpay inside the handler
         const razorpay = new Razorpay({
             key_id: keyId,
             key_secret: keySecret,
@@ -30,7 +37,6 @@ export async function POST(request: Request) {
 
         const body: CreateOrderRequest = await request.json();
 
-        // Validate input
         if (!body.amount || body.amount <= 0) {
             return NextResponse.json(
                 { error: 'Invalid amount' },
@@ -45,9 +51,10 @@ export async function POST(request: Request) {
             );
         }
 
-        // Create Razorpay Order
+        console.log('📋 Creating Razorpay order for:', body.productName, 'Amount:', body.amount);
+
         const options = {
-            amount: Math.round(body.amount * 100), // Convert to paise
+            amount: Math.round(body.amount * 100),
             currency: 'INR',
             receipt: `order_${Date.now()}`,
             notes: {
@@ -58,11 +65,66 @@ export async function POST(request: Request) {
         };
 
         const order = await razorpay.orders.create(options);
+        const orderId = order.id;
+
+        console.log('✅ Razorpay order created:', orderId);
+        console.log('📁 Creating Sanity order...');
+
+        // ✅ Create Sanity order immediately
+        try {
+            const sanityOrder = await sanityClient.create({
+                _type: 'order',
+                orderId: orderId,
+                status: 'pending',  // ← Will be updated to 'processing' after payment
+                productSnapshot: {
+                    name: body.productName,
+                },
+                quantity: 1,
+                pricing: {
+                    basePrice: body.amount,
+                    optionsPrice: 0,
+                    totalPrice: body.amount,
+                    pricePerUnit: body.amount,
+                    gstAmount: 0,
+                    gstPercentage: 18,
+                    finalTotal: body.amount,
+                    discount: 0,
+                    discountPercentage: 0,
+                },
+                customerDetails: {
+                    email: body.userEmail,
+                    firstName: body.userName.split(' ')[0] || 'Customer',
+                    lastName: body.userName.split(' ')[1] || '',
+                    phone: '',
+                },
+                deliveryAddress: {
+                    address: '',
+                    city: '',
+                    state: '',
+                    pincode: '',
+                },
+                selectedOptions: [],
+                payment: {
+                    paymentMethod: 'razorpay',
+                    razorpayOrderId: orderId,
+                    paymentStatus: 'pending',
+                    amountPaid: body.amount,
+                },
+                designFiles: [],
+                customerNotes: '',
+                createdAt: new Date().toISOString(),
+            });
+
+            console.log('✅ Sanity order created:', sanityOrder._id);
+            console.log('✅ Ready for file uploads!');
+        } catch (sanityError) {
+            console.warn('⚠️ Could not create Sanity order:', sanityError);
+        }
 
         return NextResponse.json(
             {
                 success: true,
-                orderId: order.id,
+                orderId: orderId,
                 amount: body.amount,
                 currency: 'INR',
             },

@@ -1,18 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import nodemailer from 'nodemailer'
-import path from 'path'
-import fs from 'fs'
-import os from 'os'
+import { createClient } from '@sanity/client'
 
-// Configure your email transporter
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
+const sanityClient = createClient({
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'k0dxt5dl',
+  dataset: 'production',
+  apiVersion: '2024-01-01',
+  token: process.env.SANITY_API_TOKEN,
+  useCdn: false,
 })
 
 export async function POST(request: NextRequest) {
@@ -28,7 +24,6 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData()
 
-    // Extract form fields
     const description = formData.get('description') as string
     const orderId = formData.get('orderId') as string
     const productName = formData.get('productName') as string
@@ -41,198 +36,132 @@ export async function POST(request: NextRequest) {
     const userPincode = formData.get('userPincode') as string
     const totalAmount = formData.get('totalAmount') as string
 
-    // Validate required fields
-    if (!orderId || !productName || !userEmail || !description) {
+    if (!orderId || !productName || !userEmail) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       )
     }
 
-    // Extract files from form data
-    const files: Array<{ name: string; data: Buffer }> = []
-    const tempDir = path.join(os.tmpdir(), `order-${orderId}`)
+    console.log('📁 Uploading files for order:', orderId)
 
-    // Create temp directory if it doesn't exist
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true })
-    }
+    const designFiles: Array<{
+      fileName: string
+      fileSize: number
+      fileUrl: string
+      fileType: string
+      uploadedAt: string
+    }> = []
 
     // Process uploaded files
-    let fileCount = 0
-    let hasFiles = false
-    
     for (let i = 0; i < 10; i++) {
       const file = formData.get(`file_${i}`) as File
       if (!file) break
-      
-      hasFiles = true
 
       try {
+        console.log(`📤 Uploading file: ${file.name}`)
+        
         const buffer = Buffer.from(await file.arrayBuffer())
-        const fileName = `${i + 1}_${file.name}`
-        const filePath = path.join(tempDir, fileName)
 
-        // Save file temporarily
-        fs.writeFileSync(filePath, buffer)
-        files.push({
-          name: fileName,
-          data: buffer,
+        const asset = await sanityClient.assets.upload('file', buffer, {
+          filename: `${orderId}_${i + 1}_${file.name}`,
+          description: `Order ${orderId} - File ${i + 1}`,
         })
 
-        fileCount++
+        console.log(`✅ File uploaded: ${file.name}`)
+
+        designFiles.push({
+          fileName: file.name,
+          fileSize: file.size / (1024 * 1024),
+          fileUrl: asset.url,
+          fileType: file.type || 'application/octet-stream',
+          uploadedAt: new Date().toISOString(),
+        })
       } catch (fileError) {
-        console.error(`Error processing file ${i}:`, fileError)
+        console.error(`❌ Error uploading file ${i}:`, fileError)
       }
     }
 
-    if (files.length === 0) {
+    if (designFiles.length === 0) {
       return NextResponse.json(
         { error: 'No files uploaded' },
         { status: 400 }
       )
     }
 
-    // Prepare email content
-    const emailHtml = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: linear-gradient(135deg, #2067ff 0%, #1a52cc 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0;">
-          <h1 style="margin: 0;">New Order Received!</h1>
-          <p style="margin: 5px 0 0 0;">Order ID: ${orderId}</p>
-        </div>
-        
-        <div style="background: #f8fafc; padding: 20px; border-radius: 0 0 8px 8px; border: 1px solid #e2e8f0;">
-          <h2 style="color: #1a1a1a; margin-top: 0;">Customer Details</h2>
-          <table style="width: 100%; border-collapse: collapse;">
-            <tr>
-              <td style="padding: 8px 0; color: #6b7280;"><strong>Name:</strong></td>
-              <td style="padding: 8px 0; color: #1a1a1a;">${userName}</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px 0; color: #6b7280;"><strong>Email:</strong></td>
-              <td style="padding: 8px 0; color: #1a1a1a;">${userEmail}</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px 0; color: #6b7280;"><strong>Phone:</strong></td>
-              <td style="padding: 8px 0; color: #1a1a1a;">${userPhone}</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px 0; color: #6b7280;"><strong>Address:</strong></td>
-              <td style="padding: 8px 0; color: #1a1a1a;">${userAddress}, ${userCity}, ${userState} - ${userPincode}</td>
-            </tr>
-          </table>
+    console.log(`✅ Successfully uploaded ${designFiles.length} files`)
 
-          <h2 style="color: #1a1a1a; margin-top: 20px;">Order Details</h2>
-          <table style="width: 100%; border-collapse: collapse;">
-            <tr>
-              <td style="padding: 8px 0; color: #6b7280;"><strong>Product:</strong></td>
-              <td style="padding: 8px 0; color: #1a1a1a;">${productName}</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px 0; color: #6b7280;"><strong>Amount:</strong></td>
-              <td style="padding: 8px 0; color: #1a1a1a;">₹${totalAmount}</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px 0; color: #6b7280;"><strong>Files Uploaded:</strong></td>
-              <td style="padding: 8px 0; color: #1a1a1a;">${files.length} file(s)</td>
-            </tr>
-          </table>
-
-          <h2 style="color: #1a1a1a; margin-top: 20px;">Customer Notes</h2>
-          <p style="background: white; padding: 12px; border-radius: 6px; border-left: 4px solid #2067ff; color: #1a1a1a; margin: 0;">
-            ${description.replace(/\n/g, '<br />')}
-          </p>
-
-          <div style="background: white; padding: 12px; border-radius: 6px; margin-top: 20px; border: 1px solid #e2e8f0;">
-            <p style="margin: 0; color: #6b7280; font-size: 12px;">
-              <strong>Order ID:</strong> ${orderId}<br />
-              <strong>Files:</strong> ${fileCount} file(s) attached
-            </p>
-          </div>
-        </div>
-      </div>
-    `
-
-    // Prepare attachments
-    const attachments = files.map(file => ({
-      filename: file.name,
-      content: file.data,
-    }))
-
-    // Send email to admin
-    const adminEmail = process.env.ADMIN_EMAIL || 'himalayaoffsetvlr1@gmail.com'
-
+    // Find and update the order
     try {
-      await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: adminEmail,
-        subject: `New Order #${orderId} - ${productName}`,
-        html: emailHtml,
-        attachments: attachments,
-      })
-      console.log('✅ Email sent to admin successfully')
-    } catch (emailError) {
-      console.warn('⚠️ Email sending failed:', emailError)
-      // Continue anyway - files were processed
-    }
+      const existingOrderId = await sanityClient.fetch(
+        `*[_type == "order" && orderId == $orderId][0]._id`,
+        { orderId }
+      )
 
-    // Send confirmation email to customer
-    const customerEmailHtml = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: linear-gradient(135deg, #2067ff 0%, #1a52cc 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0;">
-          <h1 style="margin: 0;">Order Confirmation!</h1>
-          <p style="margin: 5px 0 0 0;">Thank you for your order</p>
-        </div>
+      if (existingOrderId) {
+        console.log(`📁 Updating order ${existingOrderId} with files and delivery details...`)
         
-        <div style="background: #f8fafc; padding: 20px; border-radius: 0 0 8px 8px; border: 1px solid #e2e8f0;">
-          <p style="color: #1a1a1a;">Hi ${userName},</p>
-          <p style="color: #6b7280;">We have received your order for <strong>${productName}</strong>. Our team will review your files and get back to you soon.</p>
-          
-          <div style="background: white; padding: 12px; border-radius: 6px; margin-top: 20px; border: 1px solid #e2e8f0;">
-            <p style="margin: 0 0 8px 0; color: #6b7280;"><strong>Order Details</strong></p>
-            <p style="margin: 0; color: #1a1a1a;"><strong>Order ID:</strong> ${orderId}</p>
-            <p style="margin: 0; color: #1a1a1a;"><strong>Amount:</strong> ₹${totalAmount}</p>
-          </div>
+        // ✅ Add _key to each file (required by Sanity)
+        const designFilesWithKeys = designFiles.map((file, index) => ({
+          _key: `file_${Date.now()}_${index}`,
+          ...file,
+        }))
 
-          <p style="color: #6b7280; margin-top: 20px;">Thank you for choosing us!</p>
-        </div>
-      </div>
-    `
+        // ✅ Update order with files AND delivery address details
+        await sanityClient
+          .patch(existingOrderId)
+          .set({
+            // Files
+            designFiles: designFilesWithKeys,
+            
+            // ✅ NEW: Update delivery address
+            deliveryAddress: {
+              address: userAddress || '',
+              city: userCity || '',
+              state: userState || '',
+              pincode: userPincode || '',
+            },
+            
+            // ✅ NEW: Update customer details with phone
+            customerDetails: {
+              firstName: userName?.split(' ')[0] || 'Customer',
+              lastName: userName?.split(' ')[1] || '',
+              email: userEmail || '',
+              phone: userPhone || '',  // ✅ NOW UPDATES!
+            },
+            
+            // Notes
+            customerNotes: description,
+            updatedAt: new Date().toISOString(),
+          })
+          .commit()
 
-    try {
-      await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: userEmail,
-        subject: `Order Confirmation #${orderId}`,
-        html: customerEmailHtml,
-      })
-      console.log('✅ Confirmation email sent to customer')
-    } catch (error) {
-      console.warn('⚠️ Failed to send customer confirmation email:', error)
-    }
-
-    // Clean up temp files after sending
-    setTimeout(() => {
-      try {
-        fs.rmSync(tempDir, { recursive: true, force: true })
-      } catch (cleanupError) {
-        console.warn('⚠️ Failed to clean up temp directory:', cleanupError)
+        console.log(`✅ Order updated with files and delivery details!`)
+        console.log('✅ Delivery address saved!')
+        console.log('✅ Phone number saved!')
+      } else {
+        console.error(`❌ Order not found: ${orderId}`)
+        throw new Error(`Order ${orderId} not found`)
       }
-    }, 5000)
+    } catch (sanityError) {
+      console.error('❌ Error updating order:', sanityError)
+      throw sanityError
+    }
 
     return NextResponse.json(
       {
         success: true,
-        message: 'Order details received successfully',
+        message: 'Files uploaded and delivery details saved',
         orderId: orderId,
-        filesUploaded: fileCount,
+        filesUploaded: designFiles.length,
+        files: designFiles,
       },
       { status: 200 }
     )
   } catch (error) {
-    console.error('❌ Order send-details error:', error)
+    console.error('❌ Error:', error)
 
-    let errorMessage = 'Failed to process order'
+    let errorMessage = 'Failed to upload files'
     if (error instanceof Error) {
       errorMessage = error.message
     }

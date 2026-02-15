@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Script from 'next/script';
+import { DesignFiles } from '@/component/DesignFiles';
 import '@/styles/orderConfirmation.css';
 
 // Declare Razorpay type globally
@@ -58,6 +59,15 @@ interface UploadedFile {
     size: string;
 }
 
+// ✅ FIXED: Updated interface to match API response
+interface SanityUploadedFile {
+    fileName: string;
+    fileSize: number;  // In MB
+    fileUrl: string;
+    fileType?: string;
+    uploadedAt?: string;
+}
+
 interface RazorpayResponse {
     razorpay_order_id: string;
     razorpay_payment_id: string;
@@ -84,6 +94,7 @@ function CheckoutContent() {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+    const [sanityUploadedFiles, setSanityUploadedFiles] = useState<SanityUploadedFile[]>([]);
     const [description, setDescription] = useState('');
     const [razorpayLoaded, setRazorpayLoaded] = useState(false);
     const [validationErrors, setValidationErrors] = useState<{
@@ -426,6 +437,19 @@ function CheckoutContent() {
 
             const uploadResult = await uploadResponse.json();
             console.log('✅ Files uploaded successfully:', uploadResult);
+
+            // ✅ FIXED: Store files from backend response with correct mapping
+            if (uploadResult.files && uploadResult.files.length > 0) {
+                const filesFromBackend = uploadResult.files.map((f: any) => ({
+                    fileName: f.fileName,        // ✅ Correct property name
+                    fileSize: f.fileSize,        // ✅ Already in MB from API
+                    fileUrl: f.fileUrl,          // ✅ Use correct property name
+                    fileType: f.fileType || 'application/octet-stream',
+                    uploadedAt: f.uploadedAt,
+                }));
+                setSanityUploadedFiles(filesFromBackend);
+                console.log('✅ Files stored for display:', filesFromBackend);
+            }
 
             // Step 4: Check if Razorpay is loaded
             console.log('Step 4: Checking Razorpay...');
@@ -806,6 +830,20 @@ function CheckoutContent() {
                                             </button>
                                         </div>
                                     ))}
+                                </div>
+                            )}
+
+                            {/* ✅ FIXED: Display files from Sanity after upload */}
+                            {sanityUploadedFiles.length > 0 && (
+                                <div style={{ marginTop: '24px' }}>
+                                    <h4 style={{ marginBottom: '16px', color: '#047857' }}>✅ Files Successfully Uploaded to System</h4>
+                                    <DesignFiles 
+                                        files={sanityUploadedFiles}
+                                        onDownload={(file) => {
+                                            console.log('Downloading:', file.fileName);
+                                            window.open(file.fileUrl, '_blank');
+                                        }}
+                                    />
                                 </div>
                             )}
                         </div>

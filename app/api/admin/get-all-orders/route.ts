@@ -51,6 +51,14 @@ export async function GET(request: Request) {
         selectedOptions[] {
           optionLabel,
           selectedValue
+        },
+        designFiles[] {
+          _key,
+          fileName,
+          fileSize,
+          fileUrl,
+          fileType,
+          uploadedAt
         }
       }
     `;

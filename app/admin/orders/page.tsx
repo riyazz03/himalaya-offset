@@ -7,6 +7,15 @@ import '@/styles/admin-orders-page.css';
 
 const ADMIN_EMAIL = 'mohammedriyaz12032003@gmail.com';
 
+interface DesignFile {
+  _key?: string;
+  fileName: string;
+  fileSize: number;
+  fileUrl: string;
+  fileType?: string;
+  uploadedAt?: string;
+}
+
 interface OrderItem {
   _id: string;
   orderId: string;
@@ -47,6 +56,7 @@ interface OrderItem {
     razorpayPaymentId?: string;
     completedAt?: string;
   };
+  designFiles?: DesignFile[];
 }
 
 export default function AdminOrdersPage() {
@@ -60,10 +70,62 @@ export default function AdminOrdersPage() {
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<{ [key: string]: string }>({});
   const [downloadingPDF, setDownloadingPDF] = useState<string | null>(null);
+  const [downloadingFile, setDownloadingFile] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
   const formatCurrency = (value: number): string => {
     return (value || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  const getFileIcon = (fileName: string): string => {
+    const ext = fileName.split('.').pop()?.toLowerCase() || '';
+    const iconMap: { [key: string]: string } = {
+      pdf: '📄',
+      doc: '📝',
+      docx: '📝',
+      xls: '📊',
+      xlsx: '📊',
+      ppt: '🎯',
+      pptx: '🎯',
+      jpg: '🖼️',
+      jpeg: '🖼️',
+      png: '🖼️',
+      gif: '🖼️',
+      zip: '📦',
+      rar: '📦',
+      txt: '📃',
+      csv: '📋',
+    };
+    return iconMap[ext] || '📎';
+  };
+
+  const handleDownloadFile = async (file: DesignFile) => {
+    setDownloadingFile(file.fileName);
+    try {
+      const response = await fetch(file.fileUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = file.fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Error downloading file:', err);
+      alert('Failed to download file. Please try again.');
+    } finally {
+      setDownloadingFile(null);
+    }
   };
 
   const handleDownloadBill = async (order: OrderItem) => {
@@ -477,6 +539,35 @@ export default function AdminOrdersPage() {
                         <p className="payment-status">{(order.payment?.paymentStatus || 'completed').toUpperCase()}</p>
                       </div>
                     </div>
+
+                    {/* ✅ NEW: Display uploaded files */}
+                    {order.designFiles && order.designFiles.length > 0 && (
+                      <div className="uploaded-files-section">
+                        <h4>📁 Uploaded Files ({order.designFiles.length})</h4>
+                        <div className="files-list">
+                          {order.designFiles.map((file, idx) => (
+                            <div key={idx} className="file-item">
+                              <div className="file-info">
+                                <span className="file-icon">{getFileIcon(file.fileName)}</span>
+                                <div className="file-details">
+                                  <p className="file-name">{file.fileName}</p>
+                                  <p className="file-meta">
+                                    {formatFileSize(file.fileSize * 1024 * 1024)} • {file.fileType || 'File'}
+                                  </p>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => handleDownloadFile(file)}
+                                disabled={downloadingFile === file.fileName}
+                                className="btn-download-file"
+                              >
+                                {downloadingFile === file.fileName ? '⏳' : '⬇️ Download'}
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {order.selectedOptions && order.selectedOptions.length > 0 && (
                       <div className="selected-options">
