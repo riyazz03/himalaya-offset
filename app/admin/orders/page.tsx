@@ -5,7 +5,11 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import '@/styles/admin-orders-page.css';
 
-const ADMIN_EMAIL = 'mohammedriyaz12032003@gmail.com';
+// ✅ Multiple admin emails
+const ADMIN_EMAILS = [
+  'mohammedriyaz12032003@gmail.com',
+  'harishkarthickvlr@gmail.com',
+];
 
 interface DesignFile {
   _key?: string;
@@ -298,11 +302,15 @@ export default function AdminOrdersPage() {
 
     if (status === 'authenticated') {
       const userEmail = session?.user?.email || '';
-      const adminCheck = userEmail.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+      
+      // ✅ Check if user email is in admin list
+      const adminCheck = ADMIN_EMAILS.some(
+        email => email.toLowerCase() === userEmail.toLowerCase()
+      );
       
       console.log('🔍 Admin Check:');
       console.log('User Email:', userEmail);
-      console.log('Admin Email:', ADMIN_EMAIL);
+      console.log('Admin Emails:', ADMIN_EMAILS);
       console.log('Is Admin:', adminCheck);
 
       setIsAdmin(adminCheck);
@@ -540,7 +548,7 @@ export default function AdminOrdersPage() {
                       </div>
                     </div>
 
-                    {/* ✅ NEW: Display uploaded files */}
+                    {/* ✅ Display uploaded files */}
                     {order.designFiles && order.designFiles.length > 0 && (
                       <div className="uploaded-files-section">
                         <h4>📁 Uploaded Files ({order.designFiles.length})</h4>
